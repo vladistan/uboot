@@ -2,7 +2,23 @@
  * (C) Copyright 2002 ELTEC Elektronik AG
  * Frank Gottschling <fgottschling@eltec.de>
  *
- * SPDX-License-Identifier:	GPL-2.0+
+ * See file CREDITS for list of people who contributed to this
+ * project.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation; either version 2 of
+ * the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
+ * MA 02111-1307 USA
  */
 
 #include <common.h>
@@ -101,7 +117,7 @@ phys_size_t initdram (int board_type)
  * Register PI in the MPC 107 (at offset 0x41090 of the Embedded Utilities
  * Memory Block).
  */
-int do_reset (cmd_tbl_t * cmdtp, int flag, int argc, char * const argv[])
+int do_reset (cmd_tbl_t * cmdtp, int flag, int argc, char *argv[])
 {
 	out8 (MPC107_EUMB_PI, 1);
 	return (0);

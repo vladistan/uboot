@@ -2,7 +2,24 @@
  * (C) Copyright 2002
  * Rich Ireland, Enterasys Networks, rireland@enterasys.com.
  *
- * SPDX-License-Identifier:	GPL-2.0+
+ * See file CREDITS for list of people who contributed to this
+ * project.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation; either version 2 of
+ * the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	 See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
+ * MA 02111-1307 USA
+ *
  */
 
 /*
@@ -21,6 +38,7 @@
 #endif
 
 #undef CONFIG_SYS_FPGA_CHECK_BUSY
+#undef CONFIG_SYS_FPGA_PROG_FEEDBACK
 
 /* Note: The assumption is that we cannot possibly run fast enough to
  * overrun the device (the Slave Parallel mode can free run at 50MHz).
@@ -35,17 +53,19 @@
 #define CONFIG_SYS_FPGA_WAIT CONFIG_SYS_HZ/100	/* 10 ms */
 #endif
 
-static int Spartan3_sp_load(Xilinx_desc *desc, const void *buf, size_t bsize);
-static int Spartan3_sp_dump(Xilinx_desc *desc, const void *buf, size_t bsize);
-/* static int Spartan3_sp_info(Xilinx_desc *desc ); */
+static int Spartan3_sp_load( Xilinx_desc *desc, void *buf, size_t bsize );
+static int Spartan3_sp_dump( Xilinx_desc *desc, void *buf, size_t bsize );
+/* static int Spartan3_sp_info( Xilinx_desc *desc ); */
+static int Spartan3_sp_reloc( Xilinx_desc *desc, ulong reloc_offset );
 
-static int Spartan3_ss_load(Xilinx_desc *desc, const void *buf, size_t bsize);
-static int Spartan3_ss_dump(Xilinx_desc *desc, const void *buf, size_t bsize);
-/* static int Spartan3_ss_info(Xilinx_desc *desc); */
+static int Spartan3_ss_load( Xilinx_desc *desc, void *buf, size_t bsize );
+static int Spartan3_ss_dump( Xilinx_desc *desc, void *buf, size_t bsize );
+/* static int Spartan3_ss_info( Xilinx_desc *desc ); */
+static int Spartan3_ss_reloc( Xilinx_desc *desc, ulong reloc_offset );
 
 /* ------------------------------------------------------------------------- */
 /* Spartan-II Generic Implementation */
-int Spartan3_load(Xilinx_desc *desc, const void *buf, size_t bsize)
+int Spartan3_load (Xilinx_desc * desc, void *buf, size_t bsize)
 {
 	int ret_val = FPGA_FAIL;
 
@@ -68,7 +88,7 @@ int Spartan3_load(Xilinx_desc *desc, const void *buf, size_t bsize)
 	return ret_val;
 }
 
-int Spartan3_dump(Xilinx_desc *desc, const void *buf, size_t bsize)
+int Spartan3_dump (Xilinx_desc * desc, void *buf, size_t bsize)
 {
 	int ret_val = FPGA_FAIL;
 
@@ -97,10 +117,37 @@ int Spartan3_info( Xilinx_desc *desc )
 }
 
 
+int Spartan3_reloc (Xilinx_desc * desc, ulong reloc_offset)
+{
+	int ret_val = FPGA_FAIL;	/* assume a failure */
+
+	if (desc->family != Xilinx_Spartan3) {
+		printf ("%s: Unsupported family type, %d\n",
+				__FUNCTION__, desc->family);
+		return FPGA_FAIL;
+	} else
+		switch (desc->iface) {
+		case slave_serial:
+			ret_val = Spartan3_ss_reloc (desc, reloc_offset);
+			break;
+
+		case slave_parallel:
+			ret_val = Spartan3_sp_reloc (desc, reloc_offset);
+			break;
+
+		default:
+			printf ("%s: Unsupported interface type, %d\n",
+					__FUNCTION__, desc->iface);
+		}
+
+	return ret_val;
+}
+
+
 /* ------------------------------------------------------------------------- */
 /* Spartan-II Slave Parallel Generic Implementation */
 
-static int Spartan3_sp_load(Xilinx_desc *desc, const void *buf, size_t bsize)
+static int Spartan3_sp_load (Xilinx_desc * desc, void *buf, size_t bsize)
 {
 	int ret_val = FPGA_FAIL;	/* assume the worst */
 	Xilinx_Spartan3_Slave_Parallel_fns *fn = desc->iface_fns;
@@ -149,11 +196,11 @@ static int Spartan3_sp_load(Xilinx_desc *desc, const void *buf, size_t bsize)
 		}
 
 		/* Establish the initial state */
-		(*fn->pgm) (true, true, cookie);	/* Assert the program, commit */
+		(*fn->pgm) (TRUE, TRUE, cookie);	/* Assert the program, commit */
 
 		/* Get ready for the burn */
 		CONFIG_FPGA_DELAY ();
-		(*fn->pgm) (false, true, cookie);	/* Deassert the program, commit */
+		(*fn->pgm) (FALSE, TRUE, cookie);	/* Deassert the program, commit */
 
 		ts = get_timer (0);		/* get current time */
 		/* Now wait for INIT and BUSY to go high */
@@ -166,20 +213,20 @@ static int Spartan3_sp_load(Xilinx_desc *desc, const void *buf, size_t bsize)
 			}
 		} while ((*fn->init) (cookie) && (*fn->busy) (cookie));
 
-		(*fn->wr) (true, true, cookie); /* Assert write, commit */
-		(*fn->cs) (true, true, cookie); /* Assert chip select, commit */
-		(*fn->clk) (true, true, cookie);	/* Assert the clock pin */
+		(*fn->wr) (TRUE, TRUE, cookie); /* Assert write, commit */
+		(*fn->cs) (TRUE, TRUE, cookie); /* Assert chip select, commit */
+		(*fn->clk) (TRUE, TRUE, cookie);	/* Assert the clock pin */
 
 		/* Load the data */
 		while (bytecount < bsize) {
 			/* XXX - do we check for an Ctrl-C press in here ??? */
 			/* XXX - Check the error bit? */
 
-			(*fn->wdata) (data[bytecount++], true, cookie); /* write the data */
+			(*fn->wdata) (data[bytecount++], TRUE, cookie); /* write the data */
 			CONFIG_FPGA_DELAY ();
-			(*fn->clk) (false, true, cookie);	/* Deassert the clock pin */
+			(*fn->clk) (FALSE, TRUE, cookie);	/* Deassert the clock pin */
 			CONFIG_FPGA_DELAY ();
-			(*fn->clk) (true, true, cookie);	/* Assert the clock pin */
+			(*fn->clk) (TRUE, TRUE, cookie);	/* Assert the clock pin */
 
 #ifdef CONFIG_SYS_FPGA_CHECK_BUSY
 			ts = get_timer (0);	/* get current time */
@@ -188,9 +235,9 @@ static int Spartan3_sp_load(Xilinx_desc *desc, const void *buf, size_t bsize)
 				 * make sure we aren't busy forever... */
 
 				CONFIG_FPGA_DELAY ();
-				(*fn->clk) (false, true, cookie);	/* Deassert the clock pin */
+				(*fn->clk) (FALSE, TRUE, cookie);	/* Deassert the clock pin */
 				CONFIG_FPGA_DELAY ();
-				(*fn->clk) (true, true, cookie);	/* Assert the clock pin */
+				(*fn->clk) (TRUE, TRUE, cookie);	/* Assert the clock pin */
 
 				if (get_timer (ts) > CONFIG_SYS_FPGA_WAIT) {	/* check the time */
 					puts ("** Timeout waiting for BUSY to clear.\n");
@@ -207,8 +254,8 @@ static int Spartan3_sp_load(Xilinx_desc *desc, const void *buf, size_t bsize)
 		}
 
 		CONFIG_FPGA_DELAY ();
-		(*fn->cs) (false, true, cookie);	/* Deassert the chip select */
-		(*fn->wr) (false, true, cookie);	/* Deassert the write pin */
+		(*fn->cs) (FALSE, TRUE, cookie);	/* Deassert the chip select */
+		(*fn->wr) (FALSE, TRUE, cookie);	/* Deassert the write pin */
 
 #ifdef CONFIG_SYS_FPGA_PROG_FEEDBACK
 		putc ('\n');			/* terminate the dotted line */
@@ -222,9 +269,9 @@ static int Spartan3_sp_load(Xilinx_desc *desc, const void *buf, size_t bsize)
 			 * make sure we aren't busy forever... */
 
 			CONFIG_FPGA_DELAY ();
-			(*fn->clk) (false, true, cookie);	/* Deassert the clock pin */
+			(*fn->clk) (FALSE, TRUE, cookie);	/* Deassert the clock pin */
 			CONFIG_FPGA_DELAY ();
-			(*fn->clk) (true, true, cookie);	/* Assert the clock pin */
+			(*fn->clk) (TRUE, TRUE, cookie);	/* Assert the clock pin */
 
 			if (get_timer (ts) > CONFIG_SYS_FPGA_WAIT) {	/* check the time */
 				puts ("** Timeout waiting for DONE to clear.\n");
@@ -254,7 +301,7 @@ static int Spartan3_sp_load(Xilinx_desc *desc, const void *buf, size_t bsize)
 	return ret_val;
 }
 
-static int Spartan3_sp_dump(Xilinx_desc *desc, const void *buf, size_t bsize)
+static int Spartan3_sp_dump (Xilinx_desc * desc, void *buf, size_t bsize)
 {
 	int ret_val = FPGA_FAIL;	/* assume the worst */
 	Xilinx_Spartan3_Slave_Parallel_fns *fn = desc->iface_fns;
@@ -266,15 +313,15 @@ static int Spartan3_sp_dump(Xilinx_desc *desc, const void *buf, size_t bsize)
 
 		printf ("Starting Dump of FPGA Device %d...\n", cookie);
 
-		(*fn->cs) (true, true, cookie); /* Assert chip select, commit */
-		(*fn->clk) (true, true, cookie);	/* Assert the clock pin */
+		(*fn->cs) (TRUE, TRUE, cookie); /* Assert chip select, commit */
+		(*fn->clk) (TRUE, TRUE, cookie);	/* Assert the clock pin */
 
 		/* dump the data */
 		while (bytecount < bsize) {
 			/* XXX - do we check for an Ctrl-C press in here ??? */
 
-			(*fn->clk) (false, true, cookie);	/* Deassert the clock pin */
-			(*fn->clk) (true, true, cookie);	/* Assert the clock pin */
+			(*fn->clk) (FALSE, TRUE, cookie);	/* Deassert the clock pin */
+			(*fn->clk) (TRUE, TRUE, cookie);	/* Assert the clock pin */
 			(*fn->rdata) (&(data[bytecount++]), cookie);	/* read the data */
 #ifdef CONFIG_SYS_FPGA_PROG_FEEDBACK
 			if (bytecount % (bsize / 40) == 0)
@@ -282,9 +329,9 @@ static int Spartan3_sp_dump(Xilinx_desc *desc, const void *buf, size_t bsize)
 #endif
 		}
 
-		(*fn->cs) (false, false, cookie);	/* Deassert the chip select */
-		(*fn->clk) (false, true, cookie);	/* Deassert the clock pin */
-		(*fn->clk) (true, true, cookie);	/* Assert the clock pin */
+		(*fn->cs) (FALSE, FALSE, cookie);	/* Deassert the chip select */
+		(*fn->clk) (FALSE, TRUE, cookie);	/* Deassert the clock pin */
+		(*fn->clk) (TRUE, TRUE, cookie);	/* Assert the clock pin */
 
 #ifdef CONFIG_SYS_FPGA_PROG_FEEDBACK
 		putc ('\n');			/* terminate the dotted line */
@@ -300,9 +347,94 @@ static int Spartan3_sp_dump(Xilinx_desc *desc, const void *buf, size_t bsize)
 }
 
 
+static int Spartan3_sp_reloc (Xilinx_desc * desc, ulong reloc_offset)
+{
+	int ret_val = FPGA_FAIL;	/* assume the worst */
+	Xilinx_Spartan3_Slave_Parallel_fns *fn_r, *fn =
+			(Xilinx_Spartan3_Slave_Parallel_fns *) (desc->iface_fns);
+
+	if (fn) {
+		ulong addr;
+
+		/* Get the relocated table address */
+		addr = (ulong) fn + reloc_offset;
+		fn_r = (Xilinx_Spartan3_Slave_Parallel_fns *) addr;
+
+		if (!fn_r->relocated) {
+
+			if (memcmp (fn_r, fn,
+						sizeof (Xilinx_Spartan3_Slave_Parallel_fns))
+				== 0) {
+				/* good copy of the table, fix the descriptor pointer */
+				desc->iface_fns = fn_r;
+			} else {
+				PRINTF ("%s: Invalid function table at 0x%p\n",
+						__FUNCTION__, fn_r);
+				return FPGA_FAIL;
+			}
+
+			PRINTF ("%s: Relocating descriptor at 0x%p\n", __FUNCTION__,
+					desc);
+
+			addr = (ulong) (fn->pre) + reloc_offset;
+			fn_r->pre = (Xilinx_pre_fn) addr;
+
+			addr = (ulong) (fn->pgm) + reloc_offset;
+			fn_r->pgm = (Xilinx_pgm_fn) addr;
+
+			addr = (ulong) (fn->init) + reloc_offset;
+			fn_r->init = (Xilinx_init_fn) addr;
+
+			addr = (ulong) (fn->done) + reloc_offset;
+			fn_r->done = (Xilinx_done_fn) addr;
+
+			addr = (ulong) (fn->clk) + reloc_offset;
+			fn_r->clk = (Xilinx_clk_fn) addr;
+
+			addr = (ulong) (fn->err) + reloc_offset;
+			fn_r->err = (Xilinx_err_fn) addr;
+
+			addr = (ulong) (fn->cs) + reloc_offset;
+			fn_r->cs = (Xilinx_cs_fn) addr;
+
+			addr = (ulong) (fn->wr) + reloc_offset;
+			fn_r->wr = (Xilinx_wr_fn) addr;
+
+			addr = (ulong) (fn->rdata) + reloc_offset;
+			fn_r->rdata = (Xilinx_rdata_fn) addr;
+
+			addr = (ulong) (fn->wdata) + reloc_offset;
+			fn_r->wdata = (Xilinx_wdata_fn) addr;
+
+			addr = (ulong) (fn->busy) + reloc_offset;
+			fn_r->busy = (Xilinx_busy_fn) addr;
+
+			addr = (ulong) (fn->abort) + reloc_offset;
+			fn_r->abort = (Xilinx_abort_fn) addr;
+
+			addr = (ulong) (fn->post) + reloc_offset;
+			fn_r->post = (Xilinx_post_fn) addr;
+
+			fn_r->relocated = TRUE;
+
+		} else {
+			/* this table has already been moved */
+			/* XXX - should check to see if the descriptor is correct */
+			desc->iface_fns = fn_r;
+		}
+
+		ret_val = FPGA_SUCCESS;
+	} else {
+		printf ("%s: NULL Interface function table!\n", __FUNCTION__);
+	}
+
+	return ret_val;
+
+}
+
 /* ------------------------------------------------------------------------- */
 
-static int Spartan3_ss_load(Xilinx_desc *desc, const void *buf, size_t bsize)
+static int Spartan3_ss_load (Xilinx_desc * desc, void *buf, size_t bsize)
 {
 	int ret_val = FPGA_FAIL;	/* assume the worst */
 	Xilinx_Spartan3_Slave_Serial_fns *fn = desc->iface_fns;
@@ -340,7 +472,7 @@ static int Spartan3_ss_load(Xilinx_desc *desc, const void *buf, size_t bsize)
 		}
 
 		/* Establish the initial state */
-		(*fn->pgm) (true, true, cookie);	/* Assert the program, commit */
+		(*fn->pgm) (TRUE, TRUE, cookie);	/* Assert the program, commit */
 
 		/* Wait for INIT state (init low)                            */
 		ts = get_timer (0);		/* get current time */
@@ -348,15 +480,13 @@ static int Spartan3_ss_load(Xilinx_desc *desc, const void *buf, size_t bsize)
 			CONFIG_FPGA_DELAY ();
 			if (get_timer (ts) > CONFIG_SYS_FPGA_WAIT) {	/* check the time */
 				puts ("** Timeout waiting for INIT to start.\n");
-				if (*fn->abort)
-					(*fn->abort) (cookie);
 				return FPGA_FAIL;
 			}
 		} while (!(*fn->init) (cookie));
 
 		/* Get ready for the burn */
 		CONFIG_FPGA_DELAY ();
-		(*fn->pgm) (false, true, cookie);	/* Deassert the program, commit */
+		(*fn->pgm) (FALSE, TRUE, cookie);	/* Deassert the program, commit */
 
 		ts = get_timer (0);		/* get current time */
 		/* Now wait for INIT to go high */
@@ -364,47 +494,39 @@ static int Spartan3_ss_load(Xilinx_desc *desc, const void *buf, size_t bsize)
 			CONFIG_FPGA_DELAY ();
 			if (get_timer (ts) > CONFIG_SYS_FPGA_WAIT) {	/* check the time */
 				puts ("** Timeout waiting for INIT to clear.\n");
-				if (*fn->abort)
-					(*fn->abort) (cookie);
 				return FPGA_FAIL;
 			}
 		} while ((*fn->init) (cookie));
 
 		/* Load the data */
-		if(*fn->bwr)
-			(*fn->bwr) (data, bsize, true, cookie);
-		else {
-			while (bytecount < bsize) {
+		while (bytecount < bsize) {
 
-				/* Xilinx detects an error if INIT goes low (active)
-				   while DONE is low (inactive) */
-				if ((*fn->done) (cookie) == 0 && (*fn->init) (cookie)) {
-					puts ("** CRC error during FPGA load.\n");
-					if (*fn->abort)
-						(*fn->abort) (cookie);
-					return (FPGA_FAIL);
-				}
-				val = data [bytecount ++];
-				i = 8;
-				do {
-					/* Deassert the clock */
-					(*fn->clk) (false, true, cookie);
-					CONFIG_FPGA_DELAY ();
-					/* Write data */
-					(*fn->wr) ((val & 0x80), true, cookie);
-					CONFIG_FPGA_DELAY ();
-					/* Assert the clock */
-					(*fn->clk) (true, true, cookie);
-					CONFIG_FPGA_DELAY ();
-					val <<= 1;
-					i --;
-				} while (i > 0);
+			/* Xilinx detects an error if INIT goes low (active)
+			   while DONE is low (inactive) */
+			if ((*fn->done) (cookie) == 0 && (*fn->init) (cookie)) {
+				puts ("** CRC error during FPGA load.\n");
+				return (FPGA_FAIL);
+			}
+			val = data [bytecount ++];
+			i = 8;
+			do {
+				/* Deassert the clock */
+				(*fn->clk) (FALSE, TRUE, cookie);
+				CONFIG_FPGA_DELAY ();
+				/* Write data */
+				(*fn->wr) ((val & 0x80), TRUE, cookie);
+				CONFIG_FPGA_DELAY ();
+				/* Assert the clock */
+				(*fn->clk) (TRUE, TRUE, cookie);
+				CONFIG_FPGA_DELAY ();
+				val <<= 1;
+				i --;
+			} while (i > 0);
 
 #ifdef CONFIG_SYS_FPGA_PROG_FEEDBACK
-				if (bytecount % (bsize / 40) == 0)
-					putc ('.');		/* let them know we are alive */
+			if (bytecount % (bsize / 40) == 0)
+				putc ('.');		/* let them know we are alive */
 #endif
-			}
 		}
 
 		CONFIG_FPGA_DELAY ();
@@ -416,16 +538,16 @@ static int Spartan3_ss_load(Xilinx_desc *desc, const void *buf, size_t bsize)
 		/* now check for done signal */
 		ts = get_timer (0);		/* get current time */
 		ret_val = FPGA_SUCCESS;
-		(*fn->wr) (true, true, cookie);
+		(*fn->wr) (TRUE, TRUE, cookie);
 
 		while (! (*fn->done) (cookie)) {
 			/* XXX - we should have a check in here somewhere to
 			 * make sure we aren't busy forever... */
 
 			CONFIG_FPGA_DELAY ();
-			(*fn->clk) (false, true, cookie);	/* Deassert the clock pin */
+			(*fn->clk) (FALSE, TRUE, cookie);	/* Deassert the clock pin */
 			CONFIG_FPGA_DELAY ();
-			(*fn->clk) (true, true, cookie);	/* Assert the clock pin */
+			(*fn->clk) (TRUE, TRUE, cookie);	/* Assert the clock pin */
 
 			putc ('*');
 
@@ -457,11 +579,82 @@ static int Spartan3_ss_load(Xilinx_desc *desc, const void *buf, size_t bsize)
 	return ret_val;
 }
 
-static int Spartan3_ss_dump(Xilinx_desc *desc, const void *buf, size_t bsize)
+static int Spartan3_ss_dump (Xilinx_desc * desc, void *buf, size_t bsize)
 {
 	/* Readback is only available through the Slave Parallel and         */
 	/* boundary-scan interfaces.                                         */
 	printf ("%s: Slave Serial Dumping is unavailable\n",
 			__FUNCTION__);
 	return FPGA_FAIL;
+}
+
+static int Spartan3_ss_reloc (Xilinx_desc * desc, ulong reloc_offset)
+{
+	int ret_val = FPGA_FAIL;	/* assume the worst */
+	Xilinx_Spartan3_Slave_Serial_fns *fn_r, *fn =
+			(Xilinx_Spartan3_Slave_Serial_fns *) (desc->iface_fns);
+
+	if (fn) {
+		ulong addr;
+
+		/* Get the relocated table address */
+		addr = (ulong) fn + reloc_offset;
+		fn_r = (Xilinx_Spartan3_Slave_Serial_fns *) addr;
+
+		if (!fn_r->relocated) {
+
+			if (memcmp (fn_r, fn,
+						sizeof (Xilinx_Spartan3_Slave_Serial_fns))
+				== 0) {
+				/* good copy of the table, fix the descriptor pointer */
+				desc->iface_fns = fn_r;
+			} else {
+				PRINTF ("%s: Invalid function table at 0x%p\n",
+						__FUNCTION__, fn_r);
+				return FPGA_FAIL;
+			}
+
+			PRINTF ("%s: Relocating descriptor at 0x%p\n", __FUNCTION__,
+					desc);
+
+			if (fn->pre) {
+				addr = (ulong) (fn->pre) + reloc_offset;
+				fn_r->pre = (Xilinx_pre_fn) addr;
+			}
+
+			addr = (ulong) (fn->pgm) + reloc_offset;
+			fn_r->pgm = (Xilinx_pgm_fn) addr;
+
+			addr = (ulong) (fn->init) + reloc_offset;
+			fn_r->init = (Xilinx_init_fn) addr;
+
+			addr = (ulong) (fn->done) + reloc_offset;
+			fn_r->done = (Xilinx_done_fn) addr;
+
+			addr = (ulong) (fn->clk) + reloc_offset;
+			fn_r->clk = (Xilinx_clk_fn) addr;
+
+			addr = (ulong) (fn->wr) + reloc_offset;
+			fn_r->wr = (Xilinx_wr_fn) addr;
+
+			if (fn->post) {
+				addr = (ulong) (fn->post) + reloc_offset;
+				fn_r->post = (Xilinx_post_fn) addr;
+			}
+
+			fn_r->relocated = TRUE;
+
+		} else {
+			/* this table has already been moved */
+			/* XXX - should check to see if the descriptor is correct */
+			desc->iface_fns = fn_r;
+		}
+
+		ret_val = FPGA_SUCCESS;
+	} else {
+		printf ("%s: NULL Interface function table!\n", __FUNCTION__);
+	}
+
+	return ret_val;
+
 }

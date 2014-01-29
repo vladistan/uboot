@@ -2,13 +2,27 @@
  * pci.c -- esd VME8349 PCI board support.
  * Copyright (c) 2006 Wind River Systems, Inc.
  * Copyright (C) 2006-2009 Freescale Semiconductor, Inc.
- * Copyright (c) 2009 esd gmbh.
- *
- * Reinhard Arlt <reinhard.arlt@esd-electronics.com>
  *
  * Based on MPC8349 PCI support but w/o PIB related code.
  *
- * SPDX-License-Identifier:	GPL-2.0+
+ * See file CREDITS for list of people who contributed to this
+ * project.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation; either version 2 of
+ * the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
+ * MA 02111-1307 USA
+ *
  */
 
 #include <asm/mmu.h>
@@ -18,7 +32,6 @@
 #include <pci.h>
 #include <i2c.h>
 #include <asm/fsl_i2c.h>
-#include "vme8349pin.h"
 
 DECLARE_GLOBAL_DATA_PTR;
 
@@ -80,22 +93,17 @@ pci_init_board(void)
 	udelay(2000);
 
 	/*
-	 * Assert/deassert VME reset
+	 * Assert/deassert PCI reset
 	 */
-	clrsetbits_be32(&immr->gpio[1].dat,
-			GPIO2_TSI_POWERUP_RESET_N | GPIO2_TSI_PLL_RESET_N,
-			GPIO2_VME_RESET_N  | GPIO2_L_RESET_EN_N);
-	setbits_be32(&immr->gpio[1].dir, GPIO2_TSI_PLL_RESET_N |
-		     GPIO2_TSI_POWERUP_RESET_N |
-		     GPIO2_VME_RESET_N |
-		     GPIO2_L_RESET_EN_N);
-	clrbits_be32(&immr->gpio[1].dir, GPIO2_V_SCON);
+	setbits_be32(&immr->gpio[0].dat, 0x00800000);
+	setbits_be32(&immr->gpio[0].dir, 0x00800000);
+	setbits_be32(&immr->gpio[1].dir, 0x08800000);
 	udelay(200);
-	setbits_be32(&immr->gpio[1].dat, GPIO2_TSI_PLL_RESET_N);
+	setbits_be32(&immr->gpio[1].dat, 0x08000000);
 	udelay(200);
-	setbits_be32(&immr->gpio[1].dat, GPIO2_TSI_POWERUP_RESET_N);
+	setbits_be32(&immr->gpio[1].dat, 0x08800000);
 	udelay(600000);
-	clrbits_be32(&immr->gpio[1].dat, GPIO2_L_RESET_EN_N);
+	clrbits_be32(&immr->gpio[1].dat, 0x00100000);
 
 	/* Configure PCI Local Access Windows */
 	pci_law[0].bar = CONFIG_SYS_PCI1_MEM_PHYS & LAWBAR_BAR;
@@ -106,14 +114,6 @@ pci_init_board(void)
 
 	udelay(2000);
 
-	if (monarch == 0) {
-		mpc83xx_pci_init(1, reg);
-	} else {
-		/*
-		 * Release PCI RST Output signal
-		 */
-		out_be32(&immr->pci_ctrl[0].gcr, 0);
-		udelay(2000);
-		out_be32(&immr->pci_ctrl[0].gcr, 1);
-	}
+	if (monarch == 0)
+		mpc83xx_pci_init(1, reg, 0);
 }

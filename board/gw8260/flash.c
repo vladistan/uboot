@@ -10,7 +10,24 @@
  * Advent Networks, Inc. <http://www.adventnetworks.com>
  * Oliver Brown <oliverb@alumni.utexas.net>
  *
- * SPDX-License-Identifier:	GPL-2.0+
+ *--------------------------------------------------------------------
+ * See file CREDITS for list of people who contributed to this
+ * project.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation; either version 2 of
+ * the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	 See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
+ * MA 02111-1307 USA
  */
 
 /*********************************************************************/
@@ -46,50 +63,54 @@ static int write_word (flash_info_t *info, ulong dest, ulong data);
 /*		      functions					     */
 /*********************************************************************/
 
-/*
- * NAME: flash_init() -	 initializes flash banks
- *
- * DESCRIPTION:
- *   This function initializes the flash bank(s).
- *
- * RETURNS:
- *   The size in bytes of the flash
- *
- * RESTRICTIONS/LIMITATIONS:
- *
- *
- */
-unsigned long flash_init(void)
+/*********************************************************************/
+/* NAME: flash_init() -	 initializes flash banks		     */
+/*								     */
+/* DESCRIPTION:							     */
+/*   This function initializes the flash bank(s).		     */
+/*								     */
+/* RETURNS:							     */
+/*   The size in bytes of the flash				     */
+/*								     */
+/* RESTRICTIONS/LIMITATIONS:					     */
+/*								     */
+/*								     */
+/*********************************************************************/
+unsigned long flash_init (void)
 {
-	int i;
+    unsigned long size;
+    int i;
 
-	/* Init: no FLASHes known */
-	for (i = 0; i < CONFIG_SYS_MAX_FLASH_BANKS; ++i)
-		flash_info[i].flash_id = FLASH_UNKNOWN;
+    /* Init: no FLASHes known */
+    for (i=0; i<CONFIG_SYS_MAX_FLASH_BANKS; ++i) {
+	flash_info[i].flash_id = FLASH_UNKNOWN;
+    }
 
-	/* for now, only support the 4 MB Flash SIMM */
-	(void)flash_get_size((vu_long *) CONFIG_SYS_FLASH0_BASE,
-			      &flash_info[0]);
-	/*
-	 * protect monitor and environment sectors
-	 */
+    /* for now, only support the 4 MB Flash SIMM */
+    size = flash_get_size((vu_long *)CONFIG_SYS_FLASH0_BASE, &flash_info[0]);
+
+    /*
+     * protect monitor and environment sectors
+     */
+
 #if CONFIG_SYS_MONITOR_BASE >= CONFIG_SYS_FLASH0_BASE
-	flash_protect(FLAG_PROTECT_SET,
-		      CONFIG_SYS_MONITOR_BASE,
-		      CONFIG_SYS_MONITOR_BASE + monitor_flash_len - 1,
-		      &flash_info[0]);
+    flash_protect(FLAG_PROTECT_SET,
+		  CONFIG_SYS_MONITOR_BASE,
+		  CONFIG_SYS_MONITOR_BASE+monitor_flash_len-1,
+		  &flash_info[0]);
 #endif
 
 #if defined(CONFIG_ENV_IS_IN_FLASH) && defined(CONFIG_ENV_ADDR)
-#ifndef CONFIG_ENV_SIZE
-#define CONFIG_ENV_SIZE	CONFIG_ENV_SECT_SIZE
-#endif
-	flash_protect(FLAG_PROTECT_SET,
-		      CONFIG_ENV_ADDR,
-		      CONFIG_ENV_ADDR + CONFIG_ENV_SIZE - 1, &flash_info[0]);
+# ifndef  CONFIG_ENV_SIZE
+#  define CONFIG_ENV_SIZE	CONFIG_ENV_SECT_SIZE
+# endif
+    flash_protect(FLAG_PROTECT_SET,
+		  CONFIG_ENV_ADDR,
+		  CONFIG_ENV_ADDR + CONFIG_ENV_SIZE - 1,
+		  &flash_info[0]);
 #endif
 
-	return CONFIG_SYS_FLASH0_SIZE * 1024 * 1024;	/*size */
+    return (CONFIG_SYS_FLASH0_SIZE * 1024 * 1024);  /*size*/
 }
 
 /*********************************************************************/

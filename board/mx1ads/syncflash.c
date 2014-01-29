@@ -7,7 +7,20 @@
  *
  * Ming-Len Wu <minglen_wu@techware.com.tw>
  *
- * SPDX-License-Identifier:	GPL-2.0+
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation; either version 2 of
+ * the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
+ * MA 02111-1307 USA
  */
 
 #include <common.h>
@@ -44,7 +57,7 @@ flash_info_t flash_info[CONFIG_SYS_MAX_FLASH_BANKS];	/* info for FLASH chips    
 
 /* Get Status register			*/
 u32 SF_SR(void) {
-	u32 tmp;
+	u32 tmp,tmp1;
 
 	reg_SFCTL	= CMD_PROGRAM;
 	tmp		= __REG(CONFIG_SYS_FLASH_BASE);
@@ -52,7 +65,7 @@ u32 SF_SR(void) {
 	reg_SFCTL	= CMD_NORMAL;
 
 	reg_SFCTL	= CMD_LCR;			/* Activate LCR Mode		*/
-	__REG(CONFIG_SYS_FLASH_BASE + LCR_SR_CLEAR);
+	tmp1		= __REG(CONFIG_SYS_FLASH_BASE + LCR_SR_CLEAR);
 
 	return tmp;
 }
@@ -80,10 +93,10 @@ u8 SF_Ready(void) {
 /* Issue the precharge all command		*/
 void SF_PrechargeAll(void) {
 
-	/* Set Precharge Command	*/
-	reg_SFCTL	= CMD_PREC;
-	/* Issue Precharge All Command */
-	__REG(CONFIG_SYS_FLASH_BASE + SYNCFLASH_A10);
+	u32 tmp;
+
+	reg_SFCTL	= CMD_PREC;			/* Set Precharge Command	*/
+	tmp		= __REG(CONFIG_SYS_FLASH_BASE + SYNCFLASH_A10); /* Issue Precharge All Command */
 }
 
 /* set SyncFlash to normal mode			*/
@@ -96,12 +109,13 @@ void SF_Normal(void) {
 
 /* Erase SyncFlash				*/
 void SF_Erase(u32 RowAddress) {
+	u32 tmp;
 
 	reg_SFCTL	= CMD_NORMAL;
-	__REG(RowAddress);
+	tmp		= __REG(RowAddress);
 
 	reg_SFCTL	= CMD_PREC;
-	__REG(RowAddress);
+	tmp		= __REG(RowAddress);
 
 	reg_SFCTL	= CMD_LCR;			/* Set LCR mode		*/
 	__REG(RowAddress + LCR_ERASE_CONFIRM)	= 0;	/* Issue Erase Setup Command	*/
@@ -138,6 +152,7 @@ void SF_NvmodeWrite(void) {
 
 ulong flash_init(void) {
 	int i, j;
+	u32 tmp;
 
 /* Turn on CSD1 for negating RESETSF of SyncFLash */
 
@@ -145,7 +160,7 @@ ulong flash_init(void) {
 	udelay(200);
 
 	reg_SFCTL	= CMD_LMR;		/* Set Load Mode Register Command	*/
-	__REG(MODE_REG_VAL);	/* Issue Load Mode Register Command	*/
+	tmp		= __REG(MODE_REG_VAL);	/* Issue Load Mode Register Command	*/
 
 	SF_Normal();
 
@@ -261,7 +276,7 @@ int flash_erase (flash_info_t *info, int s_first, int s_last) {
 
 /* arm simple, non interrupt dependent timer */
 
-		get_timer(0);
+		reset_timer_masked();
 
 		SF_NvmodeErase();
 		SF_NvmodeWrite();

@@ -2,11 +2,24 @@
  * Copyright (c) 2004 Picture Elements, Inc.
  *    Stephen Williams (steve@icarus.com)
  *
- * SPDX-License-Identifier:	GPL-2.0+
+ *    This source code is free software; you can redistribute it
+ *    and/or modify it in source code form under the terms of the GNU
+ *    General Public License as published by the Free Software
+ *    Foundation; either version 2 of the License, or (at your option)
+ *    any later version.
+ *
+ *    This program is distributed in the hope that it will be useful,
+ *    but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *    GNU General Public License for more details.
+ *
+ *    You should have received a copy of the GNU General Public License
+ *    along with this program; if not, write to the Free Software
+ *    Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA
  */
 
 #include <common.h>
-#include <asm/ppc4xx.h>
+#include <ppc4xx.h>
 #include <asm/processor.h>
 
 # define SDRAM_LEN 0x08000000
@@ -14,7 +27,7 @@
 /*
  * this is even after checkboard. It returns the size of the SDRAM
  * that we have installed. This function is called by board_init_f
- * in arch/powerpc/lib/board.c to initialize the memory and return what I
+ * in lib_ppc/board.c to initialize the memory and return what I
  * found.
  */
 phys_size_t initdram (int board_type)
@@ -22,60 +35,60 @@ phys_size_t initdram (int board_type)
 	/* Configure the SDRAMS */
 
 	/* disable memory controller */
-	mtdcr (SDRAM0_CFGADDR, SDRAM0_CFG);
-	mtdcr (SDRAM0_CFGDATA, 0x00000000);
+	mtdcr (memcfga, mem_mcopt1);
+	mtdcr (memcfgd, 0x00000000);
 
 	udelay (500);
 
 	/* Clear SDRAM0_BESR0 (Bus Error Syndrome Register) */
-	mtdcr (SDRAM0_CFGADDR, SDRAM0_BESR0);
-	mtdcr (SDRAM0_CFGDATA, 0xffffffff);
+	mtdcr (memcfga, mem_besra);
+	mtdcr (memcfgd, 0xffffffff);
 
 	/* Clear SDRAM0_BESR1 (Bus Error Syndrome Register) */
-	mtdcr (SDRAM0_CFGADDR, SDRAM0_BESR1);
-	mtdcr (SDRAM0_CFGDATA, 0xffffffff);
+	mtdcr (memcfga, mem_besrb);
+	mtdcr (memcfgd, 0xffffffff);
 
 	/* Clear SDRAM0_ECCCFG (disable ECC) */
-	mtdcr (SDRAM0_CFGADDR, SDRAM0_ECCCFG);
-	mtdcr (SDRAM0_CFGDATA, 0x00000000);
+	mtdcr (memcfga, mem_ecccf);
+	mtdcr (memcfgd, 0x00000000);
 
 	/* Clear SDRAM0_ECCESR (ECC Error Syndrome Register) */
-	mtdcr (SDRAM0_CFGADDR, SDRAM0_ECCESR);
-	mtdcr (SDRAM0_CFGDATA, 0xffffffff);
+	mtdcr (memcfga, mem_eccerr);
+	mtdcr (memcfgd, 0xffffffff);
 
 	/* Timing register: CASL=2, PTA=2, CTP=2, LDF=1, RFTA=5, RCD=2 */
-	mtdcr (SDRAM0_CFGADDR, SDRAM0_TR);
-	mtdcr (SDRAM0_CFGDATA, 0x010a4016);
+	mtdcr (memcfga, mem_sdtr1);
+	mtdcr (memcfgd, 0x010a4016);
 
 	/* Memory Bank 0 Config == BA=0x00000000, SZ=64M, AM=3, BE=1 */
-	mtdcr (SDRAM0_CFGADDR, SDRAM0_B0CR);
-	mtdcr (SDRAM0_CFGDATA, 0x00084001);
+	mtdcr (memcfga, mem_mb0cf);
+	mtdcr (memcfgd, 0x00084001);
 
 	/* Memory Bank 1 Config == BA=0x04000000, SZ=64M, AM=3, BE=1 */
-	mtdcr (SDRAM0_CFGADDR, SDRAM0_B1CR);
-	mtdcr (SDRAM0_CFGDATA, 0x04084001);
+	mtdcr (memcfga, mem_mb1cf);
+	mtdcr (memcfgd, 0x04084001);
 
 	/* Memory Bank 2 Config ==  BE=0 */
-	mtdcr (SDRAM0_CFGADDR, SDRAM0_B2CR);
-	mtdcr (SDRAM0_CFGDATA, 0x00000000);
+	mtdcr (memcfga, mem_mb2cf);
+	mtdcr (memcfgd, 0x00000000);
 
 	/* Memory Bank 3 Config ==  BE=0 */
-	mtdcr (SDRAM0_CFGADDR, SDRAM0_B3CR);
-	mtdcr (SDRAM0_CFGDATA, 0x00000000);
+	mtdcr (memcfga, mem_mb3cf);
+	mtdcr (memcfgd, 0x00000000);
 
 	/* refresh timer = 0x400  */
-	mtdcr (SDRAM0_CFGADDR, SDRAM0_RTR);
-	mtdcr (SDRAM0_CFGDATA, 0x04000000);
+	mtdcr (memcfga, mem_rtr);
+	mtdcr (memcfgd, 0x04000000);
 
 	/* Power management idle timer set to the default. */
-	mtdcr (SDRAM0_CFGADDR, SDRAM0_PMIT);
-	mtdcr (SDRAM0_CFGDATA, 0x07c00000);
+	mtdcr (memcfga, mem_pmit);
+	mtdcr (memcfgd, 0x07c00000);
 
 	udelay (500);
 
 	/* Enable banks (DCE=1, BPRF=1, ECCDD=1, EMDUL=1) */
-	mtdcr (SDRAM0_CFGADDR, SDRAM0_CFG);
-	mtdcr (SDRAM0_CFGDATA, 0x80e00000);
+	mtdcr (memcfga, mem_mcopt1);
+	mtdcr (memcfgd, 0x80e00000);
 
 	return SDRAM_LEN;
 }
@@ -95,28 +108,28 @@ int testdram (void)
 #ifdef DEBUG
 	printf ("SDRAM Controller Registers --\n");
 
-	mtdcr (SDRAM0_CFGADDR, SDRAM0_CFG);
-	val = mfdcr (SDRAM0_CFGDATA);
+	mtdcr (memcfga, mem_mcopt1);
+	val = mfdcr (memcfgd);
 	printf ("    SDRAM0_CFG   : 0x%08x\n", val);
 
-	mtdcr (SDRAM0_CFGADDR, 0x24);
-	val = mfdcr (SDRAM0_CFGDATA);
+	mtdcr (memcfga, 0x24);
+	val = mfdcr (memcfgd);
 	printf ("    SDRAM0_STATUS: 0x%08x\n", val);
 
-	mtdcr (SDRAM0_CFGADDR, SDRAM0_B0CR);
-	val = mfdcr (SDRAM0_CFGDATA);
+	mtdcr (memcfga, mem_mb0cf);
+	val = mfdcr (memcfgd);
 	printf ("    SDRAM0_B0CR  : 0x%08x\n", val);
 
-	mtdcr (SDRAM0_CFGADDR, SDRAM0_B1CR);
-	val = mfdcr (SDRAM0_CFGDATA);
+	mtdcr (memcfga, mem_mb1cf);
+	val = mfdcr (memcfgd);
 	printf ("    SDRAM0_B1CR  : 0x%08x\n", val);
 
-	mtdcr (SDRAM0_CFGADDR, SDRAM0_TR);
-	val = mfdcr (SDRAM0_CFGDATA);
+	mtdcr (memcfga, mem_sdtr1);
+	val = mfdcr (memcfgd);
 	printf ("    SDRAM0_TR    : 0x%08x\n", val);
 
-	mtdcr (SDRAM0_CFGADDR, SDRAM0_RTR);
-	val = mfdcr (SDRAM0_CFGDATA);
+	mtdcr (memcfga, mem_rtr);
+	val = mfdcr (memcfgd);
 	printf ("    SDRAM0_RTR   : 0x%08x\n", val);
 #endif
 
@@ -124,8 +137,8 @@ int testdram (void)
 	   bit. Really, there should already have been plenty of time,
 	   given it was started long ago. But, best to check. */
 	for (idx = 0; idx < 1000000; idx += 1) {
-		mtdcr (SDRAM0_CFGADDR, 0x24);
-		val = mfdcr (SDRAM0_CFGDATA);
+		mtdcr (memcfga, 0x24);
+		val = mfdcr (memcfgd);
 		if (val & 0x80000000)
 			break;
 	}

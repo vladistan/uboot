@@ -5,7 +5,23 @@
  * (C) Copyright 2004-2005
  * Martin Krause, TQ-Systems GmbH, martin.krause@tqs.de
  *
- * SPDX-License-Identifier:	GPL-2.0+ 
+ * See file CREDITS for list of people who contributed to this
+ * project.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation; either version 2 of
+ * the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	 See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
+ * MA 02111-1307 USA
  */
 
 #ifndef __CONFIG_H
@@ -24,6 +40,9 @@
 #define CONFIG_STK52XX_REV100	1	/*  define for revision 100 baseboards */
 
 #define CONFIG_SYS_MPC5XXX_CLKIN	33000000 /* ... running at 33.000000MHz */
+
+#define BOOTFLAG_COLD		0x01	/* Normal Power-On: Boot from FLASH  */
+#define BOOTFLAG_WARM		0x02	/* Software reboot	     */
 
 #define CONFIG_HIGH_BATS	1	/* High BATs supported */
 
@@ -60,6 +79,7 @@
 #define CONFIG_PCI_IO_PHYS	CONFIG_PCI_IO_BUS
 #define CONFIG_PCI_IO_SIZE	0x01000000
 
+#define CONFIG_NET_MULTI	1
 #define CONFIG_EEPRO100		1
 #define CONFIG_SYS_RX_ETH_BUFFER	8  /* use 8 rx buffer on eepro100  */
 #define CONFIG_NS8382X		1
@@ -156,7 +176,7 @@
 
 #define	CONFIG_TIMESTAMP		/* display image timestamps */
 
-#if (CONFIG_SYS_TEXT_BASE == 0xFC000000)		/* Boot low */
+#if (TEXT_BASE == 0xFC000000)		/* Boot low */
 #   define CONFIG_SYS_LOWBOOT		1
 #endif
 
@@ -254,16 +274,16 @@
 
 /* List of I2C addresses to be verified by POST */
 #if defined (CONFIG_MINIFAP)
-#undef CONFIG_SYS_POST_I2C_ADDRS
-#define CONFIG_SYS_POST_I2C_ADDRS	{CONFIG_SYS_I2C_EEPROM_ADDR,	\
-					 CONFIG_SYS_I2C_HWMON_ADDR,	\
-					 CONFIG_SYS_I2C_SLAVE}
+#undef I2C_ADDR_LIST
+#define I2C_ADDR_LIST	{	CONFIG_SYS_I2C_EEPROM_ADDR,	\
+				CONFIG_SYS_I2C_HWMON_ADDR,	\
+				CONFIG_SYS_I2C_SLAVE }
 #endif
 
 /*
  * Flash configuration
  */
-#define CONFIG_SYS_FLASH_BASE		CONFIG_SYS_TEXT_BASE /* 0xFC000000 */
+#define CONFIG_SYS_FLASH_BASE		TEXT_BASE /* 0xFC000000 */
 
 /* use CFI flash driver if no module variant is spezified */
 #define CONFIG_SYS_FLASH_CFI		1	/* Flash is CFI conformant */
@@ -305,16 +325,17 @@
 #define CONFIG_SYS_INIT_RAM_ADDR	MPC5XXX_SRAM
 #ifdef CONFIG_POST
 /* preserve space for the post_word at end of on-chip SRAM */
-#define CONFIG_SYS_INIT_RAM_SIZE	MPC5XXX_SRAM_POST_SIZE
+#define CONFIG_SYS_INIT_RAM_END	MPC5XXX_SRAM_POST_SIZE
 #else
-#define CONFIG_SYS_INIT_RAM_SIZE	MPC5XXX_SRAM_SIZE
+#define CONFIG_SYS_INIT_RAM_END	MPC5XXX_SRAM_SIZE
 #endif
 
 
-#define CONFIG_SYS_GBL_DATA_OFFSET	(CONFIG_SYS_INIT_RAM_SIZE - GENERATED_GBL_DATA_SIZE)
+#define CONFIG_SYS_GBL_DATA_SIZE	128	/* size in bytes reserved for initial data */
+#define CONFIG_SYS_GBL_DATA_OFFSET	(CONFIG_SYS_INIT_RAM_END - CONFIG_SYS_GBL_DATA_SIZE)
 #define CONFIG_SYS_INIT_SP_OFFSET	CONFIG_SYS_GBL_DATA_OFFSET
 
-#define CONFIG_SYS_MONITOR_BASE	CONFIG_SYS_TEXT_BASE
+#define CONFIG_SYS_MONITOR_BASE	TEXT_BASE
 #if (CONFIG_SYS_MONITOR_BASE < CONFIG_SYS_FLASH_BASE)
 #   define CONFIG_SYS_RAMBOOT		1
 #endif
@@ -417,8 +438,13 @@
 /*
  * Various low-level settings
  */
+#if defined(CONFIG_MPC5200)
 #define CONFIG_SYS_HID0_INIT		HID0_ICE | HID0_ICFI
 #define CONFIG_SYS_HID0_FINAL		HID0_ICE
+#else
+#define CONFIG_SYS_HID0_INIT		0
+#define CONFIG_SYS_HID0_FINAL		0
+#endif
 
 #define CONFIG_SYS_BOOTCS_START	CONFIG_SYS_FLASH_BASE
 #define CONFIG_SYS_BOOTCS_SIZE		CONFIG_SYS_FLASH_SIZE

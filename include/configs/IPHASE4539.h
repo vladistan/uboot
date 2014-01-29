@@ -4,7 +4,23 @@
  * This file is based on similar values for other boards found in
  * other U-Boot config files, mainly tqm8260.h and mpc8260ads.h.
  *
- * SPDX-License-Identifier:	GPL-2.0+ 
+ * See file CREDITS for list of people who contributed to this
+ * project.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation; either version 2 of
+ * the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	 See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
+ * MA 02111-1307 USA
  */
 
 /*
@@ -21,8 +37,6 @@
 
 #define CONFIG_MPC8260		1	/* This is an MPC8260 CPU   */
 #define CONFIG_IPHASE4539	1	/* ...on a Interphase 4539 PMC */
-
-#define	CONFIG_SYS_TEXT_BASE	0xffb00000
 
 #define CONFIG_CPM2		1	/* Has a CPM2 */
 
@@ -66,8 +80,8 @@
  * - Select bus for bd/buffers (see 28-13)
  * - Half duplex
  */
-# define CONFIG_SYS_CMXFCR_MASK3	(CMXFCR_FC3 | CMXFCR_RF3CS_MSK | CMXFCR_TF3CS_MSK)
-# define CONFIG_SYS_CMXFCR_VALUE3	(CMXFCR_RF3CS_CLK14 | CMXFCR_TF3CS_CLK16)
+# define CONFIG_SYS_CMXFCR_MASK	(CMXFCR_FC3 | CMXFCR_RF3CS_MSK | CMXFCR_TF3CS_MSK)
+# define CONFIG_SYS_CMXFCR_VALUE	(CMXFCR_RF3CS_CLK14 | CMXFCR_TF3CS_CLK16)
 # define CONFIG_SYS_CPMFCR_RAMTYPE	0
 # define CONFIG_SYS_FCC_PSMR		(FCC_PSMR_FDE|FCC_PSMR_LPB)
 
@@ -94,13 +108,15 @@
  * If the software driver is chosen, there are some additional
  * configuration items that the driver uses to drive the port pins.
  */
-#define CONFIG_SYS_I2C
-#define CONFIG_SYS_I2C_SOFT		/* I2C bit-banged */
-#define CONFIG_SYS_I2C_SOFT_SPEED	400000
-#define CONFIG_SYS_I2C_SOFT_SLAVE	0x7F
+#undef  CONFIG_HARD_I2C			/* I2C with hardware support	*/
+#define CONFIG_SOFT_I2C		1	/* I2C bit-banged		*/
+#define CONFIG_SYS_I2C_SPEED		400000	/* I2C speed and slave address	*/
+#define CONFIG_SYS_I2C_SLAVE		0x7F
+
 /*
  * Software (bit-bang) I2C driver configuration
  */
+#ifdef CONFIG_SOFT_I2C
 #define I2C_PORT	3		/* Port A=0, B=1, C=2, D=3 */
 #define I2C_ACTIVE	(iop->pdir |=  0x00010000)
 #define I2C_TRISTATE	(iop->pdir &= ~0x00010000)
@@ -110,6 +126,7 @@
 #define I2C_SCL(bit)	if(bit) iop->pdat |=  0x00020000; \
 			else    iop->pdat &= ~0x00020000
 #define I2C_DELAY	udelay(5)	/* 1/4 I2C clock duration */
+#endif /* CONFIG_SOFT_I2C */
 
 
 /*
@@ -156,6 +173,8 @@
 
 #define CONFIG_SYS_HZ			1000	/* decrementer freq: 1 ms ticks	*/
 
+#define CONFIG_SYS_BAUDRATE_TABLE	{ 9600, 19200, 38400, 57600, 115200 }
+
 #define CONFIG_SYS_RESET_ADDRESS	0x04400000
 
 #define CONFIG_MISC_INIT_R	1	/* We need misc_init_r()	*/
@@ -174,7 +193,7 @@
 #define CONFIG_SYS_SDRAM_BASE		0x00000000
 #define CONFIG_SYS_FLASH_BASE		0xFF800000
 
-#define CONFIG_SYS_MONITOR_BASE	CONFIG_SYS_TEXT_BASE
+#define CONFIG_SYS_MONITOR_BASE	TEXT_BASE
 #define CONFIG_SYS_MONITOR_LEN		(256 << 10)     /* Reserve 256 kB for Monitor  */
 #define CONFIG_SYS_MALLOC_LEN		(128 << 10)	/* Reserve 128 kB for malloc() */
 
@@ -225,9 +244,19 @@
  * Definitions for initial stack pointer and data area (in DPRAM)
  */
 #define CONFIG_SYS_INIT_RAM_ADDR	CONFIG_SYS_IMMR
-#define CONFIG_SYS_INIT_RAM_SIZE	0x4000	/* Size of used area in DPRAM	*/
-#define CONFIG_SYS_GBL_DATA_OFFSET	(CONFIG_SYS_INIT_RAM_SIZE - GENERATED_GBL_DATA_SIZE)
+#define CONFIG_SYS_INIT_RAM_END	0x4000	/* End of used area in DPRAM	*/
+#define CONFIG_SYS_GBL_DATA_SIZE	128	/* size in bytes reserved for initial data */
+#define CONFIG_SYS_GBL_DATA_OFFSET	(CONFIG_SYS_INIT_RAM_END - CONFIG_SYS_GBL_DATA_SIZE)
 #define CONFIG_SYS_INIT_SP_OFFSET	CONFIG_SYS_GBL_DATA_OFFSET
+
+/*-----------------------------------------------------------------------
+ * Internal Definitions
+ *
+ * Boot Flags
+ */
+#define BOOTFLAG_COLD	0x01	  /* Normal Power-On: Boot from FLASH	*/
+#define BOOTFLAG_WARM	0x02	  /* Software reboot			*/
+
 
 /*-----------------------------------------------------------------------
  * Cache Configuration

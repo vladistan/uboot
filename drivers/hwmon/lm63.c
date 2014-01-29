@@ -3,19 +3,34 @@
  * Dirk Eibach,  Guntermann & Drunck GmbH, eibach@gdsys.de
  * based on lm75.c by Bill Hunter
  *
- * SPDX-License-Identifier:	GPL-2.0+
+ * See file CREDITS for list of people who contributed to this
+ * project.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation; either version 2 of
+ * the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
+ * MA 02111-1307 USA
  */
 
 /*
- * National LM63/LM64 Temperature Sensor
- * Main difference: LM 64 has -16 Kelvin temperature offset
+ * National LM63 Temperature Sensor
  */
 
 #include <common.h>
 #include <i2c.h>
 #include <dtt.h>
 
-#define DTT_I2C_LM63_ADDR	0x4C	/* National LM63 device */
+#define DTT_I2C_DEV_CODE 0x4C	/* National LM63 device */
 
 #define DTT_READ_TEMP_RMT_MSB	0x01
 #define DTT_CONFIG		0x03
@@ -43,8 +58,7 @@ int dtt_read(int sensor, int reg)
 	/*
 	 * Calculate sensor address and register.
 	 */
-	if (!sensor)
-		sensor = DTT_I2C_LM63_ADDR;	/* legacy config */
+	sensor = DTT_I2C_DEV_CODE;	/* address of lm63 is not adjustable */
 
 	dlen = 1;
 
@@ -65,8 +79,7 @@ int dtt_write(int sensor, int reg, int val)
 	/*
 	 * Calculate sensor address and register.
 	 */
-	if (!sensor)
-		sensor = DTT_I2C_LM63_ADDR;	/* legacy config */
+	sensor = DTT_I2C_DEV_CODE;	/* address of lm63 is not adjustable */
 
 	dlen = 1;
 	data[0] = (char)(val & 0xff);
@@ -80,12 +93,7 @@ int dtt_write(int sensor, int reg, int val)
 	return 0;
 }				/* dtt_write() */
 
-static int is_lm64(int sensor)
-{
-	return sensor && (sensor != DTT_I2C_LM63_ADDR);
-}
-
-int dtt_init_one(int sensor)
+static int _dtt_init(int sensor)
 {
 	int i;
 	int val;
@@ -109,22 +117,14 @@ int dtt_init_one(int sensor)
 		return 1;
 
 	/*
-	 * Make sure PWM Lookup-Table is writeable
-	 */
-	if (dtt_write(sensor, DTT_FAN_CONFIG, 0x20) != 0)
-		return 1;
-
-	/*
 	 * Setup PWM Lookup-Table
 	 */
-	for (i = 0; i < ARRAY_SIZE(pwm_lookup); i++) {
+	for (i = 0; i < sizeof(pwm_lookup) / sizeof(struct pwm_lookup_entry);
+	     i++) {
 		int address = DTT_PWM_LOOKUP_BASE + 2 * i;
 		val = pwm_lookup[i].temp;
-		if (is_lm64(sensor))
-			val -= 16;
 		if (dtt_write(sensor, address, val) != 0)
 			return 1;
-		val = dtt_read(sensor, address);
 		val = pwm_lookup[i].pwm;
 		if (dtt_write(sensor, address + 1, val) != 0)
 			return 1;
@@ -152,9 +152,23 @@ int dtt_get_temp(int sensor)
 	s16 temp = (dtt_read(sensor, DTT_READ_TEMP_RMT_MSB) << 8)
 	    | (dtt_read(sensor, DTT_READ_TEMP_RMT_LSB));
 
-	if (is_lm64(sensor))
-		temp += 16 << 8;
-
 	/* Ignore LSB for now, U-Boot only prints natural numbers */
 	return temp >> 8;
+}
+
+int dtt_init(void)
+{
+	int i;
+	unsigned char sensors[] = CONFIG_DTT_SENSORS;
+	const char *const header = "DTT:   ";
+
+	for (i = 0; i < sizeof(sensors); i++) {
+		if (_dtt_init(sensors[i]) != 0)
+			printf("%s%d FAILED INIT\n", header, i + 1);
+		else
+			printf("%s%d is %i C\n", header, i + 1,
+			       dtt_get_temp(sensors[i]));
+	}
+
+	return 0;
 }

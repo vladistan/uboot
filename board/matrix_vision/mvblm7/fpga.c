@@ -6,7 +6,24 @@
  * (C) Copyright 2008
  * Andre Schwarz, Matrix Vision GmbH, andre.schwarz@matrix-vision.de
  *
- * SPDX-License-Identifier:	GPL-2.0+
+ * See file CREDITS for list of people who contributed to this
+ * project.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation; either version 2 of
+ * the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
+ * MA 02111-1307 USA
+ *
  */
 
 #include <common.h>
@@ -29,6 +46,7 @@ Altera_CYC2_Passive_Serial_fns altera_fns = {
 	fpga_wr_fn,
 	fpga_null_fn,
 	fpga_null_fn,
+	0
 };
 
 Altera_desc cyclone2 = {
@@ -44,8 +62,9 @@ DECLARE_GLOBAL_DATA_PTR;
 
 int mvblm7_init_fpga(void)
 {
-	fpga_debug("Initialize FPGA interface\n");
-	fpga_init();
+	fpga_debug("Initialize FPGA interface (reloc 0x%.8lx)\n",
+		gd->reloc_off);
+	fpga_init(gd->reloc_off);
 	fpga_add(fpga_altera, &cyclone2);
 	fpga_config_fn(0, 1, 0);
 	udelay(60);
@@ -155,7 +174,7 @@ static inline int _write_fpga(u8 val, int dump)
 	return 0;
 }
 
-int fpga_wr_fn(const void *buf, size_t len, int flush, int cookie)
+int fpga_wr_fn(void *buf, size_t len, int flush, int cookie)
 {
 	unsigned char *data = (unsigned char *) buf;
 	int i;

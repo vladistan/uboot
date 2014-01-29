@@ -9,13 +9,28 @@
  *
  * Copyright (C) 2004 Texas Instruments.
  *
- * SPDX-License-Identifier:	GPL-2.0+
+ * See file CREDITS for list of people who contributed to this
+ * project.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 
 #include <common.h>
 #include <i2c.h>
 #include <asm/arch/hardware.h>
-#include <asm/arch/davinci_misc.h>
+#include "../common/misc.h"
 
 #define DAVINCI_A3CR     (0x01E00014)	/* EMIF-A CS3 config register. */
 #define DAVINCI_A3CR_VAL (0x3FFFFFFD)	/* EMIF-A CS3 value for FPGA. */
@@ -126,7 +141,7 @@ int misc_init_r(void)
 
 	/* Read Ethernet MAC address from EEPROM if available. */
 	if (sffsdr_read_mac_address(eeprom_enetaddr))
-		davinci_sync_env_enetaddr(eeprom_enetaddr);
+		dv_configure_mac_address(eeprom_enetaddr);
 
 	return(0);
 }

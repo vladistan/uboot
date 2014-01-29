@@ -2,11 +2,27 @@
  * (C) Copyright 2001
  * Stefan Roese, esd gmbh germany, stefan.roese@esd-electronics.com
  *
- * SPDX-License-Identifier:	GPL-2.0+
+ * See file CREDITS for list of people who contributed to this
+ * project.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation; either version 2 of
+ * the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
+ * MA 02111-1307 USA
  */
 
 #include <common.h>
-#include <asm/ppc4xx.h>
+#include <ppc4xx.h>
 #include <asm/processor.h>
 
 /*
@@ -49,9 +65,9 @@ unsigned long flash_init (void)
 	flash_get_offsets (-size_b0, &flash_info[0]);
 
 	/* Re-do sizing to get full correct info */
-	mtdcr(EBC0_CFGADDR, PB0CR);
-	pbcr = mfdcr(EBC0_CFGDATA);
-	mtdcr(EBC0_CFGADDR, PB0CR);
+	mtdcr(ebccfga, pb0cr);
+	pbcr = mfdcr(ebccfgd);
+	mtdcr(ebccfga, pb0cr);
 	base_b0 = -size_b0;
 	switch (size_b0) {
 	case 1 << 20:
@@ -71,7 +87,7 @@ unsigned long flash_init (void)
 		break;
 	}
 	pbcr = (pbcr & 0x0001ffff) | base_b0 | (size_val << 17);
-	mtdcr(EBC0_CFGDATA, pbcr);
+	mtdcr(ebccfgd, pbcr);
 
 	/* Monitor protection ON by default */
 	(void)flash_protect(FLAG_PROTECT_SET,

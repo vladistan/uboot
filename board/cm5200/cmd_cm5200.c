@@ -3,7 +3,23 @@
  *
  * Adapted for U-Boot 1.2 by Piotr Kruszynski <ppk@semihalf.com>
  *
- * SPDX-License-Identifier:	GPL-2.0+
+ * See file CREDITS for list of people who contributed to this
+ * project.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation; either version 2 of
+ * the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
+ * MA 02111-1307 USA
  */
 
 #include <common.h>
@@ -13,7 +29,7 @@
 
 #ifdef CONFIG_CMD_BSP
 
-static int do_i2c_test(char * const argv[])
+static int do_i2c_test(char *argv[])
 {
 	unsigned char temp, temp1;
 
@@ -41,7 +57,7 @@ static int do_i2c_test(char * const argv[])
 	return 0;
 }
 
-static int do_usb_test(char * const argv[])
+static int do_usb_test(char *argv[])
 {
 	int i;
 	static int usb_stor_curr_dev = -1; /* current device */
@@ -74,7 +90,7 @@ static int do_usb_test(char * const argv[])
 	return 0;
 }
 
-static int do_led_test(char * const argv[])
+static int do_led_test(char *argv[])
 {
 	int i = 0;
 	struct mpc5xxx_gpt_0_7 *gpt = (struct mpc5xxx_gpt_0_7 *)MPC5XXX_GPT;
@@ -118,7 +134,7 @@ static int do_led_test(char * const argv[])
 	return 0;
 }
 
-static int do_rs232_test(char * const argv[])
+static int do_rs232_test(char *argv[])
 {
 	int error_status = 0;
 	struct mpc5xxx_gpio *gpio = (struct mpc5xxx_gpio *)MPC5XXX_GPIO;
@@ -381,7 +397,7 @@ static int do_rs232_test(char * const argv[])
 	return error_status;
 }
 
-static int cmd_fkt(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
+static int cmd_fkt(cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 {
 	int rcode = -1;
 

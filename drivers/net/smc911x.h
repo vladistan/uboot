@@ -3,7 +3,23 @@
  *
  * (c) 2007 Pengutronix, Sascha Hauer <s.hauer@pengutronix.de>
  *
- * SPDX-License-Identifier:	GPL-2.0+
+ * See file CREDITS for list of people who contributed to this
+ * project.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation; either version 2 of
+ * the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
+ * MA 02111-1307 USA
  */
 
 #ifndef _SMC911X_H_
@@ -368,7 +384,6 @@ static inline void smc911x_reg_write(struct eth_device *dev,
 #define WUCSR_MPEN			0x00000002
 
 /* Chip ID values */
-#define CHIP_89218	0x218a
 #define CHIP_9115	0x115
 #define CHIP_9116	0x116
 #define CHIP_9117	0x117
@@ -378,7 +393,6 @@ static inline void smc911x_reg_write(struct eth_device *dev,
 #define CHIP_9216	0x116a
 #define CHIP_9217	0x117a
 #define CHIP_9218	0x118a
-#define CHIP_9220	0x9220
 #define CHIP_9221	0x9221
 
 struct chip_id {
@@ -387,7 +401,6 @@ struct chip_id {
 };
 
 static const struct chip_id chip_ids[] =  {
-	{ CHIP_89218, "LAN89218" },
 	{ CHIP_9115, "LAN9115" },
 	{ CHIP_9116, "LAN9116" },
 	{ CHIP_9117, "LAN9117" },
@@ -397,7 +410,6 @@ static const struct chip_id chip_ids[] =  {
 	{ CHIP_9216, "LAN9216" },
 	{ CHIP_9217, "LAN9217" },
 	{ CHIP_9218, "LAN9218" },
-	{ CHIP_9220, "LAN9220" },
 	{ CHIP_9221, "LAN9221" },
 	{ 0, NULL },
 };
@@ -429,10 +441,7 @@ static int smc911x_detect_chip(struct eth_device *dev)
 	unsigned long val, i;
 
 	val = smc911x_reg_read(dev, BYTE_TEST);
-	if (val == 0xffffffff) {
-		/* Special case -- no chip present */
-		return -1;
-	} else if (val != 0x87654321) {
+	if (val != 0x87654321) {
 		printf(DRIVERNAME ": Invalid chip endian 0x%08lx\n", val);
 		return -1;
 	}
@@ -446,7 +455,7 @@ static int smc911x_detect_chip(struct eth_device *dev)
 		return -1;
 	}
 
-	dev->priv = (void *)&chip_ids[i];
+	printf(DRIVERNAME ": detected %s controller\n", chip_ids[i].name);
 
 	return 0;
 }
@@ -455,11 +464,8 @@ static void smc911x_reset(struct eth_device *dev)
 {
 	int timeout;
 
-	/*
-	 *  Take out of PM setting first
-	 *  Device is already wake up if PMT_CTRL_READY bit is set
-	 */
-	if ((smc911x_reg_read(dev, PMT_CTRL) & PMT_CTRL_READY) == 0) {
+	/* Take out of PM setting first */
+	if (smc911x_reg_read(dev, PMT_CTRL) & PMT_CTRL_READY) {
 		/* Write to the bytetest will take out of powerdown */
 		smc911x_reg_write(dev, BYTE_TEST, 0x0);
 
@@ -468,7 +474,7 @@ static void smc911x_reset(struct eth_device *dev)
 		while (timeout-- &&
 			!(smc911x_reg_read(dev, PMT_CTRL) & PMT_CTRL_READY))
 			udelay(10);
-		if (timeout < 0) {
+		if (!timeout) {
 			printf(DRIVERNAME
 				": timeout waiting for PM restore\n");
 			return;
@@ -484,7 +490,7 @@ static void smc911x_reset(struct eth_device *dev)
 	while (timeout-- && smc911x_reg_read(dev, E2P_CMD) & E2P_CMD_EPC_BUSY)
 		udelay(10);
 
-	if (timeout < 0) {
+	if (!timeout) {
 		printf(DRIVERNAME ": reset timeout\n");
 		return;
 	}

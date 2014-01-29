@@ -2,7 +2,23 @@
  * Copyright (C) 2004-2007 Freescale Semiconductor, Inc.
  * Hayden Fraser (Hayden.Fraser@freescale.com)
  *
- * SPDX-License-Identifier:	GPL-2.0+ 
+ * See file CREDITS for list of people who contributed to this
+ * project.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation; either version 2 of
+ * the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	 See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
+ * MA 02111-1307 USA
  */
 
 #ifndef _M5253EVBE_H
@@ -17,6 +33,7 @@
 #define CONFIG_MCFUART
 #define CONFIG_SYS_UART_PORT		(0)
 #define CONFIG_BAUDRATE		115200
+#define CONFIG_SYS_BAUDRATE_TABLE	{ 9600 , 19200 , 38400 , 57600, 115200 }
 
 #undef CONFIG_WATCHDOG		/* disable watchdog */
 
@@ -47,7 +64,6 @@
  * Command line configuration.
  */
 #include <config_cmd_default.h>
-#define CONFIG_CMD_CACHE
 #undef CONFIG_CMD_NET
 #define CONFIG_CMD_LOADB
 #define CONFIG_CMD_LOADS
@@ -118,8 +134,9 @@
  * Definitions for initial stack pointer and data area (in DPRAM)
  */
 #define CONFIG_SYS_INIT_RAM_ADDR	0x20000000
-#define CONFIG_SYS_INIT_RAM_SIZE	0x10000	/* Size of used area in internal SRAM */
-#define CONFIG_SYS_GBL_DATA_OFFSET	(CONFIG_SYS_INIT_RAM_SIZE - GENERATED_GBL_DATA_SIZE)
+#define CONFIG_SYS_INIT_RAM_END	0x10000	/* End of used area in internal SRAM */
+#define CONFIG_SYS_GBL_DATA_SIZE	128	/* size in bytes reserved for initial data */
+#define CONFIG_SYS_GBL_DATA_OFFSET	(CONFIG_SYS_INIT_RAM_END - CONFIG_SYS_GBL_DATA_SIZE)
 #define CONFIG_SYS_INIT_SP_OFFSET	CONFIG_SYS_GBL_DATA_OFFSET
 
 /*
@@ -161,20 +178,6 @@
 
 /* Cache Configuration */
 #define CONFIG_SYS_CACHELINE_SIZE	16
-
-#define ICACHE_STATUS			(CONFIG_SYS_INIT_RAM_ADDR + \
-					 CONFIG_SYS_INIT_RAM_SIZE - 8)
-#define DCACHE_STATUS			(CONFIG_SYS_INIT_RAM_ADDR + \
-					 CONFIG_SYS_INIT_RAM_SIZE - 4)
-#define CONFIG_SYS_ICACHE_INV		(CF_CACR_DCM)
-#define CONFIG_SYS_CACHE_ACR0		(CONFIG_SYS_FLASH_BASE | \
-					 CF_ADDRMASK(2) | \
-					 CF_ACR_EN | CF_ACR_SM_ALL)
-#define CONFIG_SYS_CACHE_ACR1		(CONFIG_SYS_SDRAM_BASE | \
-					 CF_ADDRMASK(CONFIG_SYS_SDRAM_SIZE) | \
-					 CF_ACR_EN | CF_ACR_SM_ALL)
-#define CONFIG_SYS_CACHE_ICACR		(CF_CACR_CENB | CF_CACR_CEIB | \
-					 CF_CACR_DBWE)
 
 /* Port configuration */
 #define CONFIG_SYS_FECI2C		0xF0

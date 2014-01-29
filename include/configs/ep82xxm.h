@@ -3,7 +3,23 @@
  *
  * U-Boot configuration for Embedded Planet EP82xxM boards.
  *
- * SPDX-License-Identifier:	GPL-2.0+ 
+ * See file CREDITS for list of people who contributed to this
+ * project.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation; either version 2 of
+ * the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	 See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
+ * MA 02111-1307 USA
  */
 
 #ifndef __CONFIG_H
@@ -14,8 +30,6 @@
 
 #define CONFIG_EP82XXM	/* Embedded Planet EP82xxM H 1.0 board */
 			/* 256MB SDRAM / 64MB FLASH */
-
-#define	CONFIG_SYS_TEXT_BASE	0xFFF00000
 
 #define CONFIG_BOARD_EARLY_INIT_F 1	/* Call board_early_init_f */
 
@@ -51,6 +65,7 @@
 #define CONFIG_ETHER_ON_FCC		/* Ethernet is on FCC     */
 #undef	CONFIG_ETHER_NONE		/* No external Ethernet   */
 
+#define CONFIG_NET_MULTI
 
 #define CONFIG_ETHER_ON_FCC2
 #define CONFIG_ETHER_ON_FCC3
@@ -70,7 +85,6 @@
  * GPIO pins used for bit-banged MII communications
  */
 #define MDIO_PORT		0	/* Not used - implemented in BCSR */
-
 #define MDIO_ACTIVE		(*(vu_char *)(CONFIG_SYS_BCSR + 8) &= 0xFB)
 #define MDIO_TRISTATE		(*(vu_char *)(CONFIG_SYS_BCSR + 8) |= 0x04)
 #define MDIO_READ		(*(vu_char *)(CONFIG_SYS_BCSR + 8) & 1)
@@ -132,7 +146,7 @@
 #define CONFIG_BOOTDELAY	5	/* autoboot after 5 seconds */
 #define CONFIG_ENV_IN_OWN_SECT	1
 #define CONFIG_AUTO_COMPLETE	1
-#define	CONFIG_EXTRA_ENV_SETTINGS	"ethprime=FCC3"
+#define	CONFIG_EXTRA_ENV_SETTINGS	"ethprime=FCC3 ETHERNET"
 
 #if defined(CONFIG_CMD_KGDB)
 #undef	CONFIG_KGDB_ON_SMC		/* define if kgdb on SMC */
@@ -149,6 +163,7 @@
  * Miscellaneous configurable options
  */
 #define CONFIG_SYS_HUSH_PARSER
+#define CONFIG_SYS_PROMPT_HUSH_PS2	"> "
 #define CONFIG_SYS_LONGHELP			/* undef to save memory	    */
 #define CONFIG_SYS_PROMPT		"ep82xxm=> "	/* Monitor Command Prompt   */
 #if defined(CONFIG_CMD_KGDB)
@@ -238,7 +253,6 @@
  */
 /* General PCI */
 #define CONFIG_PCI			/* include pci support	        */
-#define CONFIG_PCI_INDIRECT_BRIDGE	/* indirect PCI bridge support */
 #define CONFIG_PCI_PNP			/* do pci plug-and-play   */
 #define CONFIG_PCI_SCAN_SHOW            /* show pci devices on startup  */
 #define CONFIG_PCI_BOOTDELAY	0
@@ -318,7 +332,7 @@
 #define CONFIG_SYS_I2C_SLAVE		0x7F	/* I2C slave address		*/
 #endif
 
-#define CONFIG_SYS_MONITOR_BASE	CONFIG_SYS_TEXT_BASE
+#define CONFIG_SYS_MONITOR_BASE	TEXT_BASE
 #if (CONFIG_SYS_MONITOR_BASE < CONFIG_SYS_FLASH_BASE)
 #define CONFIG_SYS_RAMBOOT
 #endif
@@ -329,8 +343,9 @@
 #define CONFIG_SYS_IMMR		0xF0000000
 
 #define CONFIG_SYS_INIT_RAM_ADDR	CONFIG_SYS_IMMR
-#define CONFIG_SYS_INIT_RAM_SIZE	0x2000	/* Size of used area in DPRAM	*/
-#define CONFIG_SYS_GBL_DATA_OFFSET	(CONFIG_SYS_INIT_RAM_SIZE - GENERATED_GBL_DATA_SIZE)
+#define CONFIG_SYS_INIT_RAM_END	0x2000	/* End of used area in DPRAM	*/
+#define CONFIG_SYS_GBL_DATA_SIZE	128	/* size in bytes reserved for initial data */
+#define CONFIG_SYS_GBL_DATA_OFFSET	(CONFIG_SYS_INIT_RAM_END - CONFIG_SYS_GBL_DATA_SIZE)
 #define CONFIG_SYS_INIT_SP_OFFSET	CONFIG_SYS_GBL_DATA_OFFSET
 
 
@@ -344,6 +359,9 @@
 #define CONFIG_SYS_HRCW_SLAVE5		0
 #define CONFIG_SYS_HRCW_SLAVE6		0
 #define CONFIG_SYS_HRCW_SLAVE7		0
+
+#define BOOTFLAG_COLD		0x01	/* Normal Power-On: Boot from FLASH */
+#define BOOTFLAG_WARM		0x02	/* Software reboot                  */
 
 #define CONFIG_SYS_MALLOC_LEN		(4096 << 10)	/* Reserve 4 MB for malloc()	*/
 #define CONFIG_SYS_BOOTMAPSZ		(8 << 20)	/* Initial Memory map for Linux */

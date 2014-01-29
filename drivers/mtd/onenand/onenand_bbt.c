@@ -15,7 +15,7 @@
  */
 
 #include <common.h>
-#include <linux/compat.h>
+#include <linux/mtd/compat.h>
 #include <linux/mtd/mtd.h>
 #include <linux/mtd/onenand.h>
 #include <malloc.h>
@@ -69,7 +69,6 @@ static int create_bbt(struct mtd_info *mtd, uint8_t * buf,
 	loff_t from;
 	size_t readlen, ooblen;
 	struct mtd_oob_ops ops;
-	int rgn;
 
 	printk(KERN_INFO "Scanning device for bad blocks\n");
 
@@ -83,11 +82,11 @@ static int create_bbt(struct mtd_info *mtd, uint8_t * buf,
 	/* Note that numblocks is 2 * (real numblocks) here;
 	 * see i += 2 below as it makses shifting and masking less painful
 	 */
-	numblocks = this->chipsize >> (bbm->bbt_erase_shift - 1);
+	numblocks = mtd->size >> (bbm->bbt_erase_shift - 1);
 	startblock = 0;
 	from = 0;
 
-	ops.mode = MTD_OPS_PLACE_OOB;
+	ops.mode = MTD_OOB_PLACE;
 	ops.ooblen = readlen;
 	ops.oobbuf = buf;
 	ops.len = ops.ooboffs = ops.retlen = ops.oobretlen = 0;
@@ -116,12 +115,7 @@ static int create_bbt(struct mtd_info *mtd, uint8_t * buf,
 			}
 		}
 		i += 2;
-
-		if (FLEXONENAND(this)) {
-			rgn = flexonenand_region(mtd, from);
-			from += mtd->eraseregions[rgn].erasesize;
-		} else
-			from += (1 << bbm->bbt_erase_shift);
+		from += (1 << bbm->bbt_erase_shift);
 	}
 
 	return 0;
@@ -158,7 +152,7 @@ static int onenand_isbad_bbt(struct mtd_info *mtd, loff_t offs, int allowbbt)
 	uint8_t res;
 
 	/* Get block number * 2 */
-	block = (int) (onenand_block(this, offs) << 1);
+	block = (int)(offs >> (bbm->bbt_erase_shift - 1));
 	res = (bbm->bbt[block >> 3] >> (block & 0x06)) & 0x03;
 
 	MTDDEBUG (MTD_DEBUG_LEVEL2,
@@ -197,11 +191,13 @@ int onenand_scan_bbt(struct mtd_info *mtd, struct nand_bbt_descr *bd)
 	struct bbm_info *bbm = this->bbm;
 	int len, ret = 0;
 
-	len = this->chipsize >> (this->erase_shift + 2);
+	len = mtd->size >> (this->erase_shift + 2);
 	/* Allocate memory (2bit per block) */
 	bbm->bbt = malloc(len);
-	if (!bbm->bbt)
+	if (!bbm->bbt) {
+		printk(KERN_ERR "onenand_scan_bbt: Out of memory\n");
 		return -ENOMEM;
+	}
 	/* Clear the memory bad block table */
 	memset(bbm->bbt, 0x00, len);
 

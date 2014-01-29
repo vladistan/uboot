@@ -3,7 +3,23 @@
  * Wolfgang Denk, DENX Software Engineering, wd@denx.de.
  * Klaus Heydeck, Kieback & Peter GmbH & Co KG, heydeck@kieback-peter.de
  *
- * SPDX-License-Identifier:	GPL-2.0+ 
+ * See file CREDITS for list of people who contributed to this
+ * project.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation; either version 2 of
+ * the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	 See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
+ * MA 02111-1307 USA
  */
 
 /*
@@ -19,22 +35,23 @@
  * (easy to change)
  */
 
-#define CONFIG_MPC859T		1	/* This is a MPC859T CPU	*/
-#define CONFIG_KUP4X		1	/* ...on a KUP4X module		*/
+#define CONFIG_MPC859T		1	/* This is a MPC859T CPU		*/
+#define CONFIG_KUP4X		1	/* ...on a KUP4X module			*/
 
-#define	CONFIG_SYS_TEXT_BASE	0x40000000
-
-#define CONFIG_8xx_CONS_SMC1	1	/* Console is on SMC1		*/
+#define CONFIG_8xx_CONS_SMC1	1	/* Console is on SMC1			*/
 #undef	CONFIG_8xx_CONS_SMC2
 #undef	CONFIG_8xx_CONS_NONE
-#define CONFIG_BAUDRATE		115200	/* console baudrate		*/
+#define CONFIG_BAUDRATE		115200	/* console baudrate			*/
+#if 0
+#define CONFIG_BOOTDELAY	-1	/* autoboot disabled			*/
+#else
+#define CONFIG_BOOTDELAY	1	/* autoboot after 1 second		*/
+#endif
 
-#define CONFIG_BOOTDELAY	1	/* autoboot after 1 second	*/
+#define CONFIG_BOARD_TYPES	1	/* support board types			*/
 
-#define CONFIG_BOARD_TYPES	1	/* support board types		*/
-
-#define CONFIG_SYS_8XX_FACT		8	/* Multiply by 8	*/
-#define CONFIG_SYS_8XX_XIN		16000000	/* 16 MHz in	*/
+#define CONFIG_SYS_8XX_FACT		8	/* Multiply by 8			*/
+#define CONFIG_SYS_8XX_XIN		16000000	/* 16 MHz in			*/
 
 
 #define MPC8XX_HZ ((CONFIG_SYS_8XX_XIN) * (CONFIG_SYS_8XX_FACT))
@@ -50,9 +67,9 @@
 #define CONFIG_EXTRA_ENV_SETTINGS						\
 "slot_a_boot=setenv bootargs root=/dev/hda2 ip=off;"				\
   "run addhw;diskboot 200000 0:1;bootm 200000\0"				\
-"usb_boot=setenv bootargs root=/dev/sda2 ip=off;				\
- run addhw; sleep 2; usb reset; usb scan; usbboot 200000 0:1;			\
- usb stop; bootm 200000\0"							\
+"usb_boot=setenv bootargs root=/dev/sda2 ip=off;\
+ run addhw; sleep 2; usb reset; usb scan; usbboot 200000 0:1;\
+ usb stop; bootm 200000\0"      \
 "nfs_boot=dhcp;run nfsargs addip addhw;bootm 200000\0"				\
 "panic_boot=echo No Bootdevice !!! reset\0"					\
 "nfsargs=setenv bootargs root=/dev/nfs rw nfsroot=${serverip}:${rootpath}\0"	\
@@ -67,14 +84,14 @@
  "cp.b 200000 40040000 14000\0"
 
 #define CONFIG_BOOTCOMMAND  \
-    "run usb_boot;run slot_a_boot;run nfs_boot;run panic_boot"
+    "run usb_boot;run_slot_a_boot;run nfs_boot;run panic_boot"
 
 
 #define CONFIG_MISC_INIT_R	1
 #define CONFIG_MISC_INIT_F	1
 
 #define CONFIG_LOADS_ECHO	1	/* echo on for serial download	*/
-#undef	CONFIG_SYS_LOADS_BAUD_CHANGE	/* don't allow baudrate change	*/
+#undef	CONFIG_SYS_LOADS_BAUD_CHANGE		/* don't allow baudrate change	*/
 
 #define	CONFIG_WATCHDOG		1	/* watchdog enabled		*/
 
@@ -98,13 +115,13 @@
 /*
  * enable I2C and select the hardware/software driver
  */
-#define CONFIG_SYS_I2C
-#define CONFIG_SYS_I2C_SOFT		/* I2C bit-banged */
+#undef	CONFIG_HARD_I2C			/* I2C with hardware support	*/
+#define	CONFIG_SOFT_I2C         1	/* I2C bit-banged		*/
 
-#ifdef CONFIG_SYS_I2C_SOFT
-#define CONFIG_SYS_I2C_SOFT_SPEED	93000	/* 93 kHz is supposed to work */
-#define CONFIG_SYS_I2C_SOFT_SLAVE	0xFE
+#define CONFIG_SYS_I2C_SPEED		93000	/* 93 kHz is supposed to work	*/
+#define CONFIG_SYS_I2C_SLAVE		0xFE
 
+#ifdef CONFIG_SOFT_I2C
 /*
  * Software (bit-bang) I2C driver configuration
  */
@@ -120,22 +137,22 @@
 #define I2C_SCL(bit)	if(bit) immr->im_cpm.cp_pbdat |=  PB_SCL; \
 			else    immr->im_cpm.cp_pbdat &= ~PB_SCL
 #define I2C_DELAY	udelay(2)	/* 1/4 I2C clock duration */
-#endif	/* CONFIG_SYS_I2C_SOFT */
+#endif	/* CONFIG_SOFT_I2C */
 
 
 /*-----------------------------------------------------------------------
  * I2C Configuration
  */
 
-#define CONFIG_SYS_I2C_PICIO_ADDR	0x21	/* PCF8574 IO Expander	*/
-#define CONFIG_SYS_I2C_RTC_ADDR	0x51	/* PCF8563 RTC			*/
+#define CONFIG_SYS_I2C_PICIO_ADDR	0x21	/* PCF8574 IO Expander			*/
+#define CONFIG_SYS_I2C_RTC_ADDR	0x51	/* PCF8563 RTC				*/
 
 
 /* List of I2C addresses to be verified by POST */
 
-#define CONFIG_SYS_POST_I2C_ADDRS	{CONFIG_SYS_I2C_PICIO_ADDR,	\
-					 CONFIG_SYS_I2C_RTC_ADDR,	\
-					}
+#define I2C_ADDR_LIST	{CONFIG_SYS_I2C_PICIO_ADDR,	\
+			CONFIG_SYS_I2C_RTC_ADDR,	\
+			}
 
 
 #define CONFIG_RTC_PCF8563		/* use Philips PCF8563 RTC	*/
@@ -143,16 +160,22 @@
 #define CONFIG_SYS_DISCOVER_PHY
 #define CONFIG_MII
 
+#if 0
+#define CONFIG_ETHADDR                  00:0B:64:80:00:00 /* our OUI from IEEE */
+#endif
 #undef CONFIG_KUP4K_LOGO
 
 /* Define to allow the user to overwrite serial and ethaddr */
 #define CONFIG_ENV_OVERWRITE
 
 
+#if 1
 /* POST support */
+
 #define CONFIG_POST		(CONFIG_SYS_POST_CPU	   | \
 				 CONFIG_SYS_POST_RTC	   | \
 				 CONFIG_SYS_POST_I2C)
+#endif
 
 
 /*
@@ -211,8 +234,9 @@
  * Definitions for initial stack pointer and data area (in DPRAM)
  */
 #define CONFIG_SYS_INIT_RAM_ADDR	CONFIG_SYS_IMMR
-#define CONFIG_SYS_INIT_RAM_SIZE	0x2F00	/* Size of used area in DPRAM	*/
-#define CONFIG_SYS_GBL_DATA_OFFSET	(CONFIG_SYS_INIT_RAM_SIZE - GENERATED_GBL_DATA_SIZE)
+#define CONFIG_SYS_INIT_RAM_END	0x2F00	/* End of used area in DPRAM	*/
+#define CONFIG_SYS_GBL_DATA_SIZE	64	/* size in bytes reserved for initial data */
+#define CONFIG_SYS_GBL_DATA_OFFSET	(CONFIG_SYS_INIT_RAM_END - CONFIG_SYS_GBL_DATA_SIZE)
 #define CONFIG_SYS_INIT_SP_OFFSET	CONFIG_SYS_GBL_DATA_OFFSET
 
 /*-----------------------------------------------------------------------
@@ -350,7 +374,6 @@
  *-----------------------------------------------------------------------
  */
 
-#define CONFIG_IDE_PREINIT	1	/* Use preinit IDE hook */
 #define CONFIG_IDE_8xx_PCCARD	1	/* Use IDE with PC Card Adapter */
 
 #undef	CONFIG_IDE_8xx_DIRECT		/* Direct IDE	 not supported	*/
@@ -403,12 +426,9 @@
 #define CONFIG_SYS_OR_TIMING_FLASH	(OR_ACS_DIV1  | OR_TRLX | OR_CSNT_SAM | \
 				 OR_SCY_2_CLK | OR_EHTR | OR_BI)
 
-#define CONFIG_SYS_OR0_REMAP \
-		(CONFIG_SYS_REMAP_OR_AM  | CONFIG_SYS_OR_TIMING_FLASH)
-#define CONFIG_SYS_OR0_PRELIM \
-		(CONFIG_SYS_PRELIM_OR_AM | CONFIG_SYS_OR_TIMING_FLASH)
-#define CONFIG_SYS_BR0_PRELIM \
-		((FLASH_BASE0_PRELIM & BR_BA_MSK) | BR_PS_16 | BR_V )
+#define CONFIG_SYS_OR0_REMAP	(CONFIG_SYS_REMAP_OR_AM  | CONFIG_SYS_OR_TIMING_FLASH)
+#define CONFIG_SYS_OR0_PRELIM	(CONFIG_SYS_PRELIM_OR_AM | CONFIG_SYS_OR_TIMING_FLASH)
+#define CONFIG_SYS_BR0_PRELIM	((FLASH_BASE0_PRELIM & BR_BA_MSK) | BR_PS_16 | BR_V )
 
 
 /* SDRAM timing: Multiplexed addresses, GPL5 output to GPL5_A (don't care)	*/
@@ -424,16 +444,19 @@
 
 
 /*
- * Chip Selects
+ * Internal Definitions
+ *
+ * Boot Flags
  */
+#define BOOTFLAG_COLD	0x01		/* Normal Power-On: Boot from FLASH	*/
+#define BOOTFLAG_WARM	0x02		/* Software reboot			*/
 
-#define CONFIG_SYS_OR4 0xFFFF8926
-#define CONFIG_SYS_BR4 0x90000401
-
-#define LATCH_ADDR 0x90000200
 
 #define CONFIG_AUTOBOOT_KEYED		/* use key strings to stop autoboot	*/
-
+#if 0
+#define CONFIG_AUTOBOOT_PROMPT		\
+	"Boote in %d Sekunden - stop mit \"2\"\n", bootdelay
+#endif
 #define CONFIG_AUTOBOOT_STOP_STR	"."	/* easy to stop for now		*/
 #define CONFIG_SILENT_CONSOLE	1
 

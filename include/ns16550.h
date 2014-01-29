@@ -1,6 +1,6 @@
 /*
  * NS16550 Serial Port
- * originally from linux source (arch/powerpc/boot/ns16550.h)
+ * originally from linux source (arch/ppc/boot/ns16550.h)
  *
  * Cleanup and unification
  * (C) 2009 by Detlev Zundel, DENX Software Engineering GmbH
@@ -21,12 +21,8 @@
  * will not allocate storage for arrays of size 0
  */
 
-#include <linux/types.h>
-
 #if !defined(CONFIG_SYS_NS16550_REG_SIZE) || (CONFIG_SYS_NS16550_REG_SIZE == 0)
 #error "Please define NS16550 registers size."
-#elif defined(CONFIG_SYS_NS16550_MEM32)
-#define UART_REG(x) u32 x
 #elif (CONFIG_SYS_NS16550_REG_SIZE > 0)
 #define UART_REG(x)						   \
 	unsigned char prepad_##x[CONFIG_SYS_NS16550_REG_SIZE - 1]; \
@@ -46,14 +42,6 @@ struct NS16550 {
 	UART_REG(lsr);		/* 5 */
 	UART_REG(msr);		/* 6 */
 	UART_REG(spr);		/* 7 */
-#ifdef CONFIG_SOC_DA8XX
-	UART_REG(reg8);		/* 8 */
-	UART_REG(reg9);		/* 9 */
-	UART_REG(revid1);	/* A */
-	UART_REG(revid2);	/* B */
-	UART_REG(pwr_mgmt);	/* C */
-	UART_REG(mdr1);		/* D */
-#else
 	UART_REG(mdr1);		/* 8 */
 	UART_REG(reg9);		/* 9 */
 	UART_REG(regA);		/* A */
@@ -66,7 +54,6 @@ struct NS16550 {
 	UART_REG(ssr);		/* 11*/
 	UART_REG(reg12);	/* 12*/
 	UART_REG(osc_12m_sel);	/* 13*/
-#endif
 };
 
 #define thr rbr
@@ -74,12 +61,12 @@ struct NS16550 {
 #define dll rbr
 #define dlm ier
 
-typedef struct NS16550 *NS16550_t;
+typedef volatile struct NS16550 *NS16550_t;
 
 /*
  * These are the definitions for the FIFO Control Register
  */
-#define UART_FCR_FIFO_EN	0x01 /* Fifo enable */
+#define UART_FCR_FIFO_EN 	0x01 /* Fifo enable */
 #define UART_FCR_CLEAR_RCVR	0x02 /* Clear the RCVR FIFO */
 #define UART_FCR_CLEAR_XMIT	0x04 /* Clear the XMIT FIFO */
 #define UART_FCR_DMA_SELECT	0x08 /* For DMA applications */
@@ -115,7 +102,7 @@ typedef struct NS16550 *NS16550_t;
 #define UART_LCR_WLS_6	0x01		/* 6 bit character length */
 #define UART_LCR_WLS_7	0x02		/* 7 bit character length */
 #define UART_LCR_WLS_8	0x03		/* 8 bit character length */
-#define UART_LCR_STB	0x04		/* # stop Bits, off=1, on=1.5 or 2) */
+#define UART_LCR_STB	0x04		/* Number of stop Bits, off = 1, on = 1.5 or 2) */
 #define UART_LCR_PEN	0x08		/* Parity eneble */
 #define UART_LCR_EPS	0x10		/* Even Parity Select */
 #define UART_LCR_STKP	0x20		/* Stick Parity */
@@ -171,8 +158,8 @@ typedef struct NS16550 *NS16550_t;
 /* useful defaults for LCR */
 #define UART_LCR_8N1	0x03
 
-void NS16550_init(NS16550_t com_port, int baud_divisor);
-void NS16550_putc(NS16550_t com_port, char c);
-char NS16550_getc(NS16550_t com_port);
-int NS16550_tstc(NS16550_t com_port);
-void NS16550_reinit(NS16550_t com_port, int baud_divisor);
+void	NS16550_init   (NS16550_t com_port, int baud_divisor);
+void	NS16550_putc   (NS16550_t com_port, char c);
+char	NS16550_getc   (NS16550_t com_port);
+int	NS16550_tstc   (NS16550_t com_port);
+void	NS16550_reinit (NS16550_t com_port, int baud_divisor);

@@ -4,7 +4,19 @@
  * (C) Copyright 2009 Faraday Technology
  * Po-Yu Chuang <ratbert@faraday-tech.com>
  *
- * SPDX-License-Identifier:	GPL-2.0+
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 
 #include <config.h>
@@ -18,8 +30,8 @@
 #define ETH_ZLEN	60
 
 struct ftmac100_data {
-	struct ftmac100_txdes txdes[1];
-	struct ftmac100_rxdes rxdes[PKTBUFSRX];
+	volatile struct ftmac100_txdes txdes[1];
+	volatile struct ftmac100_rxdes rxdes[PKTBUFSRX];
 	int rx_index;
 };
 
@@ -76,8 +88,8 @@ static int ftmac100_init (struct eth_device *dev, bd_t *bd)
 {
 	struct ftmac100 *ftmac100 = (struct ftmac100 *)dev->iobase;
 	struct ftmac100_data *priv = dev->priv;
-	struct ftmac100_txdes *txdes = priv->txdes;
-	struct ftmac100_rxdes *rxdes = priv->rxdes;
+	volatile struct ftmac100_txdes *txdes = priv->txdes;
+	volatile struct ftmac100_rxdes *rxdes = priv->rxdes;
 	unsigned int maccr;
 	int i;
 
@@ -141,7 +153,7 @@ static int ftmac100_init (struct eth_device *dev, bd_t *bd)
 static int ftmac100_recv (struct eth_device *dev)
 {
 	struct ftmac100_data *priv = dev->priv;
-	struct ftmac100_rxdes *curr_des;
+	volatile struct ftmac100_rxdes *curr_des;
 	unsigned short rxlen;
 
 	curr_des = &priv->rxdes[priv->rx_index];
@@ -178,12 +190,13 @@ static int ftmac100_recv (struct eth_device *dev)
 /*
  * Send a data block via Ethernet
  */
-static int ftmac100_send(struct eth_device *dev, void *packet, int length)
+static int
+ftmac100_send (struct eth_device *dev, volatile void *packet, int length)
 {
 	struct ftmac100 *ftmac100 = (struct ftmac100 *)dev->iobase;
 	struct ftmac100_data *priv = dev->priv;
-	struct ftmac100_txdes *curr_des = priv->txdes;
-	ulong start;
+	volatile struct ftmac100_txdes *curr_des = priv->txdes;
+	int tmo;
 
 	if (curr_des->txdes0 & FTMAC100_TXDES0_TXDMA_OWN) {
 		debug ("%s(): no TX descriptor available\n", __func__);
@@ -211,9 +224,9 @@ static int ftmac100_send(struct eth_device *dev, void *packet, int length)
 
 	/* wait for transfer to succeed */
 
-	start = get_timer(0);
+	tmo = get_timer (0) + 5 * CONFIG_SYS_HZ;
 	while (curr_des->txdes0 & FTMAC100_TXDES0_TXDMA_OWN) {
-		if (get_timer(start) >= 5) {
+		if (get_timer (0) >= tmo) {
 			debug ("%s(): timed out\n", __func__);
 			return -1;
 		}

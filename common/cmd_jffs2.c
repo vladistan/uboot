@@ -18,7 +18,23 @@
  *   $Id: cmdlinepart.c,v 1.17 2004/11/26 11:18:47 lavinen Exp $
  *   Copyright 2002 SYSGO Real-Time Solutions GmbH
  *
- * SPDX-License-Identifier:	GPL-2.0+
+ * See file CREDITS for list of people who contributed to this
+ * project.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation; either version 2 of
+ * the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
+ * MA 02111-1307 USA
  */
 
 /*
@@ -265,7 +281,7 @@ static inline u32 get_part_sector_size_nor(struct mtdids *id, struct part_info *
 	flash = &flash_info[id->num];
 
 	start_phys = flash->start[0] + part->offset;
-	end_phys = start_phys + part->size - 1;
+	end_phys = start_phys + part->size;
 
 	for (i = 0; i < flash->sector_count; i++) {
 		if (flash->start[i] >= end_phys)
@@ -390,14 +406,14 @@ int mtdparts_init(void)
 		part->offset = 0x00000000;
 #endif
 
+		part->sector_size = get_part_sector_size(id, part);
+
 		part->dev = current_mtd_dev;
 		INIT_LIST_HEAD(&part->link);
 
 		/* recalculate size if needed */
 		if (part->size == SIZE_REMAINING)
 			part->size = id->size - part->offset;
-
-		part->sector_size = get_part_sector_size(id, part);
 
 		DEBUGF("part  : name = %s, size = 0x%08lx, offset = 0x%08lx\n",
 				part->name, part->size, part->offset);
@@ -469,7 +485,7 @@ static struct part_info* jffs2_part_info(struct mtd_device *dev, unsigned int pa
  * @param argv arguments list
  * @return 0 on success, 1 otherwise
  */
-int do_jffs2_fsload(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
+int do_jffs2_fsload(cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 {
 	char *fsname;
 	char *filename;
@@ -509,9 +525,11 @@ int do_jffs2_fsload(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 		}
 
 		if (size > 0) {
+			char buf[10];
 			printf("### %s load complete: %d bytes loaded to 0x%lx\n",
 				fsname, size, offset);
-			setenv_hex("filesize", size);
+			sprintf(buf, "%x", size);
+			setenv("filesize", buf);
 		} else {
 			printf("### %s LOAD ERROR<%x> for %s!\n", fsname, size, filename);
 		}
@@ -531,7 +549,7 @@ int do_jffs2_fsload(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
  * @param argv arguments list
  * @return 0 on success, 1 otherwise
  */
-int do_jffs2_ls(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
+int do_jffs2_ls(cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 {
 	char *filename = "/";
 	int ret;
@@ -569,7 +587,7 @@ int do_jffs2_ls(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
  * @param argv arguments list
  * @return 0 on success, 1 otherwise
  */
-int do_jffs2_fsinfo(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
+int do_jffs2_fsinfo(cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 {
 	struct part_info *part;
 	char *fsname;

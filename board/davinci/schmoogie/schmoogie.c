@@ -8,19 +8,34 @@
  * Copyright (C) 2004 Texas Instruments.
  *
  * ----------------------------------------------------------------------------
- * SPDX-License-Identifier:	GPL-2.0+
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with this program; if not, write to the Free Software
+ *  Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  * ----------------------------------------------------------------------------
  */
 
 #include <common.h>
 #include <i2c.h>
 #include <asm/arch/hardware.h>
-#include <asm/arch/davinci_misc.h>
+#include "../common/misc.h"
 
 DECLARE_GLOBAL_DATA_PTR;
 
 int board_init(void)
 {
+	/* arch number of the board */
+	gd->bd->bi_arch_number = MACH_TYPE_SCHMOOGIE;
+
 	/* address of boot parameters */
 	gd->bd->bi_boot_params = LINUX_BOOT_PARAM_ADDR;
 
@@ -92,12 +107,12 @@ int misc_init_r(void)
 	/* Set serial number from UID chip */
 	if (i2c_read(CONFIG_SYS_UID_ADDR, 0, 1, buf, 8)) {
 		printf("\nUID @ 0x%02x read FAILED!!!\n", CONFIG_SYS_UID_ADDR);
-		setenv("serial#", "FAILED");
+		forceenv("serial#", "FAILED");
 	} else {
 		if (buf[0] != 0x70) {
 			/* Device Family Code */
 			printf("\nUID @ 0x%02x read FAILED!!!\n", CONFIG_SYS_UID_ADDR);
-			setenv("serial#", "FAILED");
+			forceenv("serial#", "FAILED");
 		}
 	}
 	/* Now check CRC */
@@ -107,12 +122,12 @@ int misc_init_r(void)
 
 	if (tmp[0] != 0) {
 		printf("\nUID @ 0x%02x - BAD CRC!!!\n", CONFIG_SYS_UID_ADDR);
-		setenv("serial#", "FAILED");
+		forceenv("serial#", "FAILED");
 	} else {
 		/* CRC OK, set "serial" env variable */
 		sprintf((char *)&tmp[0], "%02x%02x%02x%02x%02x%02x",
 			buf[6], buf[5], buf[4], buf[3], buf[2], buf[1]);
-		setenv("serial#", (char *)&tmp[0]);
+		forceenv("serial#", (char *)&tmp[0]);
 	}
 
 	return(0);

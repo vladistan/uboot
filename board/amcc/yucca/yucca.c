@@ -2,21 +2,36 @@
  * (C) Copyright 2006
  * Wolfgang Denk, DENX Software Engineering, wd@denx.de.
  *
+ * See file CREDITS for list of people who contributed to this
+ * project.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation; either version 2 of
+ * the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	 See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
+ * MA 02111-1307 USA
+ *
  * Port to AMCC-440SPE Evaluation Board SOP - April 2005
  *
  * PCIe supporting routines derived from Linux 440SPe PCIe driver.
- *
- * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #include <common.h>
-#include <asm/ppc4xx.h>
+#include <ppc4xx.h>
 #include <i2c.h>
 #include <netdev.h>
 #include <asm/processor.h>
 #include <asm/io.h>
 #include <asm/4xx_pcie.h>
-#include <asm/errno.h>
 
 #include "yucca.h"
 
@@ -30,6 +45,9 @@ void fpga_init (void);
 #else
 #define DEBUGF(fmt,args...)
 #endif
+
+#define FALSE	0
+#define TRUE	1
 
 int board_early_init_f (void)
 {
@@ -149,7 +167,7 @@ int board_early_init_f (void)
 	 |	0x07C00000 - 0 0 000 1 1 1 1 1 0000 0 00000 000000000000
 	 |
 	 +-------------------------------------------------------------------*/
-	mtebc(EBC0_CFG, EBC_CFG_LE_UNLOCK |
+	mtebc(xbcfg, EBC_CFG_LE_UNLOCK |
 			EBC_CFG_PTD_ENABLE |
 			EBC_CFG_RTC_16PERCLK |
 			EBC_CFG_ATC_PREVIOUS |
@@ -170,8 +188,8 @@ int board_early_init_f (void)
 	 | boot type
 	 |
 	 +-------------------------------------------------------------------*/
-	mtebc(PB1AP, EBC_BXAP_FPGA);
-	mtebc(PB1CR, EBC_BXCR_FPGA_CS1);
+	mtebc(pb1ap, EBC_BXAP_FPGA);
+	mtebc(pb1cr, EBC_BXCR_FPGA_CS1);
 
 	/*-------------------------------------------------------------------+
 	 |
@@ -316,10 +334,10 @@ int board_early_init_f (void)
 			break;
 	}
 
-	mtebc(PB0AP, ebc0_cs0_bxap_value);
-	mtebc(PB0CR, ebc0_cs0_bxcr_value);
-	mtebc(PB2AP, ebc0_cs2_bxap_value);
-	mtebc(PB2CR, ebc0_cs2_bxcr_value);
+	mtebc(pb0ap, ebc0_cs0_bxap_value);
+	mtebc(pb0cr, ebc0_cs0_bxcr_value);
+	mtebc(pb2ap, ebc0_cs2_bxap_value);
+	mtebc(pb2cr, ebc0_cs2_bxcr_value);
 
 	/*--------------------------------------------------------------------+
 	 | Interrupt controller setup for the AMCC 440SPe Evaluation board.
@@ -467,54 +485,54 @@ int board_early_init_f (void)
 	 | interrupt trigger levels.  Make bit 0 High  priority.  Clear all
 	 | interrupts again.
 	 +-------------------------------------------------------------------*/
-	mtdcr (UIC3SR, 0xffffffff);	/* Clear all interrupts */
-	mtdcr (UIC3ER, 0x00000000);	/* disable all interrupts */
-	mtdcr (UIC3CR, 0x00000000);	/* Set Critical / Non Critical
+	mtdcr (uic3sr, 0xffffffff);	/* Clear all interrupts */
+	mtdcr (uic3er, 0x00000000);	/* disable all interrupts */
+	mtdcr (uic3cr, 0x00000000);	/* Set Critical / Non Critical
 					 * interrupts */
-	mtdcr (UIC3PR, 0xffffffff);	/* Set Interrupt Polarities */
-	mtdcr (UIC3TR, 0x001fffff);	/* Set Interrupt Trigger Levels */
-	mtdcr (UIC3VR, 0x00000001);	/* Set Vect base=0,INT31 Highest
+	mtdcr (uic3pr, 0xffffffff);	/* Set Interrupt Polarities */
+	mtdcr (uic3tr, 0x001fffff);	/* Set Interrupt Trigger Levels */
+	mtdcr (uic3vr, 0x00000001);	/* Set Vect base=0,INT31 Highest
 					 * priority */
-	mtdcr (UIC3SR, 0x00000000);	/* clear all  interrupts */
-	mtdcr (UIC3SR, 0xffffffff);	/* clear all  interrupts */
+	mtdcr (uic3sr, 0x00000000);	/* clear all  interrupts */
+	mtdcr (uic3sr, 0xffffffff);	/* clear all  interrupts */
 
-	mtdcr (UIC2SR, 0xffffffff);	/* Clear all interrupts */
-	mtdcr (UIC2ER, 0x00000000);	/* disable all interrupts */
-	mtdcr (UIC2CR, 0x00000000);	/* Set Critical / Non Critical
+	mtdcr (uic2sr, 0xffffffff);	/* Clear all interrupts */
+	mtdcr (uic2er, 0x00000000);	/* disable all interrupts */
+	mtdcr (uic2cr, 0x00000000);	/* Set Critical / Non Critical
 					 * interrupts */
-	mtdcr (UIC2PR, 0xebebebff);	/* Set Interrupt Polarities */
-	mtdcr (UIC2TR, 0x74747400);	/* Set Interrupt Trigger Levels */
-	mtdcr (UIC2VR, 0x00000001);	/* Set Vect base=0,INT31 Highest
+	mtdcr (uic2pr, 0xebebebff);	/* Set Interrupt Polarities */
+	mtdcr (uic2tr, 0x74747400);	/* Set Interrupt Trigger Levels */
+	mtdcr (uic2vr, 0x00000001);	/* Set Vect base=0,INT31 Highest
 					 * priority */
-	mtdcr (UIC2SR, 0x00000000);	/* clear all interrupts */
-	mtdcr (UIC2SR, 0xffffffff);	/* clear all interrupts */
+	mtdcr (uic2sr, 0x00000000);	/* clear all interrupts */
+	mtdcr (uic2sr, 0xffffffff);	/* clear all interrupts */
 
-	mtdcr (UIC1SR, 0xffffffff);	/* Clear all interrupts */
-	mtdcr (UIC1ER, 0x00000000);	/* disable all interrupts */
-	mtdcr (UIC1CR, 0x00000000);	/* Set Critical / Non Critical
+	mtdcr (uic1sr, 0xffffffff);	/* Clear all interrupts */
+	mtdcr (uic1er, 0x00000000);	/* disable all interrupts */
+	mtdcr (uic1cr, 0x00000000);	/* Set Critical / Non Critical
 					 * interrupts */
-	mtdcr (UIC1PR, 0xffffffff);	/* Set Interrupt Polarities */
-	mtdcr (UIC1TR, 0x001f8040);	/* Set Interrupt Trigger Levels */
-	mtdcr (UIC1VR, 0x00000001);	/* Set Vect base=0,INT31 Highest
+	mtdcr (uic1pr, 0xffffffff);	/* Set Interrupt Polarities */
+	mtdcr (uic1tr, 0x001f8040);	/* Set Interrupt Trigger Levels */
+	mtdcr (uic1vr, 0x00000001);	/* Set Vect base=0,INT31 Highest
 					 * priority */
-	mtdcr (UIC1SR, 0x00000000);	/* clear all interrupts */
-	mtdcr (UIC1SR, 0xffffffff);	/* clear all interrupts */
+	mtdcr (uic1sr, 0x00000000);	/* clear all interrupts */
+	mtdcr (uic1sr, 0xffffffff);	/* clear all interrupts */
 
-	mtdcr (UIC0SR, 0xffffffff);	/* Clear all interrupts */
-	mtdcr (UIC0ER, 0x00000000);	/* disable all interrupts excepted
+	mtdcr (uic0sr, 0xffffffff);	/* Clear all interrupts */
+	mtdcr (uic0er, 0x00000000);	/* disable all interrupts excepted
 					 * cascade to be checked */
-	mtdcr (UIC0CR, 0x00104001);	/* Set Critical / Non Critical
+	mtdcr (uic0cr, 0x00104001);	/* Set Critical / Non Critical
 					 * interrupts */
-	mtdcr (UIC0PR, 0xffffffff);	/* Set Interrupt Polarities */
-	mtdcr (UIC0TR, 0x010f0004);	/* Set Interrupt Trigger Levels */
-	mtdcr (UIC0VR, 0x00000001);	/* Set Vect base=0,INT31 Highest
+	mtdcr (uic0pr, 0xffffffff);	/* Set Interrupt Polarities */
+	mtdcr (uic0tr, 0x010f0004);	/* Set Interrupt Trigger Levels */
+	mtdcr (uic0vr, 0x00000001);	/* Set Vect base=0,INT31 Highest
 					 * priority */
-	mtdcr (UIC0SR, 0x00000000);	/* clear all interrupts */
-	mtdcr (UIC0SR, 0xffffffff);	/* clear all interrupts */
+	mtdcr (uic0sr, 0x00000000);	/* clear all interrupts */
+	mtdcr (uic0sr, 0xffffffff);	/* clear all interrupts */
 
-	mfsdr(SDR0_MFR, mfr);
+	mfsdr(sdr_mfr, mfr);
 	mfr |= SDR0_MFR_FIXD;		/* Workaround for PCI/DMA */
-	mtsdr(SDR0_MFR, mfr);
+	mtsdr(sdr_mfr, mfr);
 
 	fpga_init();
 
@@ -523,13 +541,12 @@ int board_early_init_f (void)
 
 int checkboard (void)
 {
-	char buf[64];
-	int i = getenv_f("serial#", buf, sizeof(buf));
+	char *s = getenv("serial#");
 
 	printf("Board: Yucca - AMCC 440SPe Evaluation Board");
-	if (i > 0) {
+	if (s != NULL) {
 		puts(", serial# ");
-		puts(buf);
+		puts(s);
 	}
 	putc('\n');
 
@@ -537,7 +554,7 @@ int checkboard (void)
 }
 
 /*
- * Override the default functions in arch/powerpc/cpu/ppc4xx/44x_spd_ddr2.c with
+ * Override the default functions in cpu/ppc4xx/44x_spd_ddr2.c with
  * board specific values.
  */
 static int ppc440spe_rev_a(void)
@@ -570,8 +587,98 @@ u32 ddr_clktr(u32 default_val) {
 	return default_val;
 }
 
+/*************************************************************************
+ *  pci_pre_init
+ *
+ *  This routine is called just prior to registering the hose and gives
+ *  the board the opportunity to check things. Returning a value of zero
+ *  indicates that things are bad & PCI initialization should be aborted.
+ *
+ *	Different boards may wish to customize the pci controller structure
+ *	(add regions, override default access routines, etc) or perform
+ *	certain pre-initialization actions.
+ *
+ ************************************************************************/
 #if defined(CONFIG_PCI)
-int board_pcie_card_present(int port)
+int pci_pre_init(struct pci_controller * hose )
+{
+	unsigned long strap;
+
+	/*-------------------------------------------------------------------+
+	 *	The yucca board is always configured as the host & requires the
+	 *	PCI arbiter to be enabled.
+	 *-------------------------------------------------------------------*/
+	mfsdr(sdr_sdstp1, strap);
+	if( (strap & SDR0_SDSTP1_PAE_MASK) == 0 ) {
+		printf("PCI: SDR0_STRP1[%08lX] - PCI Arbiter disabled.\n",strap);
+		return 0;
+	}
+
+	return 1;
+}
+#endif	/* defined(CONFIG_PCI) */
+
+/*************************************************************************
+ *  pci_target_init
+ *
+ *	The bootstrap configuration provides default settings for the pci
+ *	inbound map (PIM). But the bootstrap config choices are limited and
+ *	may not be sufficient for a given board.
+ *
+ ************************************************************************/
+#if defined(CONFIG_PCI) && defined(CONFIG_SYS_PCI_TARGET_INIT)
+void pci_target_init(struct pci_controller * hose )
+{
+	/*-------------------------------------------------------------------+
+	 * Disable everything
+	 *-------------------------------------------------------------------*/
+	out32r( PCIX0_PIM0SA, 0 ); /* disable */
+	out32r( PCIX0_PIM1SA, 0 ); /* disable */
+	out32r( PCIX0_PIM2SA, 0 ); /* disable */
+	out32r( PCIX0_EROMBA, 0 ); /* disable expansion rom */
+
+	/*-------------------------------------------------------------------+
+	 * Map all of SDRAM to PCI address 0x0000_0000. Note that the 440
+	 * strapping options to not support sizes such as 128/256 MB.
+	 *-------------------------------------------------------------------*/
+	out32r( PCIX0_PIM0LAL, CONFIG_SYS_SDRAM_BASE );
+	out32r( PCIX0_PIM0LAH, 0 );
+	out32r( PCIX0_PIM0SA, ~(gd->ram_size - 1) | 1 );
+	out32r( PCIX0_BAR0, 0 );
+
+	/*-------------------------------------------------------------------+
+	 * Program the board's subsystem id/vendor id
+	 *-------------------------------------------------------------------*/
+	out16r( PCIX0_SBSYSVID, CONFIG_SYS_PCI_SUBSYS_VENDORID );
+	out16r( PCIX0_SBSYSID, CONFIG_SYS_PCI_SUBSYS_DEVICEID );
+
+	out16r( PCIX0_CMD, in16r(PCIX0_CMD) | PCI_COMMAND_MEMORY );
+}
+#endif	/* defined(CONFIG_PCI) && defined(CONFIG_SYS_PCI_TARGET_INIT) */
+
+#if defined(CONFIG_PCI)
+/*************************************************************************
+ *  is_pci_host
+ *
+ *	This routine is called to determine if a pci scan should be
+ *	performed. With various hardware environments (especially cPCI and
+ *	PPMC) it's insufficient to depend on the state of the arbiter enable
+ *	bit in the strap register, or generic host/adapter assumptions.
+ *
+ *	Rather than hard-code a bad assumption in the general 440 code, the
+ *	440 pci code requires the board to decide at runtime.
+ *
+ *	Return 0 for adapter mode, non-zero for host (monarch) mode.
+ *
+ *
+ ************************************************************************/
+int is_pci_host(struct pci_controller *hose)
+{
+	/* The yucca board is always configured as host. */
+	return 1;
+}
+
+static int yucca_pcie_card_present(int port)
 {
 	u16 reg;
 
@@ -589,54 +696,183 @@ int board_pcie_card_present(int port)
 }
 
 /*
- * For the given slot, set endpoint mode, send power to the slot,
- * turn on the green LED and turn off the yellow LED, enable the
- * clock. In endpoint mode reset bit is read only.
+ * For the given slot, set rootpoint mode, send power to the slot,
+ * turn on the green LED and turn off the yellow LED, enable the clock
+ * and turn off reset.
  */
-void board_pcie_setup_port(int port, int rootpoint)
+void yucca_setup_pcie_fpga_rootpoint(int port)
 {
-	u16 power, clock, green_led, yellow_led,
-		reset_off, rp, ep;
+	u16 power, clock, green_led, yellow_led, reset_off, rootpoint, endpoint;
 
-	switch (port) {
+	switch(port) {
 	case 0:
-		rp = FPGA_REG1C_PE0_ROOTPOINT;
-		ep = 0;
+		rootpoint   = FPGA_REG1C_PE0_ROOTPOINT;
+		endpoint    = 0;
+		power	    = FPGA_REG1A_PE0_PWRON;
+		green_led   = FPGA_REG1A_PE0_GLED;
+		clock	    = FPGA_REG1A_PE0_REFCLK_ENABLE;
+		yellow_led  = FPGA_REG1A_PE0_YLED;
+		reset_off   = FPGA_REG1C_PE0_PERST;
 		break;
 	case 1:
-		rp = 0;
-		ep = FPGA_REG1C_PE1_ENDPOINT;
+		rootpoint   = 0;
+		endpoint    = FPGA_REG1C_PE1_ENDPOINT;
+		power	    = FPGA_REG1A_PE1_PWRON;
+		green_led   = FPGA_REG1A_PE1_GLED;
+		clock	    = FPGA_REG1A_PE1_REFCLK_ENABLE;
+		yellow_led  = FPGA_REG1A_PE1_YLED;
+		reset_off   = FPGA_REG1C_PE1_PERST;
 		break;
 	case 2:
-		rp = 0;
-		ep = FPGA_REG1C_PE2_ENDPOINT;
+		rootpoint   = 0;
+		endpoint    = FPGA_REG1C_PE2_ENDPOINT;
+		power	    = FPGA_REG1A_PE2_PWRON;
+		green_led   = FPGA_REG1A_PE2_GLED;
+		clock	    = FPGA_REG1A_PE2_REFCLK_ENABLE;
+		yellow_led  = FPGA_REG1A_PE2_YLED;
+		reset_off   = FPGA_REG1C_PE2_PERST;
 		break;
 
 	default:
 		return;
 	}
 
-	power = FPGA_REG1A_PWRON_ENCODE(port);
-	green_led = FPGA_REG1A_GLED_ENCODE(port);
-	clock = FPGA_REG1A_REFCLK_ENCODE(port);
-	yellow_led = FPGA_REG1A_YLED_ENCODE(port);
-	reset_off = FPGA_REG1C_PERST_ENCODE(port);
-
-	out_be16((u16 *)FPGA_REG1A, ~(power | clock | green_led) &
+	out_be16((u16 *)FPGA_REG1A,
+		 ~(power | clock | green_led) &
 		 (yellow_led | in_be16((u16 *)FPGA_REG1A)));
 
-	out_be16((u16 *)FPGA_REG1C, ~(ep | reset_off) &
-		 (rp | in_be16((u16 *)FPGA_REG1C)));
+	out_be16((u16 *)FPGA_REG1C,
+		 ~(endpoint | reset_off) &
+		 (rootpoint | in_be16((u16 *)FPGA_REG1C)));
+	/*
+	 * Leave device in reset for a while after powering on the
+	 * slot to give it a chance to initialize.
+	 */
+	udelay(250 * 1000);
 
-	if (rootpoint) {
-		/*
-		 * Leave device in reset for a while after powering on the
-		 * slot to give it a chance to initialize.
-		 */
-		udelay(250 * 1000);
+	out_be16((u16 *)FPGA_REG1C, reset_off | in_be16((u16 *)FPGA_REG1C));
+}
+/*
+ * For the given slot, set endpoint mode, send power to the slot,
+ * turn on the green LED and turn off the yellow LED, enable the clock
+ * .In end point mode reset bit is  read only.
+ */
+void yucca_setup_pcie_fpga_endpoint(int port)
+{
+	u16 power, clock, green_led, yellow_led, reset_off, rootpoint, endpoint;
 
-		out_be16((u16 *)FPGA_REG1C,
-			 reset_off | in_be16((u16 *)FPGA_REG1C));
+	switch(port) {
+	case 0:
+		rootpoint   = FPGA_REG1C_PE0_ROOTPOINT;
+		endpoint    = 0;
+		power	    = FPGA_REG1A_PE0_PWRON;
+		green_led   = FPGA_REG1A_PE0_GLED;
+		clock	    = FPGA_REG1A_PE0_REFCLK_ENABLE;
+		yellow_led  = FPGA_REG1A_PE0_YLED;
+		reset_off   = FPGA_REG1C_PE0_PERST;
+		break;
+	case 1:
+		rootpoint   = 0;
+		endpoint    = FPGA_REG1C_PE1_ENDPOINT;
+		power	    = FPGA_REG1A_PE1_PWRON;
+		green_led   = FPGA_REG1A_PE1_GLED;
+		clock	    = FPGA_REG1A_PE1_REFCLK_ENABLE;
+		yellow_led  = FPGA_REG1A_PE1_YLED;
+		reset_off   = FPGA_REG1C_PE1_PERST;
+		break;
+	case 2:
+		rootpoint   = 0;
+		endpoint    = FPGA_REG1C_PE2_ENDPOINT;
+		power	    = FPGA_REG1A_PE2_PWRON;
+		green_led   = FPGA_REG1A_PE2_GLED;
+		clock	    = FPGA_REG1A_PE2_REFCLK_ENABLE;
+		yellow_led  = FPGA_REG1A_PE2_YLED;
+		reset_off   = FPGA_REG1C_PE2_PERST;
+		break;
+
+	default:
+		return;
+	}
+
+	out_be16((u16 *)FPGA_REG1A,
+		 ~(power | clock | green_led) &
+		 (yellow_led | in_be16((u16 *)FPGA_REG1A)));
+
+	out_be16((u16 *)FPGA_REG1C,
+		 ~(rootpoint | reset_off) &
+		 (endpoint | in_be16((u16 *)FPGA_REG1C)));
+}
+
+static struct pci_controller pcie_hose[3] = {{0},{0},{0}};
+
+void pcie_setup_hoses(int busno)
+{
+	struct pci_controller *hose;
+	int i, bus;
+	int ret = 0;
+	char *env;
+	unsigned int delay;
+
+	/*
+	 * assume we're called after the PCIX hose is initialized, which takes
+	 * bus ID 0 and therefore start numbering PCIe's from 1.
+	 */
+	bus = busno;
+	for (i = 0; i <= 2; i++) {
+		/* Check for yucca card presence */
+		if (!yucca_pcie_card_present(i))
+			continue;
+
+		if (is_end_point(i)) {
+			yucca_setup_pcie_fpga_endpoint(i);
+			ret = ppc4xx_init_pcie_endport(i);
+		} else {
+			yucca_setup_pcie_fpga_rootpoint(i);
+			ret = ppc4xx_init_pcie_rootport(i);
+		}
+		if (ret) {
+			printf("PCIE%d: initialization as %s failed\n", i,
+			       is_end_point(i) ? "endpoint" : "root-complex");
+			continue;
+		}
+
+		hose = &pcie_hose[i];
+		hose->first_busno = bus;
+		hose->last_busno = bus;
+		hose->current_busno = bus;
+
+		/* setup mem resource */
+		pci_set_region(hose->regions + 0,
+			CONFIG_SYS_PCIE_MEMBASE + i * CONFIG_SYS_PCIE_MEMSIZE,
+			CONFIG_SYS_PCIE_MEMBASE + i * CONFIG_SYS_PCIE_MEMSIZE,
+			CONFIG_SYS_PCIE_MEMSIZE,
+			PCI_REGION_MEM);
+		hose->region_count = 1;
+		pci_register_hose(hose);
+
+		if (is_end_point(i)) {
+			ppc4xx_setup_pcie_endpoint(hose, i);
+			/*
+			 * Reson for no scanning is endpoint can not generate
+			 * upstream configuration accesses.
+			 */
+		} else {
+			ppc4xx_setup_pcie_rootpoint(hose, i);
+			env = getenv("pciscandelay");
+			if (env != NULL) {
+				delay = simple_strtoul(env, NULL, 10);
+				if (delay > 5)
+					printf("Warning, expect noticable delay before "
+					       "PCIe scan due to 'pciscandelay' value!\n");
+				mdelay(delay * 1000);
+			}
+
+			/*
+			 * Config access can only go down stream
+			 */
+			hose->last_busno = pci_hose_scan(hose);
+			bus = hose->last_busno + 1;
+		}
 	}
 }
 #endif	/* defined(CONFIG_PCI) */
@@ -689,6 +925,17 @@ void fpga_init(void)
 
 	return;
 }
+
+#ifdef CONFIG_POST
+/*
+ * Returns 1 if keys pressed to start the power-on long-running tests
+ * Called from board_init_f().
+ */
+int post_hotkeys_pressed(void)
+{
+	return (ctrlc());
+}
+#endif
 
 /*---------------------------------------------------------------------------+
  | onboard_pci_arbiter_selected => from EPLD

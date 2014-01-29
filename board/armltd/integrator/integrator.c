@@ -14,14 +14,29 @@
  * ARM Ltd.
  * Philippe Robin, <philippe.robin@arm.com>
  *
- * SPDX-License-Identifier:	GPL-2.0+ 
+ * See file CREDITS for list of people who contributed to this
+ * project.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation; either version 2 of
+ * the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	 See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
+ * MA 02111-1307 USA
  */
 
 #include <common.h>
+#ifdef CONFIG_PCI
 #include <netdev.h>
-#include <asm/io.h>
-#include "arm-ebi.h"
-#include "integrator-sc.h"
+#endif
 
 DECLARE_GLOBAL_DATA_PTR;
 
@@ -42,8 +57,6 @@ void show_boot_progress(int progress)
 
 int board_init (void)
 {
-	u32 val;
-
 	/* arch number of Integrator Board */
 #ifdef CONFIG_ARCH_CINTEGRATOR
 	gd->bd->bi_arch_number = MACH_TYPE_CINTEGRATOR;
@@ -61,37 +74,6 @@ extern void cm_remap(void);
 	cm_remap();	/* remaps writeable memory to 0x00000000 */
 #endif
 
-#ifdef CONFIG_ARCH_CINTEGRATOR
-	/*
-	 * Flash protection on the Integrator/CP is in a simple register
-	 */
-	val = readl(CP_FLASHPROG);
-	val |= (CP_FLASHPROG_FLVPPEN | CP_FLASHPROG_FLWREN);
-	writel(val, CP_FLASHPROG);
-#else
-	/*
-	 * The Integrator/AP has some special protection mechanisms
-	 * for the external memories, first the External Bus Interface (EBI)
-	 * then the system controller (SC).
-	 *
-	 * The system comes up with the flash memory non-writable and
-	 * configuration locked. If we want U-Boot to be used for flash
-	 * access we cannot have the flash memory locked.
-	 */
-	writel(EBI_UNLOCK_MAGIC, EBI_BASE + EBI_LOCK_REG);
-	val = readl(EBI_BASE + EBI_CSR1_REG);
-	val &= EBI_CSR_WREN_MASK;
-	val |= EBI_CSR_WREN_ENABLE;
-	writel(val, EBI_BASE + EBI_CSR1_REG);
-	writel(0, EBI_BASE + EBI_LOCK_REG);
-
-	/*
-	 * Set up the system controller to remove write protection from
-	 * the flash memory and enable Vpp
-	 */
-	writel(SC_CTRL_FLASHVPP | SC_CTRL_FLASHWP, SC_CTRLS);
-#endif
-
 	icache_enable ();
 
 	return 0;
@@ -99,34 +81,34 @@ extern void cm_remap(void);
 
 int misc_init_r (void)
 {
+#ifdef CONFIG_PCI
+	pci_init();
+#endif
 	setenv("verify", "n");
 	return (0);
 }
 
-/*
- * The Integrator remaps the Flash memory to 0x00000000 and executes U-Boot
- * from there, which means we cannot test the RAM underneath the ROM at this
- * point. It will be unmapped later on, when we are executing from the
- * relocated in RAM U-Boot. We simply assume that this RAM is usable if the
- * RAM on higher addresses works fine.
- */
-#define REMAPPED_FLASH_SZ 0x40000
-
+/******************************
+ Routine:
+ Description:
+******************************/
 int dram_init (void)
 {
-	gd->bd->bi_dram[0].start = CONFIG_SYS_SDRAM_BASE;
+	gd->bd->bi_dram[0].start = PHYS_SDRAM_1;
+	gd->bd->bi_dram[0].size	 = PHYS_SDRAM_1_SIZE;
+
 #ifdef CONFIG_CM_SPD_DETECT
 	{
 extern void dram_query(void);
-	u32 cm_reg_sdram;
-	u32 sdram_shift;
+	unsigned long cm_reg_sdram;
+	unsigned long sdram_shift;
 
 	dram_query();	/* Assembler accesses to CM registers */
 			/* Queries the SPD values	      */
 
 	/* Obtain the SDRAM size from the CM SDRAM register */
 
-	cm_reg_sdram = readl(CM_BASE + OS_SDRAM);
+	cm_reg_sdram = *(volatile ulong *)(CM_BASE + OS_SDRAM);
 	/*   Register	      SDRAM size
 	 *
 	 *   0xXXXXXXbbb000bb	 16 MB
@@ -136,30 +118,18 @@ extern void dram_query(void);
 	 *   0xXXXXXXbbb100bb	256 MB
 	 *
 	 */
-	sdram_shift = ((cm_reg_sdram & 0x0000001C)/4)%4;
-	gd->ram_size = get_ram_size((long *) CONFIG_SYS_SDRAM_BASE +
-				    REMAPPED_FLASH_SZ,
-				    0x01000000 << sdram_shift);
+	sdram_shift		 = ((cm_reg_sdram & 0x0000001C)/4)%4;
+	gd->bd->bi_dram[0].size	 = 0x01000000 << sdram_shift;
+
 	}
-#else
-	gd->ram_size = get_ram_size((long *) CONFIG_SYS_SDRAM_BASE +
-				    REMAPPED_FLASH_SZ,
-				    PHYS_SDRAM_1_SIZE);
 #endif /* CM_SPD_DETECT */
-	/* We only have one bank of RAM, set it to whatever was detected */
-	gd->bd->bi_dram[0].size	 = gd->ram_size;
 
 	return 0;
 }
 
-#ifdef CONFIG_CMD_NET
+#ifdef CONFIG_PCI
 int board_eth_init(bd_t *bis)
 {
-	int rc = 0;
-#ifdef CONFIG_SMC91111
-	rc = smc91111_initialize(0, CONFIG_SMC91111_BASE);
-#endif
-	rc += pci_eth_init(bis);
-	return rc;
+	return pci_eth_init(bis);
 }
 #endif

@@ -2,7 +2,23 @@
  * (C) Copyright 2001
  * John Clemens <clemens@mclx.com>, Mission Critical Linux, Inc.
  *
- * SPDX-License-Identifier:	GPL-2.0+
+ * See file CREDITS for list of people who contributed to this
+ * project.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation; either version 2 of
+ * the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
+ * MA 02111-1307 USA
  */
 
 /*
@@ -72,7 +88,7 @@ static void galsdma_enable_rx(void);
 
 
 /* GT64240A errata: cant read MPSC/BRG registers... so make mirrors in ram for read/modify write */
-#define MIRROR_HACK ((struct _tag_mirror_hack *)&(gd->arch.mirror_hack[0]))
+#define MIRROR_HACK ((struct _tag_mirror_hack *)&(gd->mirror_hack))
 
 #define GT_REG_WRITE_MIRROR_G(a,d) {MIRROR_HACK->a ## _M = d; GT_REG_WRITE(a,d);}
 #define GTREGREAD_MIRROR_G(a) (MIRROR_HACK->a ## _M)
@@ -374,7 +390,7 @@ galbrg_set_baudrate(int channel, int rate)
 
 #if defined(CONFIG_ZUMA_V2) || defined(CONFIG_P3G4)
 	/* from tclk */
-	clock = (CONFIG_SYS_BUS_CLK/(16*rate)) - 1;
+	clock = (CONFIG_SYS_BUS_HZ/(16*rate)) - 1;
 #else
 	clock = (3686400/(16*rate)) - 1;
 #endif

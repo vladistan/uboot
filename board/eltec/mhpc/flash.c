@@ -2,7 +2,23 @@
  * (C) Copyright 2001
  * Wolfgang Denk, DENX Software Engineering, wd@denx.de.
  *
- * SPDX-License-Identifier:	GPL-2.0+
+ * See file CREDITS for list of people who contributed to this
+ * project.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation; either version 2 of
+ * the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
+ * MA 02111-1307 USA
  */
 
 #include <common.h>
@@ -295,7 +311,7 @@ int write_buff (flash_info_t *info, uchar *src, ulong addr, ulong cnt)
 {
 	ulong cp, wp;
 	FPW data;
-	int i, l, rc, port_width;
+	int count, i, l, rc, port_width;
 
 	if (info->flash_id == FLASH_UNKNOWN) {
 		return 4;
@@ -314,9 +330,9 @@ int write_buff (flash_info_t *info, uchar *src, ulong addr, ulong cnt)
 	 */
 	if ((l = addr - wp) != 0) {
 		data = 0;
-		for (i=0, cp=wp; i<l; ++i, ++cp)
+		for (i=0, cp=wp; i<l; ++i, ++cp) {
 			data = (data << 8) | (*(uchar *)cp);
-
+		}
 		for (; i<port_width && cnt>0; ++i) {
 			data = (data << 8) | *src++;
 			--cnt;
@@ -335,6 +351,7 @@ int write_buff (flash_info_t *info, uchar *src, ulong addr, ulong cnt)
 	/*
 	 * handle word aligned part
 	 */
+	count = 0;
 	while (cnt >= port_width) {
 		data = 0;
 		for (i=0; i<port_width; ++i) {

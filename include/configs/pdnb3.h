@@ -4,7 +4,23 @@
  *
  * Configuation settings for the PDNB3 board.
  *
- * SPDX-License-Identifier:	GPL-2.0+
+ * See file CREDITS for list of people who contributed to this
+ * project.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation; either version 2 of
+ * the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
+ * MA 02111-1307 USA
  */
 
 #ifndef __CONFIG_H
@@ -17,8 +33,6 @@
 #define CONFIG_IXP425		1       /* This is an IXP425 CPU	*/
 #define CONFIG_PDNB3		1       /* on an PDNB3 board		*/
 
-#define	CONFIG_MACH_TYPE	1002
-
 #define CONFIG_DISPLAY_CPUINFO	1	/* display cpu info (and speed)	*/
 #define CONFIG_DISPLAY_BOARDINFO 1	/* display board info		*/
 
@@ -26,6 +40,7 @@
  * Ethernet
  */
 #define CONFIG_IXP4XX_NPE	1	/* include IXP4xx NPE support	*/
+#define CONFIG_NET_MULTI	1
 #define	CONFIG_PHY_ADDR		16	/* NPE0 PHY address		*/
 #define CONFIG_HAS_ETH1
 #define CONFIG_PHY1_ADDR	18	/* NPE1 PHY address		*/
@@ -35,6 +50,9 @@
 /*
  * Misc configuration options
  */
+#define CONFIG_USE_IRQ          1	/* we need IRQ stuff for timer	*/
+#define CONFIG_TIMER_IRQ
+
 #define CONFIG_BOOTCOUNT_LIMIT		/* support for bootcount limit	*/
 #define CONFIG_SYS_BOOTCOUNT_ADDR	0x60003000 /* inside qmrg sram		*/
 
@@ -46,6 +64,7 @@
  * Size of malloc() pool
  */
 #define CONFIG_SYS_MALLOC_LEN		(1 << 20)
+#define CONFIG_SYS_GBL_DATA_SIZE	128	/* size in bytes reserved for initial data */
 
 /* allow to overwrite serial and ethaddr */
 #define CONFIG_ENV_OVERWRITE
@@ -99,8 +118,20 @@
 #define CONFIG_SYS_MEMTEST_END         0x00800000      /* 4 ... 8 MB in DRAM   */
 #define CONFIG_SYS_LOAD_ADDR           0x00010000      /* default load address */
 
-#define CONFIG_IXP425_TIMER_CLK		66666666
 #define CONFIG_SYS_HZ			1000		/* decrementer freq: 1 ms ticks */
+						/* valid baudrates */
+#define CONFIG_SYS_BAUDRATE_TABLE      { 9600, 19200, 38400, 57600, 115200 }
+
+/*
+ * Stack sizes
+ *
+ * The stack sizes are set up in start.S using the settings below
+ */
+#define CONFIG_STACKSIZE        (128*1024)      /* regular stack */
+#ifdef CONFIG_USE_IRQ
+#define CONFIG_STACKSIZE_IRQ    (4*1024)        /* IRQ stack */
+#define CONFIG_STACKSIZE_FIQ    (4*1024)        /* FIQ stack */
+#endif
 
 /***************************************************************
  * Platform/Board specific defines start here.
@@ -158,7 +189,6 @@
 #define PHYS_SDRAM_1            0x00000000 /* SDRAM Bank #1 */
 #define PHYS_SDRAM_1_SIZE       0x02000000 /* 32 MB */
 
-#define CONFIG_SYS_TEXT_BASE	       0x50000000
 #define CONFIG_SYS_FLASH_BASE          0x50000000
 #define CONFIG_SYS_MONITOR_BASE	CONFIG_SYS_FLASH_BASE
 #if defined(CONFIG_SCPU)
@@ -236,6 +266,7 @@
  */
 #define CONFIG_SYS_MAX_NAND_DEVICE	1
 #define CONFIG_SYS_NAND_BASE		0x51000000	/* NAND FLASH Base Address */
+#define CONFIG_SYS_64BIT_VSPRINTF			/* needed for nand_util.c */
 #endif
 
 /*
@@ -265,10 +296,12 @@
  */
 
 /* enable I2C and select the hardware/software driver */
-#define CONFIG_SYS_I2C
-#define CONFIG_SYS_I2C_SOFT		/* I2C bit-banged */
-#define CONFIG_SYS_I2C_SOFT_SPEED	83000	/* 83 kHz is supposed to work */
-#define CONFIG_SYS_I2C_SOFT_SLAVE	0xFE
+#undef	CONFIG_HARD_I2C			/* I2C with hardware support	*/
+#define	CONFIG_SOFT_I2C		1	/* I2C bit-banged		*/
+
+#define CONFIG_SYS_I2C_SPEED		83000	/* 83 kHz is supposed to work	*/
+#define CONFIG_SYS_I2C_SLAVE		0xFE
+
 /*
  * Software (bit-bang) I2C driver configuration
  */
@@ -313,10 +346,5 @@
  * Cache Configuration
  */
 #define CONFIG_SYS_CACHELINE_SIZE	32
-
-/* additions for new relocation code, must be added to all boards */
-#define CONFIG_SYS_SDRAM_BASE		0x00000000
-#define CONFIG_SYS_INIT_SP_ADDR        \
-	(CONFIG_SYS_SDRAM_BASE + 0x1000 - GENERATED_GBL_DATA_SIZE)
 
 #endif  /* __CONFIG_H */

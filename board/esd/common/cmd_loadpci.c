@@ -2,7 +2,23 @@
  * (C) Copyright 2005-2008
  * Matthias Fuchs, esd GmbH Germany, matthias.fuchs@esd-electronics.com
  *
- * SPDX-License-Identifier:	GPL-2.0+
+ * See file CREDITS for list of people who contributed to this
+ * project.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation; either version 2 of
+ * the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
+ * MA 02111-1307 USA
  */
 
 #include <common.h>
@@ -13,6 +29,7 @@
 
 #if defined(CONFIG_CMD_BSP)
 
+extern int do_bootm (cmd_tbl_t *, int, int, char *[]);
 extern int do_source (cmd_tbl_t *, int, int, char *[]);
 
 #define ADDRMASK 0xfffff000
@@ -20,7 +37,7 @@ extern int do_source (cmd_tbl_t *, int, int, char *[]);
 /*
  * Command loadpci: wait for signal from host and boot image.
  */
-int do_loadpci(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
+int do_loadpci(cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 {
 	u32 *ptr = 0;
 	int count = 0;
@@ -31,7 +48,7 @@ int do_loadpci(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 	u32 la, ptm1la;
 
 #if defined(CONFIG_440)
-	ptm1la = in32r(PCIL0_PTM1LA);
+	ptm1la = in32r(PCIX0_PTM1LA);
 #else
 	ptm1la = in32r(PTM1LA);
 #endif
@@ -94,7 +111,7 @@ int do_loadpci(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 			 * Call run_cmd
 			 */
 			printf("running command at addr 0x%s ...\n", addr);
-			run_command((char *)la, 0);
+			run_command((char*)la, 0);
 			break;
 
 		default:

@@ -8,7 +8,23 @@
  * (C) Copyright 2006
  * Matthias Fuchs, esd GmbH, matthias.fuchs@esd-electronics.com
  *
- * SPDX-License-Identifier:	GPL-2.0+ 
+ * See file CREDITS for list of people who contributed to this
+ * project.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation; either version 2 of
+ * the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	 See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
+ * MA 02111-1307 USA
  */
 
 /*
@@ -26,8 +42,6 @@
 #define CONFIG_405EP		1	/* This is a PPC405 CPU		*/
 #define CONFIG_4xx		1	/* ...member of PPC4xx family   */
 #define CONFIG_HH405		1	/* ...on a HH405 board	        */
-
-#define	CONFIG_SYS_TEXT_BASE	0xFFF80000
 
 #define CONFIG_BOARD_EARLY_INIT_F 1	/* call board_early_init_f()	*/
 #define CONFIG_MISC_INIT_R      1       /* call misc_init_r()           */
@@ -51,6 +65,7 @@
 #define CONFIG_SYS_LOADS_BAUD_CHANGE	1	/* allow baudrate change	*/
 
 #define CONFIG_PPC4xx_EMAC
+#define CONFIG_NET_MULTI	1
 #undef  CONFIG_HAS_ETH1
 
 #define CONFIG_MII		1	/* MII PHY management		*/
@@ -139,6 +154,9 @@
 #define CONFIG_SYS_PROMPT	"=> "		/* Monitor Command Prompt	*/
 
 #undef	CONFIG_SYS_HUSH_PARSER			/* use "hush" command parser	*/
+#ifdef	CONFIG_SYS_HUSH_PARSER
+#define	CONFIG_SYS_PROMPT_HUSH_PS2	"> "
+#endif
 
 #if defined(CONFIG_CMD_KGDB)
 #define	CONFIG_SYS_CBSIZE	1024		/* Console I/O Buffer Size	*/
@@ -158,14 +176,9 @@
 #define CONFIG_SYS_MEMTEST_START	0x0400000	/* memtest works on	*/
 #define CONFIG_SYS_MEMTEST_END		0x0C00000	/* 4 ... 12 MB in DRAM	*/
 
-#define CONFIG_CONS_INDEX	2	/* Use UART1			*/
-#define CONFIG_SYS_NS16550
-#define CONFIG_SYS_NS16550_SERIAL
-#define CONFIG_SYS_NS16550_REG_SIZE	1
-#define CONFIG_SYS_NS16550_CLK		get_serial_clock()
-
 #undef  CONFIG_SYS_EXT_SERIAL_CLOCK           /* no external serial clock used */
 #define CONFIG_SYS_BASE_BAUD       691200
+#define CONFIG_UART1_CONSOLE            /* define for uart1 as console  */
 
 /* The following table includes the supported baudrates */
 #define CONFIG_SYS_BAUDRATE_TABLE      \
@@ -206,6 +219,8 @@
 #define CONFIG_SYS_NAND_SKIP_BAD_DOT_I 1       /* ".i" read skips bad blocks   */
 #define CONFIG_SYS_NAND_QUIET          1
 
+#define CONFIG_SYS_64BIT_VSPRINTF	/* needed for nand_util.c */
+
 /*-----------------------------------------------------------------------
  * PCI stuff
  *-----------------------------------------------------------------------
@@ -215,7 +230,6 @@
 #define PCI_HOST_AUTO   2               /* detected via arbiter enable  */
 
 #define CONFIG_PCI			/* include pci support	        */
-#define CONFIG_PCI_INDIRECT_BRIDGE	/* indirect PCI bridge support */
 #define CONFIG_PCI_HOST	PCI_HOST_HOST   /* select pci host function     */
 #define CONFIG_PCI_PNP			/* do pci plug-and-play         */
 					/* resource configuration       */
@@ -294,7 +308,7 @@
  */
 #define CONFIG_SYS_SDRAM_BASE		0x00000000
 #define CONFIG_SYS_FLASH_BASE		0xFFF80000
-#define CONFIG_SYS_MONITOR_BASE	CONFIG_SYS_TEXT_BASE
+#define CONFIG_SYS_MONITOR_BASE	TEXT_BASE
 #define CONFIG_SYS_MONITOR_LEN		(512 * 1024)	/* Reserve 512 kB for Monitor	*/
 #define CONFIG_SYS_MALLOC_LEN		(4 << 20)	/* Reserve 4 MB for malloc()	*/
 
@@ -318,15 +332,13 @@
 /*-----------------------------------------------------------------------
  * I2C EEPROM (CAT24WC16) for environment
  */
-#define CONFIG_SYS_I2C
-#define CONFIG_SYS_I2C_PPC4XX
-#define CONFIG_SYS_I2C_PPC4XX_CH0
+#define CONFIG_HARD_I2C			/* I2c with hardware support */
 #if 0 /* test-only */
-#define CONFIG_SYS_I2C_PPC4XX_SPEED_0		400000
+#define CONFIG_SYS_I2C_SPEED		400000	/* I2C speed and slave address */
 #else
-#define CONFIG_SYS_I2C_PPC4XX_SPEED_0		100000
+#define CONFIG_SYS_I2C_SPEED		100000	/* I2C speed and slave address */
 #endif
-#define CONFIG_SYS_I2C_PPC4XX_SLAVE_0		0x7F
+#define CONFIG_SYS_I2C_SLAVE		0x7F
 
 #define CONFIG_SYS_I2C_EEPROM_ADDR	0x50	/* EEPROM CAT24WC08		*/
 #define CONFIG_SYS_EEPROM_WREN         1
@@ -432,9 +444,10 @@
 #define CONFIG_SYS_OCM_DATA_ADDR	0xF8000000
 #define CONFIG_SYS_OCM_DATA_SIZE	0x1000
 #define CONFIG_SYS_INIT_RAM_ADDR	CONFIG_SYS_OCM_DATA_ADDR /* inside of SDRAM		*/
-#define CONFIG_SYS_INIT_RAM_SIZE	CONFIG_SYS_OCM_DATA_SIZE /* Size of used area in RAM	*/
+#define CONFIG_SYS_INIT_RAM_END	CONFIG_SYS_OCM_DATA_SIZE /* End of used area in RAM	*/
 
-#define CONFIG_SYS_GBL_DATA_OFFSET    (CONFIG_SYS_INIT_RAM_SIZE - GENERATED_GBL_DATA_SIZE)
+#define CONFIG_SYS_GBL_DATA_SIZE      128  /* size in bytes reserved for initial data */
+#define CONFIG_SYS_GBL_DATA_OFFSET    (CONFIG_SYS_INIT_RAM_END - CONFIG_SYS_GBL_DATA_SIZE)
 #define CONFIG_SYS_INIT_SP_OFFSET      CONFIG_SYS_GBL_DATA_OFFSET
 
 /*-----------------------------------------------------------------------
@@ -449,12 +462,12 @@
  * GPIO0[28-29] - UART1 data signal input/output
  * GPIO0[30-31] - EMAC0 and EMAC1 reject packet inputs
  */
-#define CONFIG_SYS_GPIO0_OSRL		0x40000550
-#define CONFIG_SYS_GPIO0_OSRH		0x00000110
-#define CONFIG_SYS_GPIO0_ISR1L		0x00000000
-#define CONFIG_SYS_GPIO0_ISR1H		0x15555440
-#define CONFIG_SYS_GPIO0_TSRL		0x00000000
+#define CONFIG_SYS_GPIO0_OSRH		0x40000550
+#define CONFIG_SYS_GPIO0_OSRL		0x00000110
+#define CONFIG_SYS_GPIO0_ISR1H		0x00000000
+#define CONFIG_SYS_GPIO0_ISR1L		0x15555440
 #define CONFIG_SYS_GPIO0_TSRH		0x00000000
+#define CONFIG_SYS_GPIO0_TSRL		0x00000000
 #define CONFIG_SYS_GPIO0_TCR		0xF7FE0017
 
 #define CONFIG_SYS_LCD_ENDIAN		(0x80000000 >> 7)
@@ -462,6 +475,14 @@
 #define CONFIG_SYS_TOUCH_RST		(0x80000000 >> 9)   /* GPIO9 */
 #define CONFIG_SYS_LCD0_RST		(0x80000000 >> 30)
 #define CONFIG_SYS_LCD1_RST		(0x80000000 >> 31)
+
+/*
+ * Internal Definitions
+ *
+ * Boot Flags
+ */
+#define BOOTFLAG_COLD	0x01		/* Normal Power-On: Boot from FLASH	*/
+#define BOOTFLAG_WARM	0x02		/* Software reboot			*/
 
 /*
  * Default speed selection (cpu_plb_opb_ebc) in mhz.

@@ -8,7 +8,23 @@
  * Derived from iSPAN 4539 port (iphase4539) by
  * Wolfgang Grandegger <wg@denx.de>
  *
- * SPDX-License-Identifier:	GPL-2.0+ 
+ * See file CREDITS for list of people who contributed to this
+ * project.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation; either version 2 of
+ * the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	 See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
+ * MA 02111-1307 USA
  */
 #ifndef __CONFIG_H
 #define __CONFIG_H
@@ -16,8 +32,6 @@
 #define CONFIG_MPC8260			/* This is an MPC8260 CPU               */
 #define CONFIG_ISPAN			/* ...on one of Interphase iSPAN boards */
 #define CONFIG_CPM2		1	/* Has a CPM2 */
-
-#define	CONFIG_SYS_TEXT_BASE	0xFE7A0000
 
 /*-----------------------------------------------------------------------
  * Select serial console configuration
@@ -56,8 +70,8 @@
 #if CONFIG_ETHER_INDEX == 3
 
 #define CONFIG_SYS_PHY_ADDR		0
-#define CONFIG_SYS_CMXFCR_VALUE3	(CMXFCR_RF3CS_CLK14 | CMXFCR_TF3CS_CLK16)
-#define CONFIG_SYS_CMXFCR_MASK3		(CMXFCR_FC3 | CMXFCR_RF3CS_MSK | CMXFCR_TF3CS_MSK)
+#define CONFIG_SYS_CMXFCR_VALUE	(CMXFCR_RF3CS_CLK14 | CMXFCR_TF3CS_CLK16)
+#define CONFIG_SYS_CMXFCR_MASK		(CMXFCR_FC3 | CMXFCR_RF3CS_MSK | CMXFCR_TF3CS_MSK)
 
 #endif /* CONFIG_ETHER_INDEX == 3 */
 
@@ -70,10 +84,6 @@
  * GPIO pins used for bit-banged MII communications
  */
 #define MDIO_PORT		3		/* Port D */
-#define MDIO_DECLARE		volatile ioport_t *iop = ioport_addr ( \
-					(immap_t *) CONFIG_SYS_IMMR, MDIO_PORT )
-#define MDC_DECLARE		MDIO_DECLARE
-
 
 #define CONFIG_SYS_MDIO_PIN		0x00040000	/* PD13 */
 #define CONFIG_SYS_MDC_PIN		0x00080000	/* PD12 */
@@ -130,6 +140,7 @@
  */
 #define CONFIG_SYS_PROMPT		"=> "		/* Monitor Command Prompt	*/
 #define CONFIG_SYS_HUSH_PARSER
+#define CONFIG_SYS_PROMPT_HUSH_PS2	"> "
 #define CONFIG_SYS_LONGHELP				/* #undef to save memory	*/
 #define CONFIG_SYS_CBSIZE		256		/* Console I/O Buffer Size	*/
 #define CONFIG_SYS_PBSIZE (CONFIG_SYS_CBSIZE + sizeof(CONFIG_SYS_PROMPT) + 16)  /* Print Buffer Size */
@@ -143,6 +154,8 @@
 
 #define CONFIG_SYS_HZ			1000		/* Decrementer freq: 1 ms ticks	*/
 
+#define CONFIG_SYS_BAUDRATE_TABLE	{ 9600, 19200, 38400, 57600, 115200 }
+
 #define CONFIG_SYS_RESET_ADDRESS	0x09900000
 
 #define CONFIG_MISC_INIT_R			/* We need misc_init_r()	*/
@@ -154,7 +167,7 @@
  */
 #define CONFIG_SYS_BOOTMAPSZ		(8 << 20)	/* Initial Memory map for Linux */
 
-#define CONFIG_SYS_MONITOR_BASE	CONFIG_SYS_TEXT_BASE
+#define CONFIG_SYS_MONITOR_BASE	TEXT_BASE
 #define CONFIG_SYS_MONITOR_LEN		(192 << 10)	/* Reserve 192 kB for Monitor   */
 #ifdef CONFIG_BZIP2
 #define CONFIG_SYS_MALLOC_LEN		(4096 << 10)	/* Reserve 4 MB for malloc()    */
@@ -212,9 +225,18 @@
  * Definitions for initial stack pointer and data area (in DPRAM)
  */
 #define CONFIG_SYS_INIT_RAM_ADDR	CONFIG_SYS_IMMR
-#define CONFIG_SYS_INIT_RAM_SIZE	0x4000		/* Size of used area in DPRAM	*/
-#define CONFIG_SYS_GBL_DATA_OFFSET	(CONFIG_SYS_INIT_RAM_SIZE - GENERATED_GBL_DATA_SIZE)
+#define CONFIG_SYS_INIT_RAM_END	0x4000		/* End of used area in DPRAM	*/
+#define CONFIG_SYS_GBL_DATA_SIZE	128  /* Size in bytes reserved for initial data */
+#define CONFIG_SYS_GBL_DATA_OFFSET	(CONFIG_SYS_INIT_RAM_END - CONFIG_SYS_GBL_DATA_SIZE)
 #define CONFIG_SYS_INIT_SP_OFFSET	CONFIG_SYS_GBL_DATA_OFFSET
+
+/*-----------------------------------------------------------------------
+ * Internal Definitions
+ *
+ * Boot Flags
+ */
+#define BOOTFLAG_COLD		0x01	/* Normal Power-On: Boot from flash	*/
+#define BOOTFLAG_WARM		0x02	/* Software reboot			*/
 
 /*-----------------------------------------------------------------------
  * Cache Configuration

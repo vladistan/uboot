@@ -5,7 +5,23 @@
  * (C) Copyright 2002 Jun Gu <jung@artesyncp.com>
  * Add support for Am29F016D and dynamic switch setting.
  *
- * SPDX-License-Identifier:	GPL-2.0+
+ * See file CREDITS for list of people who contributed to this
+ * project.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation; either version 2 of
+ * the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
+ * MA 02111-1307 USA
  */
 
 /*
@@ -16,9 +32,9 @@
  */
 
 #include <common.h>
-#include <asm/ppc4xx.h>
+#include <ppc4xx.h>
 #include <asm/processor.h>
-#include <asm/ppc440.h>
+#include <ppc440.h>
 #include "bamboo.h"
 
 #undef DEBUG
@@ -70,7 +86,7 @@ unsigned long flash_init(void)
 	unsigned long ebc_boot_size;
 	unsigned long boot_selection;
 
-	mfsdr(SDR0_PINSTP, val);
+	mfsdr(sdr_pstrp0, val);
 	index = (val & SDR0_PSTRP0_BOOTSTRAP_MASK) >> 29;
 
 	if ((index == 5) || (index == 7)) {
@@ -78,7 +94,7 @@ unsigned long flash_init(void)
 		 * Boot Settings in IIC EEprom address 0xA8 or 0xA4
 		 * Read Serial Device Strap Register1 in PPC440EP
 		 */
-		mfsdr(SDR0_SDSTP1, val);
+		mfsdr(sdr_sdstp1, val);
 		boot_selection  = val & SDR0_SDSTP1_BOOT_SEL_MASK;
 		ebc_boot_size   = val & SDR0_SDSTP1_EBC_ROM_BS_MASK;
 

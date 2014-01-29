@@ -4,7 +4,10 @@ Skeleton NIC driver for Etherboot
 ***************************************************************************/
 
 /*
- * SPDX-License-Identifier:	GPL-2.0+
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation; either version 2, or (at
+ * your option) any later version.
  */
 
 /*
@@ -29,7 +32,7 @@ Skeleton NIC driver for Etherboot
 #include "eth.h"
 #include "eth_addrtbl.h"
 
-#if defined(CONFIG_CMD_NET)
+#if defined(CONFIG_CMD_NET) && defined(CONFIG_NET_MULTI)
 
 #define GT6426x_ETH_BUF_SIZE	1536
 
@@ -86,7 +89,7 @@ static const char ether_port_phy_addr[3]={4,5,6};
 /* MII PHY access routines are common for all i/f, use gal_ent0 */
 #define GT6426x_MII_DEVNAME	"gal_enet0"
 
-int gt6426x_miiphy_read(const char *devname, unsigned char phy,
+int gt6426x_miiphy_read(char *devname, unsigned char phy,
 		unsigned char reg, unsigned short *val);
 
 static inline unsigned short
@@ -124,32 +127,31 @@ static void gt6426x_handle_SMI(struct eth_dev_s *p, unsigned int icr)
 #endif
 
     if(icr&0x10000000) {
-#ifdef DEBUG
 	unsigned int psr;
-
 	psr=GTREGREAD(ETHERNET0_PORT_STATUS_REGISTER + p->reg_base);
+#ifdef DEBUG
 	printf("PHY state change:\n"
 	       "  GT:%s:%s:%s:%s\n",
-		psr & 1 ? "100" : " 10",
-		psr & 8 ? " Link" : "nLink",
-		psr & 2 ? "FD" : "HD",
-		psr & 4 ? " FC" : "nFC");
+		psr&1?"100":" 10",
+		psr&8?" Link":"nLink",
+		psr&2?"FD":"HD",
+		psr&4?" FC":"nFC");
 
 #ifdef CONFIG_INTEL_LXT97X /* non-standard mii reg (intel lxt972a) */
 	{
-		unsigned short mii_11;
-		mii_11 = miiphy_read_ret(ether_port_phy_addr[p->dev], 0x11);
+	unsigned short mii_11;
+	mii_11=miiphy_read_ret(ether_port_phy_addr[p->dev],0x11);
 
-		printf(" mii:%s:%s:%s:%s %s:%s %s\n",
-			mii_11 & (1 << 14) ? "100" : " 10",
-			mii_11 & (1 << 10) ? " Link" : "nLink",
-			mii_11 & (1 << 9) ? "FD" : "HD",
-			mii_11 & (1 << 4) ? " FC" : "nFC",
+	printf(" mii:%s:%s:%s:%s %s:%s %s\n",
+		mii_11&(1<<14)?"100":" 10",
+		mii_11&(1<<10)?" Link":"nLink",
+		mii_11&(1<<9)?"FD":"HD",
+		mii_11&(1<<4)?" FC":"nFC",
 
-			mii_11 & (1 << 7) ? "ANc" : "ANnc",
-			mii_11 & (1 << 8) ? "AN" : "Manual",
-			""
-			);
+		mii_11&(1<<7)?"ANc":"ANnc",
+		mii_11&(1<<8)?"AN":"Manual",
+		""
+		);
 	}
 #endif /* CONFIG_INTEL_LXT97X */
 #endif /* DEBUG */
@@ -243,7 +245,8 @@ gt6426x_eth_poll(void *v)
 /**************************************************************************
 TRANSMIT - Transmit a frame
 ***************************************************************************/
-int gt6426x_eth_transmit(void *v, char *p, unsigned int s)
+int
+gt6426x_eth_transmit(void *v, volatile char *p, unsigned int s)
 {
 	struct eth_device *wp = (struct eth_device *)v;
 	struct eth_dev_s *dev = (struct eth_dev_s *)wp->priv;
@@ -342,7 +345,7 @@ gt6426x_eth_disable(void *v)
 MII utilities - write: write to an MII register via SMI
 ***************************************************************************/
 int
-gt6426x_miiphy_write(const char *devname, unsigned char phy,
+gt6426x_miiphy_write(char *devname, unsigned char phy,
 		unsigned char reg, unsigned short data)
 {
     unsigned int temp= (reg<<21) | (phy<<16) | data;
@@ -357,7 +360,7 @@ gt6426x_miiphy_write(const char *devname, unsigned char phy,
 MII utilities - read: read from an MII register via SMI
 ***************************************************************************/
 int
-gt6426x_miiphy_read(const char *devname, unsigned char phy,
+gt6426x_miiphy_read(char *devname, unsigned char phy,
 		unsigned char reg, unsigned short *val)
 {
     unsigned int temp= (reg<<21) | (phy<<16) | 1<<26;
@@ -419,24 +422,24 @@ gt6426x_dump_mii(bd_t *bis, unsigned short phy)
 static void
 check_phy_state(struct eth_dev_s *p)
 {
-	int bmsr = miiphy_read_ret(ether_port_phy_addr[p->dev], MII_BMSR);
+	int bmsr = miiphy_read_ret(ether_port_phy_addr[p->dev], PHY_BMSR);
 	int psr = GTREGREAD(ETHERNET0_PORT_STATUS_REGISTER + p->reg_base);
 
-	if ((psr & 1<<3) && (bmsr & BMSR_LSTATUS)) {
-		int nego = miiphy_read_ret(ether_port_phy_addr[p->dev], MII_ADVERTISE) &
-				miiphy_read_ret(ether_port_phy_addr[p->dev], MII_LPA);
+	if ((psr & 1<<3) && (bmsr & PHY_BMSR_LS)) {
+		int nego = miiphy_read_ret(ether_port_phy_addr[p->dev], PHY_ANAR) &
+				miiphy_read_ret(ether_port_phy_addr[p->dev], PHY_ANLPAR);
 		int want;
 
-		if (nego & LPA_100FULL) {
+		if (nego & PHY_ANLPAR_TXFD) {
 			want = 0x3;
 			printf("MII: 100Base-TX, Full Duplex\n");
-		} else if (nego & LPA_100HALF) {
+		} else if (nego & PHY_ANLPAR_TX) {
 			want = 0x1;
 			printf("MII: 100Base-TX, Half Duplex\n");
-		} else if (nego & LPA_10FULL) {
+		} else if (nego & PHY_ANLPAR_10FD) {
 			want = 0x2;
 			printf("MII: 10Base-T, Full Duplex\n");
-		} else if (nego & LPA_10HALF) {
+		} else if (nego & PHY_ANLPAR_10) {
 			want = 0x0;
 			printf("MII: 10Base-T, Half Duplex\n");
 		} else {
@@ -682,7 +685,7 @@ gt6426x_eth_initialize(bd_t *bis)
 			return;
 		}
 
-		/* must be less than sizeof(dev->name) */
+		/* must be less than NAMESIZE (16) */
 		sprintf(dev->name, "gal_enet%d", devnum);
 
 #ifdef DEBUG
@@ -705,7 +708,7 @@ gt6426x_eth_initialize(bd_t *bis)
 				return;
 		}
 
-		temp = getenv_f(s, buf, sizeof(buf));
+		temp = getenv_r (s, buf, sizeof(buf));
 		s = (temp > 0) ? buf : NULL;
 
 #ifdef DEBUG

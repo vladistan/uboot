@@ -6,7 +6,23 @@
  * Wolfgang Denk, DENX Software Engineering, wd@denx.de.
  * Wolfgang Grandegger, DENX Software Engineering, wg@denx.de.
  *
- * SPDX-License-Identifier:	GPL-2.0+
+ * See file CREDITS for list of people who contributed to this
+ * project.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation; either version 2 of
+ * the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
+ * MA 02111-1307 USA
  */
 
 /*
@@ -18,6 +34,8 @@
 #include <asm/processor.h>
 #include <asm/io.h>
 #include <pci.h>
+
+unsigned char	ShortPCIListing = 1;
 
 /*
  * Follows routines for the output of infos about devices on PCI bus.
@@ -86,6 +104,68 @@ void pciinfo(int BusNum, int ShortPCIListing)
     }
 }
 
+static char *pci_classes_str(u8 class)
+{
+	switch (class) {
+	case PCI_CLASS_NOT_DEFINED:
+		return "Build before PCI Rev2.0";
+		break;
+	case PCI_BASE_CLASS_STORAGE:
+		return "Mass storage controller";
+		break;
+	case PCI_BASE_CLASS_NETWORK:
+		return "Network controller";
+		break;
+	case PCI_BASE_CLASS_DISPLAY:
+		return "Display controller";
+		break;
+	case PCI_BASE_CLASS_MULTIMEDIA:
+		return "Multimedia device";
+		break;
+	case PCI_BASE_CLASS_MEMORY:
+		return "Memory controller";
+		break;
+	case PCI_BASE_CLASS_BRIDGE:
+		return "Bridge device";
+		break;
+	case PCI_BASE_CLASS_COMMUNICATION:
+		return "Simple comm. controller";
+		break;
+	case PCI_BASE_CLASS_SYSTEM:
+		return "Base system peripheral";
+		break;
+	case PCI_BASE_CLASS_INPUT:
+		return "Input device";
+		break;
+	case PCI_BASE_CLASS_DOCKING:
+		return "Docking station";
+		break;
+	case PCI_BASE_CLASS_PROCESSOR:
+		return "Processor";
+		break;
+	case PCI_BASE_CLASS_SERIAL:
+		return "Serial bus controller";
+		break;
+	case PCI_BASE_CLASS_INTELLIGENT:
+		return "Intelligent controller";
+		break;
+	case PCI_BASE_CLASS_SATELLITE:
+		return "Satellite controller";
+		break;
+	case PCI_BASE_CLASS_CRYPT:
+		return "Cryptographic device";
+		break;
+	case PCI_BASE_CLASS_SIGNAL_PROCESSING:
+		return "DSP";
+		break;
+	case PCI_CLASS_OTHERS:
+		return "Does not fit any class";
+		break;
+	default:
+	return  "???";
+		break;
+	};
+}
 
 /*
  * Subroutine:  pci_header_show_brief
@@ -110,7 +190,7 @@ void pci_header_show_brief(pci_dev_t dev)
 
 	printf("0x%.4x     0x%.4x     %-23s 0x%.2x\n",
 	       vendor, device,
-	       pci_class_str(class), subclass);
+	       pci_classes_str(class), subclass);
 }
 
 /*
@@ -145,7 +225,7 @@ void pci_header_show(pci_dev_t dev)
 	PRINT ("  status register =             0x%.4x\n", word, PCI_STATUS);
 	PRINT ("  revision ID =                 0x%.2x\n", byte, PCI_REVISION_ID);
 	PRINT2("  class code =                  0x%.2x (%s)\n", byte, PCI_CLASS_CODE,
-								pci_class_str);
+								pci_classes_str);
 	PRINT ("  sub class code =              0x%.2x\n", byte, PCI_CLASS_SUB_CODE);
 	PRINT ("  programming interface =       0x%.2x\n", byte, PCI_CLASS_PROG);
 	PRINT ("  cache line =                  0x%.2x\n", byte, PCI_CACHE_LINE_SIZE);
@@ -323,6 +403,7 @@ pci_cfg_modify (pci_dev_t bdf, ulong addr, ulong size, ulong value, int incrflag
 {
 	ulong	i;
 	int	nbytes;
+	extern char console_buffer[];
 	uint	val4;
 	ushort  val2;
 	u_char	val1;
@@ -390,7 +471,7 @@ pci_cfg_modify (pci_dev_t bdf, ulong addr, ulong size, ulong value, int incrflag
  *      pci modify[.b, .w, .l] bus.device.function [addr]
  *      pci write[.b, .w, .l] bus.device.function addr value
  */
-static int do_pci(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
+int do_pci (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 {
 	ulong addr = 0, value = 0, size = 0;
 	pci_dev_t bdf = 0;
@@ -416,10 +497,6 @@ static int do_pci(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 		if ((bdf = get_pci_dev(argv[2])) == -1)
 			return 1;
 		break;
-#ifdef CONFIG_CMD_PCI_ENUM
-	case 'e':
-		break;
-#endif
 	default:		/* scan bus */
 		value = 1; /* short listing */
 		bdf = 0;   /* bus number  */
@@ -441,11 +518,6 @@ static int do_pci(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 		return 0;
 	case 'd':		/* display */
 		return pci_cfg_display(bdf, addr, size, value);
-#ifdef CONFIG_CMD_PCI_ENUM
-	case 'e':
-		pci_init();
-		return 0;
-#endif
 	case 'n':		/* next */
 		if (argc < 4)
 			goto usage;
@@ -462,19 +534,18 @@ static int do_pci(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 
 	return 1;
  usage:
-	return CMD_RET_USAGE;
+	cmd_usage(cmdtp);
+	return 1;
 }
 
 /***************************************************/
 
-#ifdef CONFIG_SYS_LONGHELP
-static char pci_help_text[] =
+
+U_BOOT_CMD(
+	pci,	5,	1,	do_pci,
+	"list and access PCI Configuration Space",
 	"[bus] [long]\n"
 	"    - short or long list of PCI devices on bus 'bus'\n"
-#ifdef CONFIG_CMD_PCI_ENUM
-	"pci enum\n"
-	"    - re-enumerate PCI buses\n"
-#endif
 	"pci header b.d.f\n"
 	"    - show header of PCI device 'bus.device.function'\n"
 	"pci display[.b, .w, .l] b.d.f [address] [# of objects]\n"
@@ -484,10 +555,5 @@ static char pci_help_text[] =
 	"pci modify[.b, .w, .l] b.d.f address\n"
 	"    -  modify, auto increment CFG address\n"
 	"pci write[.b, .w, .l] b.d.f address value\n"
-	"    - write to CFG address";
-#endif
-
-U_BOOT_CMD(
-	pci,	5,	1,	do_pci,
-	"list and access PCI Configuration Space", pci_help_text
+	"    - write to CFG address"
 );

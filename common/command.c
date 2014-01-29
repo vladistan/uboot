@@ -2,7 +2,23 @@
  * (C) Copyright 2000-2009
  * Wolfgang Denk, DENX Software Engineering, wd@denx.de.
  *
- * SPDX-License-Identifier:	GPL-2.0+
+ * See file CREDITS for list of people who contributed to this
+ * project.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation; either version 2 of
+ * the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
+ * MA 02111-1307 USA
  */
 
 /*
@@ -11,7 +27,206 @@
 
 #include <common.h>
 #include <command.h>
-#include <linux/ctype.h>
+
+int
+do_version (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
+{
+	extern char version_string[];
+	printf ("\n%s\n", version_string);
+	return 0;
+}
+
+U_BOOT_CMD(
+	version,	1,		1,	do_version,
+	"print monitor version",
+	""
+);
+
+#if defined(CONFIG_CMD_ECHO)
+
+int
+do_echo (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
+{
+	int i, putnl = 1;
+
+	for (i = 1; i < argc; i++) {
+		char *p = argv[i], c;
+
+		if (i > 1)
+			putc(' ');
+		while ((c = *p++) != '\0') {
+			if (c == '\\' && *p == 'c') {
+				putnl = 0;
+				p++;
+			} else {
+				putc(c);
+			}
+		}
+	}
+
+	if (putnl)
+		putc('\n');
+	return 0;
+}
+
+U_BOOT_CMD(
+	echo,	CONFIG_SYS_MAXARGS,	1,	do_echo,
+	"echo args to console",
+	"[args..]\n"
+	"    - echo args to console; \\c suppresses newline"
+);
+
+#endif
+
+#ifdef CONFIG_SYS_HUSH_PARSER
+
+int
+do_test (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
+{
+	char **ap;
+	int left, adv, expr, last_expr, neg, last_cmp;
+
+	/* args? */
+	if (argc < 3)
+		return 1;
+
+#if 0
+	{
+		printf("test:");
+		left = 1;
+		while (argv[left])
+			printf(" %s", argv[left++]);
+	}
+#endif
+
+	last_expr = 0;
+	left = argc - 1; ap = argv + 1;
+	if (left > 0 && strcmp(ap[0], "!") == 0) {
+		neg = 1;
+		ap++;
+		left--;
+	} else
+		neg = 0;
+
+	expr = -1;
+	last_cmp = -1;
+	last_expr = -1;
+	while (left > 0) {
+
+		if (strcmp(ap[0], "-o") == 0 || strcmp(ap[0], "-a") == 0)
+			adv = 1;
+		else if (strcmp(ap[0], "-z") == 0 || strcmp(ap[0], "-n") == 0)
+			adv = 2;
+		else
+			adv = 3;
+
+		if (left < adv) {
+			expr = 1;
+			break;
+		}
+
+		if (adv == 1) {
+			if (strcmp(ap[0], "-o") == 0) {
+				last_expr = expr;
+				last_cmp = 0;
+			} else if (strcmp(ap[0], "-a") == 0) {
+				last_expr = expr;
+				last_cmp = 1;
+			} else {
+				expr = 1;
+				break;
+			}
+		}
+
+		if (adv == 2) {
+			if (strcmp(ap[0], "-z") == 0)
+				expr = strlen(ap[1]) == 0 ? 1 : 0;
+			else if (strcmp(ap[0], "-n") == 0)
+				expr = strlen(ap[1]) == 0 ? 0 : 1;
+			else {
+				expr = 1;
+				break;
+			}
+
+			if (last_cmp == 0)
+				expr = last_expr || expr;
+			else if (last_cmp == 1)
+				expr = last_expr && expr;
+			last_cmp = -1;
+		}
+
+		if (adv == 3) {
+			if (strcmp(ap[1], "=") == 0)
+				expr = strcmp(ap[0], ap[2]) == 0;
+			else if (strcmp(ap[1], "!=") == 0)
+				expr = strcmp(ap[0], ap[2]) != 0;
+			else if (strcmp(ap[1], ">") == 0)
+				expr = strcmp(ap[0], ap[2]) > 0;
+			else if (strcmp(ap[1], "<") == 0)
+				expr = strcmp(ap[0], ap[2]) < 0;
+			else if (strcmp(ap[1], "-eq") == 0)
+				expr = simple_strtol(ap[0], NULL, 10) == simple_strtol(ap[2], NULL, 10);
+			else if (strcmp(ap[1], "-ne") == 0)
+				expr = simple_strtol(ap[0], NULL, 10) != simple_strtol(ap[2], NULL, 10);
+			else if (strcmp(ap[1], "-lt") == 0)
+				expr = simple_strtol(ap[0], NULL, 10) < simple_strtol(ap[2], NULL, 10);
+			else if (strcmp(ap[1], "-le") == 0)
+				expr = simple_strtol(ap[0], NULL, 10) <= simple_strtol(ap[2], NULL, 10);
+			else if (strcmp(ap[1], "-gt") == 0)
+				expr = simple_strtol(ap[0], NULL, 10) > simple_strtol(ap[2], NULL, 10);
+			else if (strcmp(ap[1], "-ge") == 0)
+				expr = simple_strtol(ap[0], NULL, 10) >= simple_strtol(ap[2], NULL, 10);
+			else {
+				expr = 1;
+				break;
+			}
+
+			if (last_cmp == 0)
+				expr = last_expr || expr;
+			else if (last_cmp == 1)
+				expr = last_expr && expr;
+			last_cmp = -1;
+		}
+
+		ap += adv; left -= adv;
+	}
+
+	if (neg)
+		expr = !expr;
+
+	expr = !expr;
+
+	debug (": returns %d\n", expr);
+
+	return expr;
+}
+
+U_BOOT_CMD(
+	test,	CONFIG_SYS_MAXARGS,	1,	do_test,
+	"minimal test like /bin/sh",
+	"[args..]"
+);
+
+int
+do_exit (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
+{
+	int r;
+
+	r = 0;
+	if (argc > 1)
+		r = simple_strtoul(argv[1], NULL, 10);
+
+	return -r - 2;
+}
+
+U_BOOT_CMD(
+	exit,	2,	1,	do_exit,
+	"exit script",
+	""
+);
+
+
+#endif
 
 /*
  * Use puts() instead of printf() to avoid printf buffer overflow
@@ -19,7 +234,7 @@
  */
 
 int _do_help (cmd_tbl_t *cmd_start, int cmd_items, cmd_tbl_t * cmdtp, int
-	      flag, int argc, char * const argv[])
+	      flag, int argc, char *argv[])
 {
 	int i;
 	int rcode = 0;
@@ -82,6 +297,39 @@ int _do_help (cmd_tbl_t *cmd_start, int cmd_items, cmd_tbl_t * cmdtp, int
 	return rcode;
 }
 
+int do_help (cmd_tbl_t * cmdtp, int flag, int argc, char *argv[])
+{
+	return _do_help(&__u_boot_cmd_start,
+			&__u_boot_cmd_end - &__u_boot_cmd_start,
+			cmdtp, flag, argc, argv);
+}
+
+
+U_BOOT_CMD(
+	help,	CONFIG_SYS_MAXARGS,	1,	do_help,
+	"print online help",
+	"[command ...]\n"
+	"    - show help information (for 'command')\n"
+	"'help' prints online help for the monitor commands.\n\n"
+	"Without arguments, it prints a short usage message for all commands.\n\n"
+	"To get detailed help information for specific commands you can type\n"
+	"'help' with one or more command names as arguments."
+);
+
+/* This does not use the U_BOOT_CMD macro as ? can't be used in symbol names */
+#ifdef  CONFIG_SYS_LONGHELP
+cmd_tbl_t __u_boot_cmd_question_mark Struct_Section = {
+	"?",	CONFIG_SYS_MAXARGS,	1,	do_help,
+	"alias for 'help'",
+	""
+};
+#else
+cmd_tbl_t __u_boot_cmd_question_mark Struct_Section = {
+	"?",	CONFIG_SYS_MAXARGS,	1,	do_help,
+	"alias for 'help'"
+};
+#endif /* CONFIG_SYS_LONGHELP */
+
 /***************************************************************************
  * find command table entry for a command
  */
@@ -93,8 +341,6 @@ cmd_tbl_t *find_cmd_tbl (const char *cmd, cmd_tbl_t *table, int table_len)
 	int len;
 	int n_found = 0;
 
-	if (!cmd)
-		return NULL;
 	/*
 	 * Some commands allow length modifiers (like "cp.b");
 	 * compare command name only until first dot.
@@ -121,12 +367,11 @@ cmd_tbl_t *find_cmd_tbl (const char *cmd, cmd_tbl_t *table, int table_len)
 
 cmd_tbl_t *find_cmd (const char *cmd)
 {
-	cmd_tbl_t *start = ll_entry_start(cmd_tbl_t, cmd);
-	const int len = ll_entry_count(cmd_tbl_t, cmd);
-	return find_cmd_tbl(cmd, start, len);
+	int len = &__u_boot_cmd_end - &__u_boot_cmd_start;
+	return find_cmd_tbl(cmd, &__u_boot_cmd_start, len);
 }
 
-int cmd_usage(const cmd_tbl_t *cmdtp)
+int cmd_usage(cmd_tbl_t *cmdtp)
 {
 	printf("%s - %s\n\n", cmdtp->name, cmdtp->usage);
 
@@ -141,17 +386,17 @@ int cmd_usage(const cmd_tbl_t *cmdtp)
 	puts (cmdtp->help);
 	putc ('\n');
 #endif	/* CONFIG_SYS_LONGHELP */
-	return 1;
+	return 0;
 }
 
 #ifdef CONFIG_AUTO_COMPLETE
 
-int var_complete(int argc, char * const argv[], char last_char, int maxv, char *cmdv[])
+int var_complete(int argc, char *argv[], char last_char, int maxv, char *cmdv[])
 {
 	static char tmp_buf[512];
 	int space;
 
-	space = last_char == '\0' || isblank(last_char);
+	space = last_char == '\0' || last_char == ' ' || last_char == '\t';
 
 	if (space && argc == 1)
 		return env_complete("", maxv, cmdv, sizeof(tmp_buf), tmp_buf);
@@ -162,13 +407,32 @@ int var_complete(int argc, char * const argv[], char last_char, int maxv, char *
 	return 0;
 }
 
+static void install_auto_complete_handler(const char *cmd,
+		int (*complete)(int argc, char *argv[], char last_char, int maxv, char *cmdv[]))
+{
+	cmd_tbl_t *cmdtp;
+
+	cmdtp = find_cmd(cmd);
+	if (cmdtp == NULL)
+		return;
+
+	cmdtp->complete = complete;
+}
+
+void install_auto_complete(void)
+{
+	install_auto_complete_handler("printenv", var_complete);
+	install_auto_complete_handler("setenv", var_complete);
+#if defined(CONFIG_CMD_RUN)
+	install_auto_complete_handler("run", var_complete);
+#endif
+}
+
 /*************************************************************************************/
 
-static int complete_cmdv(int argc, char * const argv[], char last_char, int maxv, char *cmdv[])
+static int complete_cmdv(int argc, char *argv[], char last_char, int maxv, char *cmdv[])
 {
-	cmd_tbl_t *cmdtp = ll_entry_start(cmd_tbl_t, cmd);
-	const int count = ll_entry_count(cmd_tbl_t, cmd);
-	const cmd_tbl_t *cmdend = cmdtp + count;
+	cmd_tbl_t *cmdtp;
 	const char *p;
 	int len, clen;
 	int n_found = 0;
@@ -182,19 +446,19 @@ static int complete_cmdv(int argc, char * const argv[], char last_char, int maxv
 
 	if (argc == 0) {
 		/* output full list of commands */
-		for (; cmdtp != cmdend; cmdtp++) {
+		for (cmdtp = &__u_boot_cmd_start; cmdtp != &__u_boot_cmd_end; cmdtp++) {
 			if (n_found >= maxv - 2) {
-				cmdv[n_found] = "...";
+				cmdv[n_found++] = "...";
 				break;
 			}
-			cmdv[n_found] = cmdtp->name;
+			cmdv[n_found++] = cmdtp->name;
 		}
 		cmdv[n_found] = NULL;
 		return n_found;
 	}
 
 	/* more than one arg or one but the start of the next */
-	if (argc > 1 || (last_char == '\0' || isblank(last_char))) {
+	if (argc > 1 || (last_char == '\0' || last_char == ' ' || last_char == '\t')) {
 		cmdtp = find_cmd(argv[0]);
 		if (cmdtp == NULL || cmdtp->complete == NULL) {
 			cmdv[0] = NULL;
@@ -215,7 +479,7 @@ static int complete_cmdv(int argc, char * const argv[], char last_char, int maxv
 		len = p - cmd;
 
 	/* return the partial matches */
-	for (; cmdtp != cmdend; cmdtp++) {
+	for (cmdtp = &__u_boot_cmd_start; cmdtp != &__u_boot_cmd_end; cmdtp++) {
 
 		clen = strlen(cmdtp->name);
 		if (clen < len)
@@ -245,7 +509,7 @@ static int make_argv(char *s, int argvsz, char *argv[])
 	while (argc < argvsz - 1) {
 
 		/* skip any white space */
-		while (isblank(*s))
+		while ((*s == ' ') || (*s == '\t'))
 			++s;
 
 		if (*s == '\0')	/* end of s, no more args	*/
@@ -254,7 +518,7 @@ static int make_argv(char *s, int argvsz, char *argv[])
 		argv[argc++] = s;	/* begin of argument string	*/
 
 		/* find end of string */
-		while (*s && !isblank(*s))
+		while (*s && (*s != ' ') && (*s != '\t'))
 			++s;
 
 		if (*s == '\0')		/* end of s, no more args	*/
@@ -267,7 +531,7 @@ static int make_argv(char *s, int argvsz, char *argv[])
 	return argc;
 }
 
-static void print_argv(const char *banner, const char *leader, const char *sep, int linemax, char * const argv[])
+static void print_argv(const char *banner, const char *leader, const char *sep, int linemax, char *argv[])
 {
 	int ll = leader != NULL ? strlen(leader) : 0;
 	int sl = sep != NULL ? strlen(sep) : 0;
@@ -294,7 +558,7 @@ static void print_argv(const char *banner, const char *leader, const char *sep, 
 	printf("\n");
 }
 
-static int find_common_prefix(char * const argv[])
+static int find_common_prefix(char *argv[])
 {
 	int i, len;
 	char *anchor, *s, *t;
@@ -430,111 +694,3 @@ int cmd_get_data_size(char* arg, int default_size)
 	return default_size;
 }
 #endif
-
-#if defined(CONFIG_NEEDS_MANUAL_RELOC)
-DECLARE_GLOBAL_DATA_PTR;
-
-void fixup_cmdtable(cmd_tbl_t *cmdtp, int size)
-{
-	int	i;
-
-	if (gd->reloc_off == 0)
-		return;
-
-	for (i = 0; i < size; i++) {
-		ulong addr;
-
-		addr = (ulong) (cmdtp->cmd) + gd->reloc_off;
-#if DEBUG_COMMANDS
-		printf("Command \"%s\": 0x%08lx => 0x%08lx\n",
-		       cmdtp->name, (ulong) (cmdtp->cmd), addr);
-#endif
-		cmdtp->cmd =
-			(int (*)(struct cmd_tbl_s *, int, int, char * const []))addr;
-		addr = (ulong)(cmdtp->name) + gd->reloc_off;
-		cmdtp->name = (char *)addr;
-		if (cmdtp->usage) {
-			addr = (ulong)(cmdtp->usage) + gd->reloc_off;
-			cmdtp->usage = (char *)addr;
-		}
-#ifdef	CONFIG_SYS_LONGHELP
-		if (cmdtp->help) {
-			addr = (ulong)(cmdtp->help) + gd->reloc_off;
-			cmdtp->help = (char *)addr;
-		}
-#endif
-#ifdef CONFIG_AUTO_COMPLETE
-		if (cmdtp->complete) {
-			addr = (ulong)(cmdtp->complete) + gd->reloc_off;
-			cmdtp->complete =
-				(int (*)(int, char * const [], char, int, char * []))addr;
-		}
-#endif
-		cmdtp++;
-	}
-}
-#endif
-
-/**
- * Call a command function. This should be the only route in U-Boot to call
- * a command, so that we can track whether we are waiting for input or
- * executing a command.
- *
- * @param cmdtp		Pointer to the command to execute
- * @param flag		Some flags normally 0 (see CMD_FLAG_.. above)
- * @param argc		Number of arguments (arg 0 must be the command text)
- * @param argv		Arguments
- * @return 0 if command succeeded, else non-zero (CMD_RET_...)
- */
-static int cmd_call(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
-{
-	int result;
-
-	result = (cmdtp->cmd)(cmdtp, flag, argc, argv);
-	if (result)
-		debug("Command failed, result=%d", result);
-	return result;
-}
-
-enum command_ret_t cmd_process(int flag, int argc, char * const argv[],
-			       int *repeatable, ulong *ticks)
-{
-	enum command_ret_t rc = CMD_RET_SUCCESS;
-	cmd_tbl_t *cmdtp;
-
-	/* Look up command in command table */
-	cmdtp = find_cmd(argv[0]);
-	if (cmdtp == NULL) {
-		printf("Unknown command '%s' - try 'help'\n", argv[0]);
-		return 1;
-	}
-
-	/* found - check max args */
-	if (argc > cmdtp->maxargs)
-		rc = CMD_RET_USAGE;
-
-#if defined(CONFIG_CMD_BOOTD)
-	/* avoid "bootd" recursion */
-	else if (cmdtp->cmd == do_bootd) {
-		if (flag & CMD_FLAG_BOOTD) {
-			puts("'bootd' recursion detected\n");
-			rc = CMD_RET_FAILURE;
-		} else {
-			flag |= CMD_FLAG_BOOTD;
-		}
-	}
-#endif
-
-	/* If OK so far, then do the command */
-	if (!rc) {
-		if (ticks)
-			*ticks = get_timer(0);
-		rc = cmd_call(cmdtp, flag, argc, argv);
-		if (ticks)
-			*ticks = get_timer(*ticks);
-		*repeatable &= cmdtp->repeatable;
-	}
-	if (rc == CMD_RET_USAGE)
-		rc = cmd_usage(cmdtp);
-	return rc;
-}

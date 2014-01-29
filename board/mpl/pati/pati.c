@@ -3,7 +3,23 @@
  * Martin Winistoerfer, martinwinistoerfer@gmx.ch.
  * Atapted for PATI
  * Denis Peter, d.peter@mpl.ch
- * SPDX-License-Identifier:	GPL-2.0+
+ * See file CREDITS for list of people who contributed to this
+ * project.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation; either version 2 of
+ * the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
+ * MA 02111-1307 USA
  */
 
 /***********************************************************************************
@@ -128,6 +144,7 @@ const sdram_t sdram_table[] = {
 
 
 extern int mem_test (unsigned long start, unsigned long ramsize, int quiet);
+extern void mem_test_reloc(void);
 
 /*
  * Get RAM size.
@@ -317,6 +334,7 @@ void user_led1(int led_on)
  ****************************************************************/
 int last_stage_init (void)
 {
+	mem_test_reloc();
 	init_ios();
 	return 0;
 }
@@ -337,7 +355,7 @@ int checkboard (void)
 	puts ("\nBoard: ");
 	reg=in32(PLD_CONFIG_BASE+PLD_BOARD_TIMING);
 	rev=(char)(SYSCNTR_BREV(reg)+'A');
-	i = getenv_f("serial#", s, 32);
+	i = getenv_r ("serial#", s, 32);
 	if ((i == -1)) {
 		puts ("### No HW ID - assuming " BOARD_NAME);
 		printf(" Rev. %c\n",rev);

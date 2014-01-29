@@ -2,7 +2,24 @@
  * (C) Copyright 2000, 2001
  * Wolfgang Denk, DENX Software Engineering, wd@denx.de.
  *
- * SPDX-License-Identifier:	GPL-2.0+
+ * See file CREDITS for list of people who contributed to this
+ * project.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation; either version 2 of
+ * the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
+ * MA 02111-1307 USA
+ *
  */
 
 /*
@@ -161,18 +178,18 @@ test_write(void)
 }
 
 int
-do_pll_alter (cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
+do_pll_alter (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 {
 	char c = '\0';
 	pll_freq_t pll_freq;
+	if (argc < 2) {
+		cmd_usage(cmdtp);
+		goto ret;
+	}
 
-	if (argc < 2)
-		return cmd_usage(cmdtp);
-
-	for (pll_freq = PLL_ebc20; pll_freq < PLL_TOTAL; pll_freq++) {
+	for (pll_freq = PLL_ebc20; pll_freq < PLL_TOTAL; pll_freq++)
 		if (!strcmp(pll_name[pll_freq], argv[1]))
 			break;
-	}
 
 	switch (pll_freq) {
 	case PLL_ebc20:
@@ -206,7 +223,8 @@ do_pll_alter (cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 
 	default:
 		printf("Invalid options\n\n");
-		return cmd_usage(cmdtp);
+		cmd_usage(cmdtp);
+		goto ret;
 	}
 
 	printf("PLL set to %s, "

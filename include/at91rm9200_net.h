@@ -10,7 +10,10 @@
  * Authors:	Lineo Inc <www.lineo.com>
  *
  *
- * SPDX-License-Identifier:	GPL-2.0+
+ *		This program is free software; you can redistribute it and/or
+ *		modify it under the terms of the GNU General Public License
+ *		as published by the Free Software Foundation; either version
+ *		2 of the License, or (at your option) any later version.
  */
 
 #ifndef AT91RM9200_ETHERNET
@@ -19,6 +22,10 @@
 #include <common.h>
 #include <asm/io.h>
 #include <asm/arch/hardware.h>
+
+#define FALSE 0
+#define TRUE 1
+
 
 #define ETHERNET_ADDRESS_SIZE           6
 

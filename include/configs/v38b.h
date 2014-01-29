@@ -2,7 +2,21 @@
  * (C) Copyright 2003-2006 Wolfgang Denk, DENX Software Engineering,
  * wd@denx.de.
  *
- * SPDX-License-Identifier:	GPL-2.0+
+ * See file CREDITS for list of people who contributed to this project.
+ *
+ * This program is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the Free
+ * Software Foundation; either version 2 of the License, or (at your option)
+ * any later version.
+ *
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
+ * for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc., 59
+ * Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
 
 #ifndef __CONFIG_H
@@ -15,9 +29,6 @@
 #define CONFIG_MPC5xxx			1	/* This is an MPC5xxx CPU */
 #define CONFIG_MPC5200			1	/* This is an MPC5200 CPU */
 #define CONFIG_V38B			1	/* ...on V38B board */
-
-#define	CONFIG_SYS_TEXT_BASE		0xFF000000
-
 #define CONFIG_SYS_MPC5XXX_CLKIN	33000000	/* ...running at 33.000000MHz */
 
 #define CONFIG_RTC_PCF8563		1	/* has PCF8563 RTC */
@@ -32,6 +43,9 @@
 #define CONFIG_MISC_INIT_R
 
 #define CONFIG_SYS_XLB_PIPELINING		1	/* gives better performance */
+
+#define BOOTFLAG_COLD		0x01	/* Normal Power-On: Boot from FLASH  */
+#define BOOTFLAG_WARM		0x02	/* Software reboot */
 
 #define CONFIG_HIGH_BATS	1	/* High BATs supported */
 
@@ -140,7 +154,7 @@
 	"nfsargs=setenv bootargs root=/dev/nfs rw "			\
 		"nfsroot=$(serverip):$(rootpath) wdt=off\0"		\
 	"hostname=v38b\0"						\
-	"ethact=FEC\0"							\
+	"ethact=FEC ETHERNET\0"						\
 	"rootpath=/opt/eldk-3.1.1/ppc_6xx\0"				\
 	"update=prot off ff000000 ff03ffff; era ff000000 ff03ffff; "	\
 		"cp.b 200000 ff000000 $(filesize);"			\
@@ -156,10 +170,12 @@
 
 #define CONFIG_BOOTCOMMAND	"run net_nfs"
 
+#if defined(CONFIG_MPC5200)
 /*
  * IPB Bus clocking configuration.
  */
 #undef CONFIG_SYS_IPBCLK_EQUALS_XLBCLK			/* define for 133MHz speed */
+#endif
 
 /*
  * I2C configuration
@@ -213,12 +229,13 @@
 
 /* Use SRAM until RAM will be available */
 #define CONFIG_SYS_INIT_RAM_ADDR	MPC5XXX_SRAM
-#define CONFIG_SYS_INIT_RAM_SIZE	MPC5XXX_SRAM_SIZE	/* Size of used area in DPRAM */
+#define CONFIG_SYS_INIT_RAM_END	MPC5XXX_SRAM_SIZE	/* End of used area in DPRAM */
 
-#define CONFIG_SYS_GBL_DATA_OFFSET	(CONFIG_SYS_INIT_RAM_SIZE - GENERATED_GBL_DATA_SIZE)
+#define CONFIG_SYS_GBL_DATA_SIZE	128	/* size in bytes reserved for initial data */
+#define CONFIG_SYS_GBL_DATA_OFFSET	(CONFIG_SYS_INIT_RAM_END - CONFIG_SYS_GBL_DATA_SIZE)
 #define CONFIG_SYS_INIT_SP_OFFSET	CONFIG_SYS_GBL_DATA_OFFSET
 
-#define CONFIG_SYS_MONITOR_BASE	CONFIG_SYS_TEXT_BASE
+#define CONFIG_SYS_MONITOR_BASE	TEXT_BASE
 #if (CONFIG_SYS_MONITOR_BASE < CONFIG_SYS_FLASH_BASE)
 #   define CONFIG_SYS_RAMBOOT		1
 #endif

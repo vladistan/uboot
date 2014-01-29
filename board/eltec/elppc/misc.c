@@ -2,7 +2,23 @@
  * (C) Copyright 2002 ELTEC Elektronik AG
  * Frank Gottschling <fgottschling@eltec.de>
  *
- * SPDX-License-Identifier:	GPL-2.0+
+ * See file CREDITS for list of people who contributed to this
+ * project.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation; either version 2 of
+ * the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
+ * MA 02111-1307 USA
  */
 
 /* includes */
@@ -13,6 +29,7 @@
 #include "srom.h"
 
 /* imports  */
+extern char console_buffer[CONFIG_SYS_CBSIZE];
 extern int l2_cache_enable (int l2control);
 extern int eepro100_write_eeprom (struct eth_device *dev, int location,
 				  int addr_len, unsigned short data);
@@ -100,7 +117,7 @@ int misc_init_r (void)
 		eerev.etheraddr[5] = 0x4D;
 
 		/* cache config word for ELPPC */
-		memset(&eerev.res[0], 0, 4);
+		*(int *) &eerev.res[0] = 0;
 
 		initSrom = 1;	/* force dialog */
 		copyNv = 1;	/* copy to nvram */
@@ -191,14 +208,9 @@ int misc_init_r (void)
 		buf[4] = eerev.etheraddr[5];
 		buf[5] = eerev.etheraddr[4];
 
-		buf[20] = 0x48;
-		buf[21] = 0xB2;
-
-		buf[22] = 0x00;
-		buf[23] = 0x04;
-
-		buf[24] = 0x14;
-		buf[25] = 0x33;
+		*(unsigned short *) &buf[20] = 0x48B2;
+		*(unsigned short *) &buf[22] = 0x0004;
+		*(unsigned short *) &buf[24] = 0x1433;
 
 		printf ("\nSRom:  Writing i82559 info ........ ");
 		if (eepro100_srom_store ((unsigned short *) buf) == -1)

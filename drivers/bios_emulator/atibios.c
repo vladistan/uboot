@@ -52,6 +52,10 @@
 /* Length of the BIOS image */
 #define MAX_BIOSLEN	    (128 * 1024L)
 
+/* Define some useful types and macros */
+#define true		    1
+#define false		    0
+
 /* Place to save PCI BAR's that we change and later restore */
 static u32 saveROMBaseAddress;
 static u32 saveBaseAddress10;
@@ -169,7 +173,7 @@ Maps a pointer to the BIOS image on the graphics card on the PCI bus.
 ****************************************************************************/
 void *PCI_mapBIOSImage(pci_dev_t pcidev)
 {
-	u32 BIOSImageBus;
+	u32 BIOSImagePhys;
 	int BIOSImageBAR;
 	u8 *BIOSImage;
 
@@ -191,18 +195,16 @@ void *PCI_mapBIOSImage(pci_dev_t pcidev)
 	 specific programming for different cards to solve this problem.
 	*/
 
-	BIOSImageBus = PCI_findBIOSAddr(pcidev, &BIOSImageBAR);
-	if (BIOSImageBus == 0) {
+	if ((BIOSImagePhys = PCI_findBIOSAddr(pcidev, &BIOSImageBAR)) == 0) {
 		printf("Find bios addr error\n");
 		return NULL;
 	}
 
-	BIOSImage = pci_bus_to_virt(pcidev, BIOSImageBus,
-				    PCI_REGION_MEM, 0, MAP_NOCACHE);
+	BIOSImage = (u8 *) BIOSImagePhys;
 
 	/*Change the PCI BAR registers to map it onto the bus.*/
 	pci_write_config_dword(pcidev, BIOSImageBAR, 0);
-	pci_write_config_dword(pcidev, PCI_ROM_ADDRESS, BIOSImageBus | 0x1);
+	pci_write_config_dword(pcidev, PCI_ROM_ADDRESS, BIOSImagePhys | 0x1);
 
 	udelay(1);
 
@@ -238,7 +240,7 @@ pcidev	- PCI device info for the video card on the bus to boot
 VGAInfo - BIOS emulator VGA info structure
 
 RETURNS:
-true if successfully initialised, false if not.
+True if successfully initialised, false if not.
 
 REMARKS:
 Loads and POST's the display controllers BIOS, directly from the BIOS
@@ -291,7 +293,7 @@ static int PCI_postController(pci_dev_t pcidev, BE_VGAInfo * VGAInfo)
 PARAMETERS:
 pcidev	    - PCI device info for the video card on the bus to boot
 pVGAInfo    - Place to return VGA info structure is requested
-cleanUp	    - true to clean up on exit, false to leave emulator active
+cleanUp	    - True to clean up on exit, false to leave emulator active
 
 REMARKS:
 Boots the PCI/AGP video card on the bus using the Video ROM BIOS image
@@ -313,8 +315,7 @@ int BootVideoCardBIOS(pci_dev_t pcidev, BE_VGAInfo ** pVGAInfo, int cleanUp)
 	BE_init(0, 65536, VGAInfo, 0);
 
 	/*Post all the display controller BIOS'es*/
-	if (!PCI_postController(pcidev, VGAInfo))
-		return false;
+	PCI_postController(pcidev, VGAInfo);
 
 	/*Cleanup and exit the emulator if requested. If the BIOS emulator
 	is needed after booting the card, we will not call BE_exit and

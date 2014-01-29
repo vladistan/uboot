@@ -1,7 +1,19 @@
 /*
  * Copyright (C) 2009 David Brownell
  *
- * SPDX-License-Identifier:	GPL-2.0+
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 
 #include <common.h>
@@ -10,13 +22,9 @@
 #include <asm/arch/hardware.h>
 #include <asm/arch/emif_defs.h>
 #include <asm/arch/nand_defs.h>
-#include <asm/arch/davinci_misc.h>
+#include "../common/misc.h"
 #include <net.h>
 #include <netdev.h>
-#ifdef CONFIG_DAVINCI_MMC
-#include <mmc.h>
-#include <asm/arch/sdmmc_defs.h>
-#endif
 
 DECLARE_GLOBAL_DATA_PTR;
 
@@ -84,8 +92,8 @@ int board_eth_init(bd_t *bis)
 static void nand_dm355evm_select_chip(struct mtd_info *mtd, int chip)
 {
 	struct nand_chip	*this = mtd->priv;
-	unsigned long		wbase = (unsigned long) this->IO_ADDR_W;
-	unsigned long		rbase = (unsigned long) this->IO_ADDR_R;
+	u32			wbase = (u32) this->IO_ADDR_W;
+	u32			rbase = (u32) this->IO_ADDR_R;
 
 	if (chip == 1) {
 		__set_bit(14, &wbase);
@@ -105,41 +113,4 @@ int board_nand_init(struct nand_chip *nand)
 	return 0;
 }
 
-#endif
-
-#ifdef CONFIG_DAVINCI_MMC
-static struct davinci_mmc mmc_sd0 = {
-	.reg_base	= (struct davinci_mmc_regs *)DAVINCI_MMC_SD0_BASE,
-	.input_clk	= 108000000,
-	.host_caps	= MMC_MODE_4BIT,
-	.voltages	= MMC_VDD_32_33 | MMC_VDD_33_34,
-	.version	= MMC_CTLR_VERSION_1,
-};
-
-#ifdef CONFIG_DAVINCI_MMC_SD1
-static struct davinci_mmc mmc_sd1 = {
-	.reg_base	= (struct davinci_mmc_regs *)DAVINCI_MMC_SD1_BASE,
-	.input_clk	= 108000000,
-	.host_caps	= MMC_MODE_4BIT,
-	.voltages	= MMC_VDD_32_33 | MMC_VDD_33_34,
-	.version	= MMC_CTLR_VERSION_1,
-};
-#endif
-
-int board_mmc_init(bd_t *bis)
-{
-	int err;
-
-	/* Add slot-0 to mmc subsystem */
-	err = davinci_mmc_init(bis, &mmc_sd0);
-	if (err)
-		return err;
-
-#ifdef CONFIG_DAVINCI_MMC_SD1
-	/* Add slot-1 to mmc subsystem */
-	err = davinci_mmc_init(bis, &mmc_sd1);
-#endif
-
-	return err;
-}
 #endif

@@ -2,7 +2,24 @@
  * (C) Copyright 2007-2008
  * Matthias Fuchs, esd Gmbh, matthias.fuchs@esd-electronics.com.
  *
- * SPDX-License-Identifier:	GPL-2.0+
+ * See file CREDITS for list of people who contributed to this
+ * project.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation; either version 2 of
+ * the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
+ * MA 02111-1307 USA
+ *
  */
 #include <common.h>
 #include <command.h>
@@ -50,7 +67,7 @@ int fpga_interrupt(u32 arg)
 	return rc;
 }
 
-int do_waithci(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
+int do_waithci(cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 {
 	pmc440_fpga_t *fpga = (pmc440_fpga_t *)FPGA_BA;
 
@@ -101,7 +118,7 @@ void dump_fifo(pmc440_fpga_t *fpga, int f, int *n)
 	}
 }
 
-int do_fifo(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
+int do_fifo(cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 {
 	pmc440_fpga_t *fpga = (pmc440_fpga_t *)FPGA_BA;
 	int i;
@@ -252,7 +269,7 @@ U_BOOT_CMD(
 	"'fifo' or 'address'"
 );
 
-int do_setup_bootstrap_eeprom(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
+int do_setup_bootstrap_eeprom(cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 {
 	ulong sdsdp[5];
 	ulong delay;
@@ -325,19 +342,14 @@ U_BOOT_CMD(
 
 #if defined(CONFIG_PRAM)
 #include <environment.h>
-#include <search.h>
-#include <errno.h>
+extern env_t *env_ptr;
 
-int do_painit(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
+int do_painit(cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 {
 	u32 pram, nextbase, base;
 	char *v;
 	u32 param;
 	ulong *lptr;
-
-	env_t *envp;
-	char *res;
-	int len;
 
 	v = getenv("pram");
 	if (v)
@@ -356,7 +368,7 @@ int do_painit(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 	 */
 	param = base - (pram << 10);
 	printf("PARAM: @%08x\n", param);
-	debug("memsize=0x%08x, base=0x%08x\n", (u32)gd->bd->bi_memsize, base);
+	debug("memsize=0x%08x, base=0x%08x\n", gd->bd->bi_memsize, base);
 
 	/* clear entire PA ram */
 	memset((void*)param, 0, (pram << 10));
@@ -372,15 +384,7 @@ int do_painit(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 
 	/* env is first (4k aligned) */
 	nextbase -= ((CONFIG_ENV_SIZE + 4096 - 1) & ~(4096 - 1));
-	envp = (env_t *)nextbase;
-	res = (char *)envp->data;
-	len = hexport_r(&env_htab, '\0', 0, &res, ENV_SIZE, 0, NULL);
-	if (len < 0) {
-		error("Cannot export environment: errno = %d\n", errno);
-		return 1;
-	}
-	envp->crc = crc32(0, envp->data, ENV_SIZE);
-
+	memcpy((void*)nextbase, env_ptr, CONFIG_ENV_SIZE);
 	*(--lptr) = CONFIG_ENV_SIZE;     /* size */
 	*(--lptr) = base - nextbase;  /* offset | type=0 */
 
@@ -400,7 +404,7 @@ U_BOOT_CMD(
 );
 #endif /* CONFIG_PRAM */
 
-int do_selfreset(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
+int do_selfreset(cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 {
 	in_be32((void*)CONFIG_SYS_RESET_BASE);
 	return 0;
@@ -411,7 +415,7 @@ U_BOOT_CMD(
 	""
 );
 
-int do_resetout(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
+int do_resetout(cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 {
 	pmc440_fpga_t *fpga = (pmc440_fpga_t *)FPGA_BA;
 
@@ -448,7 +452,7 @@ U_BOOT_CMD(
 	""
 );
 
-int do_inta(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
+int do_inta(cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 {
 	if (is_monarch()) {
 		printf("This command is only supported in non-monarch mode\n");
@@ -481,7 +485,7 @@ U_BOOT_CMD(
 );
 
 /* test-only */
-int do_pmm(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
+int do_pmm(cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 {
 	ulong pciaddr;
 
@@ -493,15 +497,15 @@ int do_pmm(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 		/* map PCI address at 0xc0000000 in PLB space */
 
 		/* PMM1 Mask/Attribute - disabled b4 setting */
-		out32r(PCIL0_PMM1MA, 0x00000000);
+		out32r(PCIX0_PMM1MA, 0x00000000);
 		/* PMM1 Local Address */
-		out32r(PCIL0_PMM1LA, 0xc0000000);
+		out32r(PCIX0_PMM1LA, 0xc0000000);
 		/* PMM1 PCI Low Address */
-		out32r(PCIL0_PMM1PCILA, pciaddr);
+		out32r(PCIX0_PMM1PCILA, pciaddr);
 		/* PMM1 PCI High Address */
-		out32r(PCIL0_PMM1PCIHA, 0x00000000);
+		out32r(PCIX0_PMM1PCIHA, 0x00000000);
 		/* 256MB + No prefetching, and enable region */
-		out32r(PCIL0_PMM1MA, 0xf0000001);
+		out32r(PCIX0_PMM1MA, 0xf0000001);
 	} else {
 		printf("Usage:\npmm %s\n", cmdtp->help);
 	}
@@ -514,7 +518,7 @@ U_BOOT_CMD(
 );
 
 #if defined(CONFIG_SYS_EEPROM_WREN)
-int do_eep_wren(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
+int do_eep_wren(cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 {
 	int query = argc == 1;
 	int state = 0;

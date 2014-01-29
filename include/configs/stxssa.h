@@ -7,7 +7,23 @@
  * (C) Copyright 2002,2003 Motorola,Inc.
  * Xianghua Xiao <X.Xiao@motorola.com>
  *
- * SPDX-License-Identifier:	GPL-2.0+ 
+ * See file CREDITS for list of people who contributed to this
+ * project.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation; either version 2 of
+ * the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	 See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
+ * MA 02111-1307 USA
  */
 
 /* mpc8560ads board configuration file */
@@ -27,10 +43,7 @@
 #define CONFIG_STXSSA		1	/* Silicon Tx GPPP SSA board specific*/
 #define CONFIG_MPC8560		1
 
-#define	CONFIG_SYS_TEXT_BASE	0xFFF80000
-
 #define CONFIG_PCI			/* PCI ethernet support	*/
-#define CONFIG_PCI_INDIRECT_BRIDGE	/* indirect PCI bridge support */
 #define CONFIG_TSEC_ENET		/* tsec ethernet support*/
 #undef CONFIG_ETHER_ON_FCC		/* cpm FCC ethernet support */
 #define CONFIG_ENV_OVERWRITE
@@ -96,7 +109,7 @@
 #define CONFIG_SYS_BR1_PRELIM		0xFB001801	/* 32-bit port */
 #define CONFIG_SYS_OR1_PRELIM		0xFFFF0FF7	/* 64K is enough */
 
-#define CONFIG_SYS_MONITOR_BASE	CONFIG_SYS_TEXT_BASE	/* start of monitor	*/
+#define CONFIG_SYS_MONITOR_BASE	TEXT_BASE	/* start of monitor	*/
 
 #if (CONFIG_SYS_MONITOR_BASE < CONFIG_SYS_FLASH_BASE)
 #define CONFIG_SYS_RAMBOOT
@@ -106,10 +119,12 @@
 
 #ifdef CONFIG_SYS_RAMBOOT
 #define CONFIG_SYS_CCSRBAR_DEFAULT	0x40000000	/* CCSRBAR by BDI cfg	*/
+#else
+#define CONFIG_SYS_CCSRBAR_DEFAULT	0xff700000	/* CCSRBAR Default	*/
 #endif
-
-#define CONFIG_SYS_CCSRBAR		0xe0000000
-#define CONFIG_SYS_CCSRBAR_PHYS_LOW	CONFIG_SYS_CCSRBAR
+#define CONFIG_SYS_CCSRBAR		0xe0000000	/* relocated CCSRBAR	*/
+#define CONFIG_SYS_CCSRBAR_PHYS	CONFIG_SYS_CCSRBAR	/* physical addr of CCSRBAR */
+#define CONFIG_SYS_IMMR		CONFIG_SYS_CCSRBAR	/* PQII uses CONFIG_SYS_IMMR	*/
 
 /* DDR Setup */
 #define CONFIG_FSL_DDR1
@@ -118,6 +133,7 @@
 #undef CONFIG_FSL_DDR_INTERACTIVE
 
 #undef	CONFIG_DDR_ECC			/* only for ECC DDR module */
+#undef CONFIG_DDR_DLL			/* possible DLL fix needed */
 #define CONFIG_DDR_2T_TIMING		/* Sets the 2T timing bit */
 
 #define CONFIG_MEM_INIT_VALUE		0xDeadBeef
@@ -149,9 +165,10 @@
 
 #define CONFIG_SYS_INIT_RAM_LOCK	1
 #define CONFIG_SYS_INIT_RAM_ADDR	0x60000000	/* Initial RAM address	*/
-#define CONFIG_SYS_INIT_RAM_SIZE	0x4000		/* Size of used area in RAM */
+#define CONFIG_SYS_INIT_RAM_END	0x4000		/* End of used area in RAM */
 
-#define CONFIG_SYS_GBL_DATA_OFFSET	(CONFIG_SYS_INIT_RAM_SIZE - GENERATED_GBL_DATA_SIZE)
+#define CONFIG_SYS_GBL_DATA_SIZE	128		/* num bytes initial data */
+#define CONFIG_SYS_GBL_DATA_OFFSET	(CONFIG_SYS_INIT_RAM_END - CONFIG_SYS_GBL_DATA_SIZE)
 #define CONFIG_SYS_INIT_SP_OFFSET	CONFIG_SYS_GBL_DATA_OFFSET
 
 #define CONFIG_SYS_MONITOR_LEN		(256 * 1024)	/* Reserve 256 kB for Mon */
@@ -159,6 +176,7 @@
 
 /* Serial Port */
 #define CONFIG_CONS_INDEX     2
+#undef	CONFIG_SERIAL_SOFTWARE_FIFO
 #define CONFIG_SYS_NS16550
 #define CONFIG_SYS_NS16550_SERIAL
 #define CONFIG_SYS_NS16550_REG_SIZE	1
@@ -171,23 +189,21 @@
 #define CONFIG_SYS_NS16550_COM2	(CONFIG_SYS_CCSRBAR+0x4600)
 
 #define CONFIG_CMDLINE_EDITING	1	/* add command line history	*/
-#define CONFIG_AUTO_COMPLETE	1	/* add autocompletion support   */
 #define CONFIG_SYS_HUSH_PARSER		1	/* Use the HUSH parser		*/
-
-/* pass open firmware flat tree */
-#define CONFIG_OF_LIBFDT		1
-#define CONFIG_OF_BOARD_SETUP		1
-#define CONFIG_OF_STDOUT_VIA_ALIAS	1
+#ifdef	CONFIG_SYS_HUSH_PARSER
+#define CONFIG_SYS_PROMPT_HUSH_PS2 "> "
+#endif
 
 /*
  * I2C
  */
-#define CONFIG_SYS_I2C
-#define CONFIG_SYS_I2C_FSL
-#define CONFIG_SYS_FSL_I2C_SPEED	400000
-#define CONFIG_SYS_FSL_I2C_SLAVE	0x7F
-#define CONFIG_SYS_FSL_I2C_OFFSET	0x3000
+#define CONFIG_FSL_I2C			/* Use FSL common I2C driver */
+#define  CONFIG_HARD_I2C		/* I2C with hardware support*/
+#undef	CONFIG_SOFT_I2C			/* I2C bit-banged */
+#define CONFIG_SYS_I2C_SPEED		400000	/* I2C speed and slave address	*/
+#define CONFIG_SYS_I2C_SLAVE		0x7F
 #undef CONFIG_SYS_I2C_NOPROBES
+#define CONFIG_SYS_I2C_OFFSET		0x3000
 
 /* I2C RTC */
 #define CONFIG_RTC_DS1337		/* This is really a DS1339 RTC	*/
@@ -220,6 +236,7 @@
 
 #if defined(CONFIG_PCI)			/* PCI Ethernet card */
 #define CONFIG_MPC85XX_PCI2	1
+#define CONFIG_NET_MULTI
 #define CONFIG_PCI_PNP			/* do pci plug-and-play */
 
 #define CONFIG_EEPRO100
@@ -237,6 +254,10 @@
 #endif /* CONFIG_PCI */
 
 #if defined(CONFIG_TSEC_ENET)
+
+#ifndef CONFIG_NET_MULTI
+#define CONFIG_NET_MULTI	1
+#endif
 
 #define CONFIG_MII		1	/* MII PHY management		*/
 
@@ -266,8 +287,8 @@
    * - Select bus for bd/buffers
    * - Full duplex
    */
-  #define CONFIG_SYS_CMXFCR_MASK2	(CMXFCR_FC2 | CMXFCR_RF2CS_MSK | CMXFCR_TF2CS_MSK)
-  #define CONFIG_SYS_CMXFCR_VALUE2	(CMXFCR_RF2CS_CLK13 | CMXFCR_TF2CS_CLK14)
+  #define CONFIG_SYS_CMXFCR_MASK	(CMXFCR_FC2 | CMXFCR_RF2CS_MSK | CMXFCR_TF2CS_MSK)
+  #define CONFIG_SYS_CMXFCR_VALUE	(CMXFCR_RF2CS_CLK13 | CMXFCR_TF2CS_CLK14)
   #define CONFIG_SYS_CPMFCR_RAMTYPE	0
 #if 0
   #define CONFIG_SYS_FCC_PSMR		(FCC_PSMR_FDE)
@@ -332,7 +353,6 @@
 #define CONFIG_CMD_NFS
 #define CONFIG_CMD_PING
 #define CONFIG_CMD_SNTP
-#define CONFIG_CMD_REGINFO
 
 #if defined(CONFIG_PCI)
     #define CONFIG_CMD_PCI
@@ -375,6 +395,14 @@
  */
 #define CONFIG_SYS_BOOTMAPSZ		(8 << 20) /* Initial Memory map for Linux */
 
+/*
+ * Internal Definitions
+ *
+ * Boot Flags
+ */
+#define BOOTFLAG_COLD	0x01		/* Normal Power-On: Boot from FLASH */
+#define BOOTFLAG_WARM	0x02		/* Software reboot		*/
+
 #if defined(CONFIG_CMD_KGDB)
 #define CONFIG_KGDB_BAUDRATE	230400	/* speed to run kgdb serial port */
 #define CONFIG_KGDB_SER_INDEX	2	/* which serial port to use */
@@ -407,8 +435,8 @@
 #define CONFIG_GATEWAYIP	192.168.85.1
 #define CONFIG_NETMASK		255.255.255.0
 #define CONFIG_HOSTNAME		STX_SSA
-#define CONFIG_ROOTPATH		"/gppproot"
-#define CONFIG_BOOTFILE		"uImage"
+#define CONFIG_ROOTPATH		/gppproot
+#define CONFIG_BOOTFILE		uImage
 #define CONFIG_LOADADDR		0x1000000
 
 #else /* ENV IS IN FLASH		-- use a full-blown envionment */

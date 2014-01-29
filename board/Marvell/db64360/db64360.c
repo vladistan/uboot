@@ -2,7 +2,23 @@
  * (C) Copyright 2001
  * Josh Huber <huber@mclx.com>, Mission Critical Linux, Inc.
  *
- * SPDX-License-Identifier:	GPL-2.0+
+ * See file CREDITS for list of people who contributed to this
+ * project.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation; either version 2 of
+ * the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
+ * MA 02111-1307 USA
  *
  * modifications for the DB64360 eval board based by Ingo.Assmus@keymile.com
  */
@@ -18,7 +34,6 @@
 #include "../include/mv_gen_reg.h"
 #include <net.h>
 #include <netdev.h>
-#include <linux/compiler.h>
 
 #include "eth.h"
 #include "mpsc.h"
@@ -395,7 +410,7 @@ int checkboard (void)
 void debug_led (int led, int mode)
 {
 	volatile int *addr = 0;
-	__maybe_unused int dummy;
+	int dummy;
 
 	if (mode == 1) {
 		switch (led) {
@@ -818,11 +833,15 @@ int mem_test_walk (void)
 /*********************************************************************/
 int testdram (void)
 {
+	char *s;
 	int rundata, runaddress, runwalk;
 
-	rundata = getenv_yesno("testdramdata") == 1;
-	runaddress = getenv_yesno("testdramaddress") == 1;
-	runwalk = getenv_yesno("testdramwalk") == 1;
+	s = getenv ("testdramdata");
+	rundata = (s && (*s == 'y')) ? 1 : 0;
+	s = getenv ("testdramaddress");
+	runaddress = (s && (*s == 'y')) ? 1 : 0;
+	s = getenv ("testdramwalk");
+	runwalk = (s && (*s == 'y')) ? 1 : 0;
 
 /*    rundata = 1; */
 /*    runaddress = 0; */
@@ -914,9 +933,5 @@ void board_prebootm_init ()
 
 int board_eth_init(bd_t *bis)
 {
-	int ret;
-	ret = pci_eth_init(bis);
-	if (!ret)
-		ret = mv6436x_eth_initialize(bis);
-	return ret;
+	return pci_eth_init(bis);
 }

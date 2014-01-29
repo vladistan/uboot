@@ -1,19 +1,27 @@
 /*
- * Copyright (C) 2006-2010 Freescale Semiconductor, Inc.
+ * Copyright (C) 2006-2009 Freescale Semiconductor, Inc.
  *
  * Dave Liu <daveliu@freescale.com>
  * based on source code of Shlomi Gridish
  *
- * SPDX-License-Identifier:	GPL-2.0+
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation; either version 2 of
+ * the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
+ * MA 02111-1307 USA
  */
 
 #ifndef __UEC_H__
 #define __UEC_H__
-
-#include "qe.h"
-#include "uccf.h"
-#include <phy.h>
-#include <asm/fsl_enet.h>
 
 #define MAX_TX_THREADS				8
 #define MAX_RX_THREADS				8
@@ -649,6 +657,24 @@ typedef enum uec_num_of_threads {
 	UEC_NUM_OF_THREADS_8  = 0x4   /* 8 */
 } uec_num_of_threads_e;
 
+/* UEC ethernet interface type
+*/
+typedef enum enet_interface {
+	ENET_10_MII,
+	ENET_10_RMII,
+	ENET_10_RGMII,
+	ENET_100_MII,
+	ENET_100_RMII,
+	ENET_100_RGMII,
+	ENET_1000_GMII,
+	ENET_1000_RGMII,
+	ENET_1000_RGMII_ID,
+	ENET_1000_RGMII_RXID,
+	ENET_1000_TBI,
+	ENET_1000_RTBI,
+	ENET_1000_SGMII
+} enet_interface_e;
+
 /* UEC initialization info struct
 */
 #define STD_UEC_INFO(num) \
@@ -666,8 +692,7 @@ typedef enum uec_num_of_threads {
 	.tx_bd_ring_len		= 16,	\
 	.rx_bd_ring_len		= 16,	\
 	.phy_address		= CONFIG_SYS_UEC##num##_PHY_ADDR, \
-	.enet_interface_type	= CONFIG_SYS_UEC##num##_INTERFACE_TYPE, \
-	.speed			= CONFIG_SYS_UEC##num##_INTERFACE_SPEED, \
+	.enet_interface		= CONFIG_SYS_UEC##num##_INTERFACE_MODE, \
 }
 
 typedef struct uec_info {
@@ -679,8 +704,7 @@ typedef struct uec_info {
 	u16				rx_bd_ring_len;
 	u16				tx_bd_ring_len;
 	u8				phy_address;
-	phy_interface_t			enet_interface_type;
-	int				speed;
+	enet_interface_e		enet_interface;
 } uec_info_t;
 
 /* UEC driver initialized info

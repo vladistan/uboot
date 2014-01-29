@@ -66,6 +66,11 @@ const qe_iop_conf_t qe_iop_conf_tab[] = {
 	{0,  0, 0, 0, QE_IOP_TAB_END}, /* END of table */
 };
 
+int board_early_init_f(void)
+{
+	return 0;
+}
+
 int fixed_sdram(void);
 
 phys_size_t initdram(int board_type)
@@ -168,7 +173,7 @@ void pci_init_board(void)
 	pci_law[1].bar = CONFIG_SYS_PCI1_IO_PHYS & LAWBAR_BAR;
 	pci_law[1].ar = LBLAWAR_EN | LBLAWAR_1MB;
 
-	mpc83xx_pci_init(1, reg);
+	mpc83xx_pci_init(1, reg, 0);
 }
 
 #if defined(CONFIG_OF_BOARD_SETUP)
@@ -195,11 +200,7 @@ int mac_read_from_eeprom(void)
 		printf("\nEEPROM @ 0x%02x read FAILED!!!\n",
 		       CONFIG_SYS_I2C_EEPROM_ADDR);
 	} else {
-		uint32_t crc_buf;
-
-		memcpy(&crc_buf, &buf[24], sizeof(uint32_t));
-
-		if (crc32(crc, buf, 24) == crc_buf) {
+		if (crc32(crc, buf, 24) == *(unsigned int *)&buf[24]) {
 			printf("Reading MAC from EEPROM\n");
 			for (i = 0; i < 4; i++) {
 				if (memcmp(&buf[i * 6], "\0\0\0\0\0\0", 6)) {

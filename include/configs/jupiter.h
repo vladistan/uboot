@@ -2,7 +2,23 @@
  * (C) Copyright 2007
  * Heiko Schocher, DENX Software Engineering, hs@denx.de.
  *
- * SPDX-License-Identifier:     GPL-2.0+
+ * See file CREDITS for list of people who contributed to this
+ * project.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation; either version 2 of
+ * the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	 See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
+ * MA 02111-1307 USA
  */
 
 #ifndef __CONFIG_H
@@ -17,19 +33,13 @@
 #define CONFIG_MPC5200		1	/* especially an MPC5200 */
 #define CONFIG_JUPITER		1	/* ... on Jupiter board */
 
-/*
- * Valid values for CONFIG_SYS_TEXT_BASE are:
- * 0xFFF00000	boot high (standard configuration)
- * 0x00100000	boot from RAM (for testing only)
- */
-#ifndef CONFIG_SYS_TEXT_BASE
-#define CONFIG_SYS_TEXT_BASE	0xFFF00000
-#endif
-
 #define CONFIG_SYS_MPC5XXX_CLKIN	33000000 /* ... running at 33.000000MHz */
 
 #define CONFIG_BOARD_EARLY_INIT_R	1
 #define CONFIG_BOARD_EARLY_INIT_F	1
+
+#define BOOTFLAG_COLD		0x01	/* Normal Power-On: Boot from FLASH  */
+#define BOOTFLAG_WARM		0x02	/* Software reboot	     */
 
 #define CONFIG_HIGH_BATS	1	/* High BATs supported */
 
@@ -63,6 +73,7 @@
 
 #define CONFIG_SYS_XLB_PIPELINING	1
 
+#define CONFIG_NET_MULTI	1
 #define CONFIG_MII		1
 #define CONFIG_SYS_RX_ETH_BUFFER	8  /* use 8 rx buffer on eepro100  */
 
@@ -173,7 +184,7 @@
 
 #define CONFIG_SYS_MAX_FLASH_SECT	128	/* max num of sects on one chip */
 
-#define CONFIG_ENV_ADDR		(CONFIG_SYS_TEXT_BASE + 0x40000) /* third sector */
+#define CONFIG_ENV_ADDR		(TEXT_BASE + 0x40000) /* third sector */
 
 #define CONFIG_SYS_FLASH_ERASE_TOUT	240000	/* Flash Erase Timeout (in ms)  */
 #define CONFIG_SYS_FLASH_WRITE_TOUT	500	/* Flash Write Timeout (in ms)  */
@@ -208,13 +219,14 @@
 
 /* Use SRAM until RAM will be available */
 #define CONFIG_SYS_INIT_RAM_ADDR	MPC5XXX_SRAM
-#define CONFIG_SYS_INIT_RAM_SIZE	MPC5XXX_SRAM_SIZE	/* Size of used area in DPRAM */
+#define CONFIG_SYS_INIT_RAM_END	MPC5XXX_SRAM_SIZE	/* End of used area in DPRAM */
 
 
-#define CONFIG_SYS_GBL_DATA_OFFSET	(CONFIG_SYS_INIT_RAM_SIZE - GENERATED_GBL_DATA_SIZE)
+#define CONFIG_SYS_GBL_DATA_SIZE	128	/* size in bytes reserved for initial data */
+#define CONFIG_SYS_GBL_DATA_OFFSET	(CONFIG_SYS_INIT_RAM_END - CONFIG_SYS_GBL_DATA_SIZE)
 #define CONFIG_SYS_INIT_SP_OFFSET	CONFIG_SYS_GBL_DATA_OFFSET
 
-#define CONFIG_SYS_MONITOR_BASE    CONFIG_SYS_TEXT_BASE
+#define CONFIG_SYS_MONITOR_BASE    TEXT_BASE
 #if (CONFIG_SYS_MONITOR_BASE < CONFIG_SYS_FLASH_BASE)
 #   define CONFIG_SYS_RAMBOOT		1
 #endif
@@ -247,6 +259,9 @@
 
 #define CONFIG_CMDLINE_EDITING	1	/* add command line history	*/
 #define CONFIG_SYS_HUSH_PARSER		1	/* Use the HUSH parser		*/
+#ifdef	CONFIG_SYS_HUSH_PARSER
+#define	CONFIG_SYS_PROMPT_HUSH_PS2	"> "
+#endif
 #if defined(CONFIG_CMD_KGDB)
 #define CONFIG_SYS_CBSIZE		1024	/* Console I/O Buffer Size  */
 #else

@@ -7,7 +7,23 @@
  *   - code clean-up
  *   - bugfix for overwriting bootargs by user
  *
- * SPDX-License-Identifier:	GPL-2.0+ 
+ * See file CREDITS for list of people who contributed to this
+ * project.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation; either version 2 of
+ * the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	 See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
+ * MA 02111-1307 USA
  */
 
 #include <common.h>
@@ -19,8 +35,9 @@
 
 #include "fwupdate.h"
 
+extern int do_bootm(cmd_tbl_t *, int, int, char *[]);
 extern long do_fat_read(const char *, void *, unsigned long, int);
-extern int do_fat_fsload(cmd_tbl_t *, int, int, char * const []);
+extern int do_fat_fsload(cmd_tbl_t *, int, int, char *[]);
 
 static int load_rescue_image(ulong);
 
@@ -30,7 +47,7 @@ void cm5200_fwupdate(void)
 	char *rsargs;
 	char *tmp = NULL;
 	char ka[16];
-	char * const argv[3] = { "bootm", ka, NULL };
+	char *argv[3] = { "bootm", ka, NULL };
 
 	/* Check if rescue system is disabled... */
 	if (getenv("norescue")) {
@@ -82,7 +99,7 @@ static int load_rescue_image(ulong addr)
 	char *tmp;
 	char dev[7];
 	char addr_str[16];
-	char * const argv[6] = { "fatload", "usb", dev, addr_str, nxri, NULL };
+	char *argv[6] = { "fatload", "usb", dev, addr_str, nxri, NULL };
 	block_dev_desc_t *stor_dev = NULL;
 	cmd_tbl_t *bcmd;
 

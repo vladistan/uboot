@@ -12,7 +12,20 @@
  *	Tom Rushworth <tbr@lineo.com>,
  *	Bruce Balden <balden@lineo.com>
  *
- * SPDX-License-Identifier:	GPL-2.0+
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	 See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ *
  */
 
 #ifndef __USBDCORE_H__
@@ -197,10 +210,6 @@ struct usb_bus_instance;
 #define USB_DT_INTERFACE		0x04
 #define USB_DT_ENDPOINT			0x05
 
-#if defined(CONFIG_USBD_HS)
-#define USB_DT_QUAL			0x06
-#endif
-
 #define USB_DT_HID			(USB_TYPE_CLASS | 0x01)
 #define USB_DT_REPORT			(USB_TYPE_CLASS | 0x02)
 #define USB_DT_PHYSICAL			(USB_TYPE_CLASS | 0x03)
@@ -282,11 +291,7 @@ struct usb_bus_instance;
  * USB Spec Release number
  */
 
-#if defined(CONFIG_USBD_HS)
-#define USB_BCD_VERSION			0x0200
-#else
 #define USB_BCD_VERSION			0x0110
-#endif
 
 
 /*
@@ -462,9 +467,7 @@ typedef struct urb_link {
  * function driver to inform it that data has arrived.
  */
 
-/* in linux we'd malloc this, but in u-boot we prefer static data */
-#define URB_BUF_SIZE 512
-
+#define URB_BUF_SIZE 128 /* in linux we'd malloc this, but in u-boot we prefer static data */
 struct urb {
 
 	struct usb_endpoint_instance *endpoint;
@@ -562,9 +565,6 @@ struct usb_device_instance {
 	/* generic */
 	char *name;
 	struct usb_device_descriptor *device_descriptor;	/* per device descriptor */
-#if defined(CONFIG_USBD_HS)
-	struct usb_qualifier_descriptor *qualifier_descriptor;
-#endif
 
 	void (*event) (struct usb_device_instance *device, usb_device_event_t event, int data);
 
@@ -657,122 +657,10 @@ struct usb_class_report_descriptor *usbd_device_class_report_descriptor_index( s
 struct usb_endpoint_descriptor *usbd_device_endpoint_descriptor (struct usb_device_instance *, int, int, int, int, int);
 int				usbd_device_endpoint_transfersize (struct usb_device_instance *, int, int, int, int, int);
 struct usb_string_descriptor *usbd_get_string (u8);
-struct usb_device_descriptor *usbd_device_device_descriptor(struct
-		usb_device_instance *, int);
+struct usb_device_descriptor *usbd_device_device_descriptor (struct usb_device_instance *, int);
 
-#if defined(CONFIG_USBD_HS)
-/*
- * is_usbd_high_speed routine needs to be defined by specific gadget driver
- * It returns true if device enumerates at High speed
- * Retuns false otherwise
- */
-int is_usbd_high_speed(void);
-#endif
 int usbd_endpoint_halted (struct usb_device_instance *device, int endpoint);
 void usbd_rcv_complete(struct usb_endpoint_instance *endpoint, int len, int urb_bad);
 void usbd_tx_complete (struct usb_endpoint_instance *endpoint);
 
-/* These are macros used in debugging */
-#ifdef DEBUG
-static inline void print_urb(struct urb *u)
-{
-	serial_printf("urb %p\n", (u));
-	serial_printf("\tendpoint %p\n", u->endpoint);
-	serial_printf("\tdevice %p\n", u->device);
-	serial_printf("\tbuffer %p\n", u->buffer);
-	serial_printf("\tbuffer_length %d\n", u->buffer_length);
-	serial_printf("\tactual_length %d\n", u->actual_length);
-	serial_printf("\tstatus %d\n", u->status);
-	serial_printf("\tdata %d\n", u->data);
-}
-
-static inline void print_usb_device_request(struct usb_device_request *r)
-{
-	serial_printf("usb request\n");
-	serial_printf("\tbmRequestType 0x%2.2x\n", r->bmRequestType);
-	if ((r->bmRequestType & USB_REQ_DIRECTION_MASK) == 0)
-		serial_printf("\t\tDirection : To device\n");
-	else
-		serial_printf("\t\tDirection : To host\n");
-	if ((r->bmRequestType & USB_TYPE_STANDARD) == USB_TYPE_STANDARD)
-		serial_printf("\t\tType      : Standard\n");
-	if ((r->bmRequestType & USB_TYPE_CLASS) == USB_TYPE_CLASS)
-		serial_printf("\t\tType      : Standard\n");
-	if ((r->bmRequestType & USB_TYPE_VENDOR) == USB_TYPE_VENDOR)
-		serial_printf("\t\tType      : Standard\n");
-	if ((r->bmRequestType & USB_TYPE_RESERVED) == USB_TYPE_RESERVED)
-		serial_printf("\t\tType      : Standard\n");
-	if ((r->bmRequestType & USB_REQ_RECIPIENT_MASK) ==
-	    USB_REQ_RECIPIENT_DEVICE)
-		serial_printf("\t\tRecipient : Device\n");
-	if ((r->bmRequestType & USB_REQ_RECIPIENT_MASK) ==
-	    USB_REQ_RECIPIENT_INTERFACE)
-		serial_printf("\t\tRecipient : Interface\n");
-	if ((r->bmRequestType & USB_REQ_RECIPIENT_MASK) ==
-	    USB_REQ_RECIPIENT_ENDPOINT)
-		serial_printf("\t\tRecipient : Endpoint\n");
-	if ((r->bmRequestType & USB_REQ_RECIPIENT_MASK) ==
-	    USB_REQ_RECIPIENT_OTHER)
-		serial_printf("\t\tRecipient : Other\n");
-	serial_printf("\tbRequest      0x%2.2x\n", r->bRequest);
-	if (r->bRequest == USB_REQ_GET_STATUS)
-		serial_printf("\t\tGET_STATUS\n");
-	else if (r->bRequest == USB_REQ_SET_ADDRESS)
-		serial_printf("\t\tSET_ADDRESS\n");
-	else if (r->bRequest == USB_REQ_SET_FEATURE)
-		serial_printf("\t\tSET_FEATURE\n");
-	else if (r->bRequest == USB_REQ_GET_DESCRIPTOR)
-		serial_printf("\t\tGET_DESCRIPTOR\n");
-	else if (r->bRequest == USB_REQ_SET_CONFIGURATION)
-		serial_printf("\t\tSET_CONFIGURATION\n");
-	else if (r->bRequest == USB_REQ_SET_INTERFACE)
-		serial_printf("\t\tUSB_REQ_SET_INTERFACE\n");
-	else
-		serial_printf("\tUNKNOWN %d\n", r->bRequest);
-	serial_printf("\twValue        0x%4.4x\n", r->wValue);
-	if (r->bRequest == USB_REQ_GET_DESCRIPTOR) {
-		switch (r->wValue >> 8) {
-		case USB_DESCRIPTOR_TYPE_DEVICE:
-			serial_printf("\tDEVICE\n");
-			break;
-		case USB_DESCRIPTOR_TYPE_CONFIGURATION:
-			serial_printf("\tCONFIGURATION\n");
-			break;
-		case USB_DESCRIPTOR_TYPE_STRING:
-			serial_printf("\tSTRING\n");
-			break;
-		case USB_DESCRIPTOR_TYPE_INTERFACE:
-			serial_printf("\tINTERFACE\n");
-			break;
-		case USB_DESCRIPTOR_TYPE_ENDPOINT:
-			serial_printf("\tENDPOINT\n");
-			break;
-		case USB_DESCRIPTOR_TYPE_DEVICE_QUALIFIER:
-			serial_printf("\tDEVICE_QUALIFIER\n");
-			break;
-		case USB_DESCRIPTOR_TYPE_OTHER_SPEED_CONFIGURATION:
-			serial_printf("\tOTHER_SPEED_CONFIGURATION\n");
-			break;
-		case USB_DESCRIPTOR_TYPE_INTERFACE_POWER:
-			serial_printf("\tINTERFACE_POWER\n");
-			break;
-		case USB_DESCRIPTOR_TYPE_HID:
-			serial_printf("\tHID\n");
-			break;
-		case USB_DESCRIPTOR_TYPE_REPORT:
-			serial_printf("\tREPORT\n");
-			break;
-		default:
-			serial_printf("\tUNKNOWN TYPE\n");
-			break;
-		}
-	}
-	serial_printf("\twIndex        0x%4.4x\n", r->wIndex);
-	serial_printf("\twLength       0x%4.4x\n", r->wLength);
-}
-#else
-/* stubs */
-#define print_urb(u)
-#define print_usb_device_request(r)
-#endif /* DEBUG */
 #endif

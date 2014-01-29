@@ -2,7 +2,23 @@
  * (C) Copyright 2001
  * Bill Hunter,  Wave 7 Optics, williamhunter@mediaone.net
  *
- * SPDX-License-Identifier:	GPL-2.0+
+ * See file CREDITS for list of people who contributed to this
+ * project.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation; either version 2 of
+ * the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
+ * MA 02111-1307 USA
  */
 
 /*
@@ -103,7 +119,7 @@ int dtt_write(int sensor, int reg, int val)
 } /* dtt_write() */
 
 
-int dtt_init_one(int sensor)
+static int _dtt_init(int sensor)
 {
 	int val;
 
@@ -129,7 +145,32 @@ int dtt_init_one(int sensor)
 		return 1;
 
 	return 0;
-} /* dtt_init_one() */
+} /* _dtt_init() */
+
+
+int dtt_init (void)
+{
+	int i;
+	unsigned char sensors[] = CONFIG_DTT_SENSORS;
+	const char *const header = "DTT:   ";
+	int old_bus;
+
+	/* switch to correct I2C bus */
+	old_bus = I2C_GET_BUS();
+	I2C_SET_BUS(CONFIG_SYS_DTT_BUS_NUM);
+
+	for (i = 0; i < sizeof(sensors); i++) {
+	if (_dtt_init(sensors[i]) != 0)
+		printf("%s%d FAILED INIT\n", header, i+1);
+	else
+		printf("%s%d is %i C\n", header, i+1,
+		dtt_get_temp(sensors[i]));
+	}
+	/* switch back to original I2C bus */
+	I2C_SET_BUS(old_bus);
+
+	return (0);
+} /* dtt_init() */
 
 int dtt_get_temp(int sensor)
 {

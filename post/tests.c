@@ -2,7 +2,23 @@
  * (C) Copyright 2002
  * Wolfgang Denk, DENX Software Engineering, wd@denx.de.
  *
- * SPDX-License-Identifier:	GPL-2.0+
+ * See file CREDITS for list of people who contributed to this
+ * project.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation; either version 2 of
+ * the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
+ * MA 02111-1307 USA
  *
  * Be sure to mark tests to be run before relocation as such with the
  * CONFIG_SYS_POST_PREREL flag so that logging is done correctly if the
@@ -30,7 +46,6 @@ extern int sysmon_post_test (int flags);
 extern int dsp_post_test (int flags);
 extern int codec_post_test (int flags);
 extern int ecc_post_test (int flags);
-extern int flash_post_test(int flags);
 
 extern int dspic_init_post_test (int flags);
 extern int dspic_post_test (int flags);
@@ -38,10 +53,6 @@ extern int gdc_post_test (int flags);
 extern int fpga_post_test (int flags);
 extern int lwmon5_watchdog_post_test(int flags);
 extern int sysmon1_post_test(int flags);
-extern int coprocessor_post_test(int flags);
-extern int led_post_test(int flags);
-extern int button_post_test(int flags);
-extern int memory_regions_post_test(int flags);
 
 extern int sysmon_init_f (void);
 
@@ -153,9 +164,6 @@ struct post_test post_list[] =
     },
 #endif
 #if CONFIG_POST & CONFIG_SYS_POST_UART
-#if defined(CONFIG_POST_UART)
-	CONFIG_POST_UART,
-#else
     {
 	"UART test",
 	"uart",
@@ -166,7 +174,6 @@ struct post_test post_list[] =
 	NULL,
 	CONFIG_SYS_POST_UART
     },
-#endif /* CONFIG_POST_UART */
 #endif
 #if CONFIG_POST & CONFIG_SYS_POST_ETHER
     {
@@ -279,42 +286,6 @@ struct post_test post_list[] =
 #if CONFIG_POST & CONFIG_SYS_POST_BSPEC5
 	CONFIG_POST_BSPEC5,
 #endif
-#if CONFIG_POST & CONFIG_SYS_POST_COPROC
-    {
-	"Coprocessors communication test",
-	"coproc_com",
-	"This test checks communication with coprocessors.",
-	POST_RAM | POST_ALWAYS | POST_CRITICAL,
-	&coprocessor_post_test,
-	NULL,
-	NULL,
-	CONFIG_SYS_POST_COPROC
-    },
-#endif
-#if CONFIG_POST & CONFIG_SYS_POST_FLASH
-    {
-	"Parallel NOR flash test",
-	"flash",
-	"This test verifies parallel flash operations.",
-	POST_RAM | POST_SLOWTEST | POST_MANUAL,
-	&flash_post_test,
-	NULL,
-	NULL,
-	CONFIG_SYS_POST_FLASH
-    },
-#endif
-#if CONFIG_POST & CONFIG_SYS_POST_MEM_REGIONS
-    {
-	"Memory regions test",
-	"mem_regions",
-	"This test checks regularly placed regions of the RAM.",
-	POST_ROM | POST_SLOWTEST | POST_PREREL,
-	&memory_regions_post_test,
-	NULL,
-	NULL,
-	CONFIG_SYS_POST_MEM_REGIONS
-    },
-#endif
 };
 
-unsigned int post_list_size = ARRAY_SIZE(post_list);
+unsigned int post_list_size = sizeof (post_list) / sizeof (struct post_test);

@@ -2,7 +2,20 @@
  * (C) Copyright 2006
  * Wolfgang Denk, DENX Software Engineering, wd@denx.de.
  *
- * SPDX-License-Identifier:	GPL-2.0+
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation; either version 2 of
+ * the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
+ * MA 02111-1307 USA
  */
 #include <common.h>
 #include <command.h>
@@ -271,7 +284,7 @@ int au_do_update(int idx, long sz)
 	 */
 	debug ("flash_sect_erase(%lx, %lx);\n", start, end);
 	flash_sect_erase(start, end);
-	mdelay(100);
+	wait_ms(100);
 #ifdef CONFIG_PROGRESSBAR
 	show_progress(end - start, totsize);
 #endif
@@ -328,7 +341,7 @@ int do_auto_update(void)
 {
 	block_dev_desc_t *stor_dev;
 	long sz;
-	int i, res = 0, cnt, old_ctrlc;
+	int i, res = 0, bitmap_first, cnt, old_ctrlc, got_ctrlc;
 	char *env;
 	long start, end;
 
@@ -339,7 +352,7 @@ int do_auto_update(void)
 	 * Read keypad status
 	 */
 	i2c_read(I2C_PSOC_KEYPAD_ADDR, 0, 0, keypad_status1, 2);
-	mdelay(500);
+	wait_ms(500);
 	i2c_read(I2C_PSOC_KEYPAD_ADDR, 0, 0, keypad_status2, 2);
 
 	/*
@@ -437,6 +450,8 @@ int do_auto_update(void)
 	/* make sure that we see CTRL-C and save the old state */
 	old_ctrlc = disable_ctrlc(0);
 
+	bitmap_first = 0;
+
 	/* validate the images first */
 	for (i = 0; i < AU_MAXFILES; i++) {
 		ulong imsize;
@@ -491,11 +506,14 @@ int do_auto_update(void)
 		/* this is really not a good idea, but it's what the */
 		/* customer wants. */
 		cnt = 0;
+		got_ctrlc = 0;
 		do {
 			res = au_do_update(i, sz);
 			/* let the user break out of the loop */
 			if (ctrlc() || had_ctrlc()) {
 				clear_ctrlc();
+				if (res < 0)
+					got_ctrlc = 1;
 				break;
 			}
 			cnt++;

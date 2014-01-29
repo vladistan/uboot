@@ -8,14 +8,26 @@
  * Copyright (C) 2004 Texas Instruments.
  *
  * ----------------------------------------------------------------------------
- * SPDX-License-Identifier:	GPL-2.0+
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with this program; if not, write to the Free Software
+ *  Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  * ----------------------------------------------------------------------------
  */
 
 #include <common.h>
 #include <i2c.h>
 #include <asm/arch/hardware.h>
-#include <asm/arch/davinci_misc.h>
+#include "../common/misc.h"
 
 DECLARE_GLOBAL_DATA_PTR;
 
@@ -59,7 +71,7 @@ int misc_init_r(void)
 
 	/* Read Ethernet MAC address from EEPROM if available. */
 	if (dvevm_read_mac_address(eeprom_enetaddr))
-		davinci_sync_env_enetaddr(eeprom_enetaddr);
+		dv_configure_mac_address(eeprom_enetaddr);
 
 	i2c_read(0x39, 0x00, 1, &video_mode, 1);
 

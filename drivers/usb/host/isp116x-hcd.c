@@ -4,7 +4,21 @@
  * Copyright (C) 2006-2007 Rodolfo Giometti <giometti@linux.it>
  * Copyright (C) 2006-2007 Eurotech S.p.A. <info@eurotech.it>
  *
- * SPDX-License-Identifier:	GPL-2.0+
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation; either version 2 of
+ * the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
+ * MA 02111-1307 USA
+ *
  *
  * Derived in part from the SL811 HCD driver "u-boot/drivers/usb/sl811_usb.c"
  * (original copyright message follows):
@@ -28,7 +42,7 @@
  *
  *    [[GNU/GPL disclaimer]]
  *
- * and in part from AU1x00 OHCI HCD driver "u-boot/arch/mips/cpu/au1x00_usb_ohci.c"
+ * and in part from AU1x00 OHCI HCD driver "u-boot/cpu/mips/au1x00_usb_ohci.c"
  * (original copyright message follows):
  *
  *    URB OHCI HCD (Host Controller Driver) for USB on the AU1x00.
@@ -564,7 +578,7 @@ static int isp116x_interrupt(struct isp116x *isp116x)
 			/* When root hub or any of its ports is going
 			   to come out of suspend, it may take more
 			   than 10ms for status bits to stabilize. */
-			mdelay(20);
+			wait_ms(20);
 		}
 
 		if (intstat & HCINT_SO) {
@@ -603,7 +617,7 @@ static int isp116x_submit_job(struct usb_device *dev, unsigned long pipe,
 	int epnum = usb_pipeendpoint(pipe);
 	int max = usb_maxpacket(dev, pipe);
 	int dir_out = usb_pipeout(pipe);
-	int speed_low = (dev->speed == USB_SPEED_LOW);
+	int speed_low = usb_pipeslow(pipe);
 	int i, done = 0, stat, timeout, cc;
 
 	/* 500 frames or 0.5s timeout when function is busy and NAKs transactions for a while */
@@ -665,7 +679,7 @@ retry_same:
 	/* Pack data into FIFO ram */
 	pack_fifo(isp116x, dev, pipe, ptd, 1, buffer, len);
 #ifdef EXTRA_DELAY
-	mdelay(EXTRA_DELAY);
+	wait_ms(EXTRA_DELAY);
 #endif
 
 	/* Start the data transfer */
@@ -969,11 +983,11 @@ static int isp116x_submit_rh_msg(struct usb_device *dev, unsigned long pipe,
 						       HCRHPORT1 + wIndex - 1);
 				if (!(tmp & RH_PS_PRS))
 					break;
-				mdelay(1);
+				wait_ms(1);
 			}
 			isp116x_write_reg32(isp116x, HCRHPORT1 + wIndex - 1,
 					    RH_PS_PRS);
-			mdelay(10);
+			wait_ms(10);
 
 			len = 0;
 			break;
@@ -1237,7 +1251,7 @@ static int isp116x_sw_reset(struct isp116x *isp116x)
 	isp116x_write_reg32(isp116x, HCCMDSTAT, HCCMDSTAT_HCR);
 	while (--retries) {
 		/* It usually resets within 1 ms */
-		mdelay(1);
+		wait_ms(1);
 		if (!(isp116x_read_reg32(isp116x, HCCMDSTAT) & HCCMDSTAT_HCR))
 			break;
 	}
@@ -1264,7 +1278,7 @@ static int isp116x_reset(struct isp116x *isp116x)
 		clkrdy = isp116x_read_reg16(isp116x, HCuPINT) & HCuPINT_CLKRDY;
 		if (clkrdy)
 			break;
-		mdelay(1);
+		wait_ms(1);
 	}
 	if (!clkrdy) {
 		ERR("clock not ready after %dms", timeout);
@@ -1377,7 +1391,7 @@ int isp116x_check_id(struct isp116x *isp116x)
 	return 0;
 }
 
-int usb_lowlevel_init(int index, void **controller))
+int usb_lowlevel_init(void)
 {
 	struct isp116x *isp116x = &isp116x_dev;
 
@@ -1414,7 +1428,7 @@ int usb_lowlevel_init(int index, void **controller))
 	return 0;
 }
 
-int usb_lowlevel_stop(int index)
+int usb_lowlevel_stop(void)
 {
 	struct isp116x *isp116x = &isp116x_dev;
 

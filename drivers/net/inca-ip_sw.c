@@ -4,7 +4,23 @@
  * (C) Copyright 2003-2004
  * Wolfgang Denk, DENX Software Engineering, wd@denx.de.
  *
- * SPDX-License-Identifier:	GPL-2.0+
+ * See file CREDITS for list of people who contributed to this
+ * project.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation; either version 2 of
+ * the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
+ * MA 02111-1307 USA
  */
 
 
@@ -142,7 +158,7 @@ static int initialized	= 0;
 
 
 static int inca_switch_init(struct eth_device *dev, bd_t * bis);
-static int inca_switch_send(struct eth_device *dev, void *packet, int length);
+static int inca_switch_send(struct eth_device *dev, volatile void *packet, int length);
 static int inca_switch_recv(struct eth_device *dev);
 static void inca_switch_halt(struct eth_device *dev);
 static void inca_init_switch_chip(void);
@@ -275,7 +291,9 @@ static int inca_switch_init(struct eth_device *dev, bd_t * bis)
 	/* Initialize RxDMA.
 	 */
 	DMA_READ_REG(INCA_IP_DMA_DMA_RXISR, v);
-	debug("RX status = 0x%08X\n", v);
+#if 0
+	printf("RX status = 0x%08X\n", v);
+#endif
 
 	/* Writing to the FRDA of CHANNEL.
 	 */
@@ -288,7 +306,9 @@ static int inca_switch_init(struct eth_device *dev, bd_t * bis)
 	/* Initialize TxDMA.
 	 */
 	DMA_READ_REG(INCA_IP_DMA_DMA_TXISR, v);
-	debug("TX status = 0x%08X\n", v);
+#if 0
+	printf("TX status = 0x%08X\n", v);
+#endif
 
 	/* Writing to the FRDA of CHANNEL.
 	 */
@@ -318,7 +338,7 @@ static int inca_switch_init(struct eth_device *dev, bd_t * bis)
 }
 
 
-static int inca_switch_send(struct eth_device *dev, void *packet, int length)
+static int inca_switch_send(struct eth_device *dev, volatile void *packet, int length)
 {
 	int		       i;
 	int		       res	= -1;
@@ -736,7 +756,7 @@ static int inca_amdix(void)
 					(0x1 << 31) |	/* RA		*/
 					(0x0 << 30) |	/* Read		*/
 					(0x6 << 21) |	/* LAN		*/
-					(6   << 16));	/* MII_EXPANSION	*/
+					(6   << 16));	/* PHY_ANER	*/
 				do {
 					SW_READ_REG(INCA_IP_Switch_MDIO_ACC, phyReg6);
 				} while (phyReg6 & (1 << 31));
@@ -749,7 +769,7 @@ static int inca_amdix(void)
 						(0x1 << 31) |	/* RA		*/
 						(0x0 << 30) |	/* Read		*/
 						(0x6 << 21) |	/* LAN		*/
-						(4   << 16));	/* MII_ADVERTISE	*/
+						(4   << 16));	/* PHY_ANAR	*/
 					do {
 						SW_READ_REG(INCA_IP_Switch_MDIO_ACC, phyReg4);
 					} while (phyReg4 & (1 << 31));
@@ -762,7 +782,7 @@ static int inca_amdix(void)
 							(0x1 << 31) |	/* RA		*/
 							(0x0 << 30) |	/* Read		*/
 							(0x6 << 21) |	/* LAN		*/
-							(5   << 16));	/* MII_LPA	*/
+							(5   << 16));	/* PHY_ANLPAR	*/
 						do {
 							SW_READ_REG(INCA_IP_Switch_MDIO_ACC, phyReg5);
 						} while (phyReg5 & (1 << 31));

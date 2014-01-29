@@ -4,7 +4,23 @@
  *
  * Configuration settings for the AcTux-2 board.
  *
- * SPDX-License-Identifier:	GPL-2.0+
+ * See file CREDITS for list of people who contributed to this
+ * project.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation; either version 2 of
+ * the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
+ * MA 02111-1307 USA
  */
 
 #ifndef __CONFIG_H
@@ -12,8 +28,6 @@
 
 #define CONFIG_IXP425			1
 #define CONFIG_ACTUX2			1
-
-#define	CONFIG_MACH_TYPE		1480
 
 #define CONFIG_DISPLAY_CPUINFO		1
 #define CONFIG_DISPLAY_BOARDINFO	1
@@ -23,14 +37,16 @@
 #define CONFIG_BAUDRATE			115200
 #define CONFIG_BOOTDELAY		5
 #define CONFIG_ZERO_BOOTDELAY_CHECK	/* check for keypress on bootdelay==0 */
-#define CONFIG_BOARD_EARLY_INIT_F	1
-#define CONFIG_SYS_LDSCRIPT	"board/actux2/u-boot.lds"
 
 /***************************************************************
  * U-boot generic defines start here.
  ***************************************************************/
+#undef CONFIG_USE_IRQ
+
 /* Size of malloc() pool */
 #define CONFIG_SYS_MALLOC_LEN			(CONFIG_ENV_SIZE + 128*1024)
+/* size in bytes reserved for initial data */
+#define CONFIG_SYS_GBL_DATA_SIZE		128
 
 /* allow to overwrite serial and ethaddr */
 #define CONFIG_ENV_OVERWRITE
@@ -70,9 +86,8 @@
 #define CONFIG_SYS_MEMTEST_START		0x00400000
 #define CONFIG_SYS_MEMTEST_END			0x00800000
 
-/* timer clock - 2* OSC_IN system clock */
-#define CONFIG_IXP425_TIMER_CLK                 66666666
-#define CONFIG_SYS_HZ				1000
+/* spec says 66.666 MHz, but it appears to be 33 */
+#define CONFIG_SYS_HZ				3333333
 
 /* default load address */
 #define CONFIG_SYS_LOAD_ADDR			0x00010000
@@ -82,13 +97,23 @@
 					  115200, 230400 }
 #define CONFIG_SERIAL_RTS_ACTIVE	1
 
+/*
+ * Stack sizes
+ * The stack sizes are set up in start.S using the settings below
+ */
+#define CONFIG_STACKSIZE		(128*1024)	/* regular stack */
+#ifdef CONFIG_USE_IRQ
+# define CONFIG_STACKSIZE_IRQ		(4*1024)	/* IRQ stack */
+# define CONFIG_STACKSIZE_FIQ		(4*1024)	/* FIQ stack */
+#endif
+
 /* Expansion bus settings */
 #define CONFIG_SYS_EXP_CS0			0xbd113042
 
 /* SDRAM settings */
 #define CONFIG_NR_DRAM_BANKS		1
 #define PHYS_SDRAM_1			0x00000000
-#define CONFIG_SYS_SDRAM_BASE			0x00000000
+#define CONFIG_SYS_DRAM_BASE			0x00000000
 
 /* 16MB SDRAM */
 #define CONFIG_SYS_SDR_CONFIG			0x3A
@@ -98,7 +123,6 @@
 #define CONFIG_SYS_DRAM_SIZE			0x01000000
 
 /* FLASH organization */
-#define CONFIG_SYS_TEXT_BASE		0x50000000
 #define CONFIG_SYS_MAX_FLASH_BANKS		1
 /* max number of sectors on one chip */
 #define CONFIG_SYS_MAX_FLASH_SECT		140
@@ -108,7 +132,6 @@
 #define CONFIG_SYS_FLASH_BASE			PHYS_FLASH_1
 #define CONFIG_SYS_MONITOR_BASE		PHYS_FLASH_1
 #define CONFIG_SYS_MONITOR_LEN			(256 << 10)
-#define CONFIG_BOARD_SIZE_LIMIT			262144
 
 /* Use common CFI driver */
 #define CONFIG_SYS_FLASH_CFI
@@ -123,15 +146,11 @@
 
 /* include IXP4xx NPE support */
 #define CONFIG_IXP4XX_NPE		1
+#define CONFIG_NET_MULTI		1
 /* NPE0 PHY address */
 #define	CONFIG_PHY_ADDR			0x00
 /* MII PHY management */
 #define CONFIG_MII			1
-/* fixed-speed switch without standard PHY registers on MII */
-#define CONFIG_MII_NPE0_FIXEDLINK       1
-#define CONFIG_MII_NPE0_SPEED           100
-#define CONFIG_MII_NPE0_FULLDUPLEX      1
-
 /* Number of ethernet rx buffers & descriptors */
 #define CONFIG_SYS_RX_ETH_BUFFER		16
 #define CONFIG_RESET_PHY_R		1
@@ -166,15 +185,13 @@
 	"npe_ucode=50040000\0"						\
 	"mtd=IXP4XX-Flash.0:256k(uboot),64k(ucode),1152k(linux),-(root)\0" \
 	"kerneladdr=50050000\0"						\
-	"kernelfile=actux2/uImage\0"					\
-	"rootfile=actux2/rootfs\0"					\
 	"rootaddr=50170000\0"						\
 	"loadaddr=10000\0"						\
 	"updateboot_ser=mw.b 10000 ff 40000;"				\
 	" loady ${loadaddr};"						\
 	" run eraseboot writeboot\0"					\
 	"updateboot_net=mw.b 10000 ff 40000;"				\
-	" tftp ${loadaddr} actux2/u-boot.bin;"				\
+	" tftp ${loadaddr} u-boot.bin;"					\
 	" run eraseboot writeboot\0"					\
 	"eraseboot=protect off 50000000 50003fff;"			\
 	" protect off 50006000 5003ffff;"				\
@@ -182,9 +199,8 @@
 	" erase 50006000 5003ffff\0"					\
 	"writeboot=cp.b 10000 50000000 4000;"				\
 	" cp.b 16000 50006000 3a000\0"					\
-	"updateucode=loady;"						\
-	" era ${npe_ucode} +${filesize};"				\
-	" cp.b ${loadaddr} ${npe_ucode} ${filesize}\0"			\
+	"eraseenv=protect off 50004000 50005fff;"			\
+	" erase 50004000 50005fff\0"					\
 	"updateroot=tftp ${loadaddr} ${rootfile};"			\
 	" era ${rootaddr} +${filesize};"				\
 	" cp.b ${loadaddr} ${rootaddr} ${filesize}\0"			\
@@ -202,9 +218,5 @@
 	"boot_net=run netargs addtty addeth;"				\
 	" tftpboot ${loadaddr} ${kernelfile};"				\
 	" bootm\0"
-
-/* additions for new relocation code, must be added to all boards */
-#define CONFIG_SYS_INIT_SP_ADDR						\
-	(CONFIG_SYS_SDRAM_BASE + 0x1000 - GENERATED_GBL_DATA_SIZE)
 
 #endif /* __CONFIG_H */

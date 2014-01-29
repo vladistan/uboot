@@ -2,7 +2,23 @@
  * (C) Copyright 2006
  * Stefan Roese, DENX Software Engineering, sr@denx.de.
  *
- * SPDX-License-Identifier:	GPL-2.0+ 
+ * See file CREDITS for list of people who contributed to this
+ * project.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation; either version 2 of
+ * the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	 See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
+ * MA 02111-1307 USA
  */
 
 /************************************************************************
@@ -24,9 +40,6 @@
 #define CONFIG_440EP		1	/* Specific PPC440EP support    */
 #define CONFIG_440		1	/* ... PPC440 family	        */
 #define CONFIG_4xx		1	/* ... PPC4xx family	        */
-
-#define	CONFIG_SYS_TEXT_BASE	0xFFFA0000
-
 #define CONFIG_SYS_CLK_FREQ	33333333    /* external freq to pll	*/
 
 #define CONFIG_BOARD_EARLY_INIT_F 1     /* Call board_early_init_f	*/
@@ -47,6 +60,7 @@
 #define CONFIG_SYS_PCI_MEMBASE3        CONFIG_SYS_PCI_MEMBASE2 + 0x10000000
 
 /*Don't change either of these*/
+#define CONFIG_SYS_PERIPHERAL_BASE     0xef600000	    /* internal peripherals*/
 #define CONFIG_SYS_PCI_BASE	        0xe0000000	    /* internal PCI regs*/
 /*Don't change either of these*/
 
@@ -58,20 +72,19 @@
  *----------------------------------------------------------------------*/
 #define CONFIG_SYS_INIT_RAM_DCACHE	1		/* d-cache as init ram	*/
 #define CONFIG_SYS_INIT_RAM_ADDR	0x70000000		/* DCache       */
-#define CONFIG_SYS_INIT_RAM_SIZE	(4 << 10)
-#define CONFIG_SYS_GBL_DATA_OFFSET	(CONFIG_SYS_INIT_RAM_SIZE - GENERATED_GBL_DATA_SIZE)
+#define CONFIG_SYS_INIT_RAM_END	(4 << 10)
+#define CONFIG_SYS_GBL_DATA_SIZE	256			/* num bytes initial data*/
+#define CONFIG_SYS_GBL_DATA_OFFSET	(CONFIG_SYS_INIT_RAM_END - CONFIG_SYS_GBL_DATA_SIZE)
 #define CONFIG_SYS_INIT_SP_OFFSET	CONFIG_SYS_GBL_DATA_OFFSET
 
 /*-----------------------------------------------------------------------
  * Serial Port
  *----------------------------------------------------------------------*/
-#define CONFIG_CONS_INDEX	1	/* Use UART0			*/
-#define CONFIG_SYS_NS16550
-#define CONFIG_SYS_NS16550_SERIAL
-#define CONFIG_SYS_NS16550_REG_SIZE	1
-#define CONFIG_SYS_NS16550_CLK		get_serial_clock()
 #undef CONFIG_SYS_EXT_SERIAL_CLOCK		/* no external clk used		*/
 #define CONFIG_BAUDRATE		115200
+#define CONFIG_SERIAL_MULTI     1
+/*define this if you want console on UART1*/
+#undef CONFIG_UART1_CONSOLE
 
 #define CONFIG_SYS_BAUDRATE_TABLE  \
     {300, 600, 1200, 2400, 4800, 9600, 19200, 38400, 57600, 115200}
@@ -123,11 +136,10 @@
 /*-----------------------------------------------------------------------
  * I2C
  *----------------------------------------------------------------------*/
-#define CONFIG_SYS_I2C
-#define CONFIG_SYS_I2C_PPC4XX
-#define CONFIG_SYS_I2C_PPC4XX_CH0
-#define CONFIG_SYS_I2C_PPC4XX_SPEED_0		100000
-#define CONFIG_SYS_I2C_PPC4XX_SLAVE_0		0x7F
+#define CONFIG_HARD_I2C		1	    /* I2C with hardware support	*/
+#undef	CONFIG_SOFT_I2C			    /* I2C bit-banged		*/
+#define CONFIG_SYS_I2C_SPEED		100000	/* I2C speed and slave address	*/
+#define CONFIG_SYS_I2C_SLAVE		0x7F
 
 #define CONFIG_SYS_I2C_EEPROM_ADDR	(0xa4>>1)
 #define CONFIG_SYS_I2C_EEPROM_ADDR_LEN 1
@@ -208,6 +220,7 @@
 
 #define CONFIG_PPC4xx_EMAC
 #define CONFIG_MII		1	/* MII PHY management		*/
+#define CONFIG_NET_MULTI        1	/* required for netconsole      */
 #define CONFIG_HAS_ETH1		1	/* add support for "eth1addr"	*/
 #define CONFIG_PHY_ADDR		1	/* PHY address, See schematics	*/
 #define CONFIG_PHY1_ADDR        2
@@ -301,7 +314,6 @@
  */
 /* General PCI */
 #define CONFIG_PCI			/* include pci support	        */
-#define CONFIG_PCI_INDIRECT_BRIDGE	/* indirect PCI bridge support */
 #undef  CONFIG_PCI_PNP			/* do (not) pci plug-and-play   */
 #define CONFIG_PCI_SCAN_SHOW            /* show pci devices on startup  */
 #define CONFIG_SYS_PCI_TARGBASE        0x80000000 /* PCIaddr mapped to CONFIG_SYS_PCI_MEMBASE*/
@@ -427,6 +439,14 @@
 {GPIO1_BASE, GPIO_IN,  GPIO_SEL, GPIO_OUT_NO_CHG},  /* GPIO63  Unselect via TraceSelect Bit	*/	\
 }											\
 }
+
+/*
+ * Internal Definitions
+ *
+ * Boot Flags
+ */
+#define BOOTFLAG_COLD	0x01		/* Normal Power-On: Boot from FLASH	*/
+#define BOOTFLAG_WARM	0x02		/* Software reboot			*/
 
 #if defined(CONFIG_CMD_KGDB)
 #define CONFIG_KGDB_BAUDRATE	230400	/* speed to run kgdb serial port */

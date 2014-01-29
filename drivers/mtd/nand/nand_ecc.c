@@ -9,7 +9,19 @@
  *
  * Copyright (C) 2006 Thomas Gleixner <tglx@linutronix.de>
  *
- * SPDX-License-Identifier:	GPL-2.0+
+ * This file is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the
+ * Free Software Foundation; either version 2 or (at your option) any
+ * later version.
+ *
+ * This file is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ * for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this file; if not, write to the Free Software Foundation, Inc.,
+ * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA.
  *
  * As a special exception, if other files instantiate templates or use
  * macros or inline functions from these files, or you compile these
@@ -25,9 +37,16 @@
 
 #include <common.h>
 
+/* XXX U-BOOT XXX */
+#if 0
+#include <linux/types.h>
+#include <linux/kernel.h>
+#include <linux/module.h>
+#include <linux/mtd/nand_ecc.h>
+#endif
+
 #include <asm/errno.h>
 #include <linux/mtd/mtd.h>
-#include <linux/mtd/nand_ecc.h>
 
 /* The PPC4xx NDFC uses Smart Media (SMC) bytes order */
 #ifdef CONFIG_NAND_NDFC
@@ -39,7 +58,7 @@
  * only nand_correct_data() is needed
  */
 
-#if !defined(CONFIG_NAND_SPL) || defined(CONFIG_SPL_NAND_SOFTECC)
+#ifndef CONFIG_NAND_SPL
 /*
  * Pre-calculated 256-way 1 byte column parity
  */
@@ -121,6 +140,10 @@ int nand_calculate_ecc(struct mtd_info *mtd, const u_char *dat,
 
 	return 0;
 }
+/* XXX U-BOOT XXX */
+#if 0
+EXPORT_SYMBOL(nand_calculate_ecc);
+#endif
 #endif /* CONFIG_NAND_SPL */
 
 static inline int countbits(uint32_t byte)
@@ -189,3 +212,8 @@ int nand_correct_data(struct mtd_info *mtd, u_char *dat,
 
 	return -EBADMSG;
 }
+
+/* XXX U-BOOT XXX */
+#if 0
+EXPORT_SYMBOL(nand_correct_data);
+#endif

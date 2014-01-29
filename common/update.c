@@ -4,7 +4,24 @@
  * Written by: Rafal Czubak <rcz@semihalf.com>
  *             Bartlomiej Sieka <tur@semihalf.com>
  *
- * SPDX-License-Identifier:	GPL-2.0+
+ * See file CREDITS for list of people who contributed to this
+ * project.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation; either version 2 of
+ * the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
+ * MA 02111-1307 USA
+ *
  */
 
 #include <common.h>
@@ -20,7 +37,6 @@
 #include <command.h>
 #include <flash.h>
 #include <net.h>
-#include <net/tftp.h>
 #include <malloc.h>
 
 /* env variable holding the location of the update file */
@@ -70,7 +86,7 @@ static int update_load(char *filename, ulong msec_max, int cnt_max, ulong addr)
 	/* download the update file */
 	load_addr = addr;
 	copy_filename(BootFile, filename, sizeof(BootFile));
-	size = NetLoop(TFTPGET);
+	size = NetLoop(TFTP);
 
 	if (size < 0)
 		rv = 1;
@@ -222,17 +238,13 @@ static int update_fit_getparams(const void *fit, int noffset, ulong *addr,
 	return 0;
 }
 
-int update_tftp(ulong addr)
+void update_tftp(void)
 {
 	char *filename, *env_addr;
 	int images_noffset, ndepth, noffset;
 	ulong update_addr, update_fladdr, update_size;
+	ulong addr;
 	void *fit;
-	int ret = 0;
-
-	/* use already present image */
-	if (addr)
-		goto got_update_file;
 
 	printf("Auto-update from TFTP: ");
 
@@ -241,7 +253,7 @@ int update_tftp(ulong addr)
 	if (filename == NULL) {
 		printf("failed, env. variable '%s' not found\n",
 							UPDATE_FILE_ENV);
-		return 1;
+		return;
 	}
 
 	printf("trying update file '%s'\n", filename);
@@ -256,16 +268,15 @@ int update_tftp(ulong addr)
 	if (update_load(filename, CONFIG_UPDATE_TFTP_MSEC_MAX,
 					CONFIG_UPDATE_TFTP_CNT_MAX, addr)) {
 		printf("Can't load update file, aborting auto-update\n");
-		return 1;
+		return;
 	}
 
-got_update_file:
 	fit = (void *)addr;
 
 	if (!fit_check_format((void *)fit)) {
 		printf("Bad FIT format of the update file, aborting "
 							"auto-update\n");
-		return 1;
+		return;
 	}
 
 	/* process updates */
@@ -280,9 +291,8 @@ got_update_file:
 		printf("Processing update '%s' :",
 			fit_get_name(fit, noffset, NULL));
 
-		if (!fit_image_verify(fit, noffset)) {
+		if (!fit_image_check_hashes(fit, noffset)) {
 			printf("Error: invalid update hash, aborting\n");
-			ret = 1;
 			goto next_node;
 		}
 
@@ -291,17 +301,15 @@ got_update_file:
 					&update_fladdr, &update_size)) {
 			printf("Error: can't get update parameteres, "
 								"aborting\n");
-			ret = 1;
 			goto next_node;
 		}
 		if (update_flash(update_addr, update_fladdr, update_size)) {
 			printf("Error: can't flash update, aborting\n");
-			ret = 1;
 			goto next_node;
 		}
 next_node:
 		noffset = fdt_next_node(fit, noffset, &ndepth);
 	}
 
-	return ret;
+	return;
 }

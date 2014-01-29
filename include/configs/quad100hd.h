@@ -2,7 +2,23 @@
  * (C) Copyright 2008
  * Gary Jennejohn, DENX Software Engineering GmbH, garyj@denx.de.
  *
- * SPDX-License-Identifier:	GPL-2.0+ 
+ * See file CREDITS for list of people who contributed to this
+ * project.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation; either version 2 of
+ * the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	 See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
+ * MA 02111-1307 USA
  */
 
 /************************************************************************
@@ -18,8 +34,6 @@
 #define CONFIG_4xx		1		/* ... PPC4xx family	*/
 #define CONFIG_405EP		1		/* Specifc 405EP support*/
 
-#define	CONFIG_SYS_TEXT_BASE	0xFFFC0000
-
 #define CONFIG_SYS_CLK_FREQ     33333333 /* external frequency to pll   */
 
 #define CONFIG_BOARD_EARLY_INIT_F 1		/* Call board_early_init_f */
@@ -32,6 +46,7 @@
 #undef CONFIG_ENV_IS_IN_FLASH
 
 #define CONFIG_PPC4xx_EMAC
+#define CONFIG_NET_MULTI	1
 #define CONFIG_HAS_ETH1		1
 #define CONFIG_MII		1	/* MII PHY management		*/
 #define CONFIG_PHY_ADDR		0x01	/* PHY address			*/
@@ -53,6 +68,7 @@
 #define CONFIG_CMD_I2C
 #undef CONFIG_CMD_IRQ
 #define CONFIG_CMD_JFFS2
+#undef CONFIG_CMD_LOG
 #undef CONFIG_CMD_MII
 #define CONFIG_CMD_NAND
 #undef CONFIG_CMD_PING
@@ -89,14 +105,10 @@
 /*-----------------------------------------------------------------------
  * Serial Port
  *----------------------------------------------------------------------*/
-#define CONFIG_CONS_INDEX	1	/* Use UART0			*/
-#define CONFIG_SYS_NS16550
-#define CONFIG_SYS_NS16550_SERIAL
-#define CONFIG_SYS_NS16550_REG_SIZE	1
-#define CONFIG_SYS_NS16550_CLK		get_serial_clock()
 #undef	CONFIG_SYS_EXT_SERIAL_CLOCK			/* external serial clock */
 #define CONFIG_SYS_BASE_BAUD		691200
 #define CONFIG_BAUDRATE		115200
+#define CONFIG_SERIAL_MULTI
 
 /* The following table includes the supported baudrates */
 #define CONFIG_SYS_BAUDRATE_TABLE	\
@@ -136,11 +148,10 @@
 /*-----------------------------------------------------------------------
  * I2C
  *----------------------------------------------------------------------*/
-#define CONFIG_SYS_I2C
-#define CONFIG_SYS_I2C_PPC4XX
-#define CONFIG_SYS_I2C_PPC4XX_CH0
-#define CONFIG_SYS_I2C_PPC4XX_SPEED_0		400000
-#define CONFIG_SYS_I2C_PPC4XX_SLAVE_0		0x7F
+#define CONFIG_HARD_I2C		1		/* I2C with hardware support	*/
+#undef	CONFIG_SOFT_I2C				/* I2C bit-banged		*/
+#define CONFIG_SYS_I2C_SPEED		400000		/* I2C speed and slave address	*/
+#define CONFIG_SYS_I2C_SLAVE		0x7F
 
 #define CONFIG_SYS_I2C_EEPROM_ADDR	0x50		/* base address */
 #define CONFIG_SYS_I2C_EEPROM_ADDR_LEN	2		/* bytes of address */
@@ -158,7 +169,7 @@
 #define CONFIG_SYS_FLASH_BASE		0xFFC00000
 #define CONFIG_SYS_MONITOR_LEN		(256 * 1024)	/* Reserve 256 kB for Monitor	*/
 #define CONFIG_SYS_MALLOC_LEN		(128 * 1024)	/* Reserve 128 kB for malloc()	*/
-#define CONFIG_SYS_MONITOR_BASE	(CONFIG_SYS_TEXT_BASE)
+#define CONFIG_SYS_MONITOR_BASE	(TEXT_BASE)
 
 /*
  * For booting Linux, the board info and command line data
@@ -190,7 +201,7 @@
 #ifdef CONFIG_ENV_IS_IN_FLASH
 #define CONFIG_ENV_SECT_SIZE	0x10000	/* size of one complete sector	*/
 /* the environment is located before u-boot */
-#define CONFIG_ENV_ADDR		(CONFIG_SYS_TEXT_BASE - CONFIG_ENV_SECT_SIZE)
+#define CONFIG_ENV_ADDR		(TEXT_BASE - CONFIG_ENV_SECT_SIZE)
 
 /* Address and size of Redundant Environment Sector	*/
 #define CONFIG_ENV_ADDR_REDUND	(CONFIG_ENV_ADDR - CONFIG_ENV_SECT_SIZE)
@@ -215,22 +226,24 @@
 #define CONFIG_SYS_NAND_ALE	30   /* our ALE is GPIO30 */
 #define CONFIG_SYS_MAX_NAND_DEVICE	1
 
+#define CONFIG_SYS_64BIT_VSPRINTF	/* needed for nand_util.c */
 #endif
 
 /*-----------------------------------------------------------------------
  * Definitions for initial stack pointer and data area (in data cache)
  */
 /* use on chip memory (OCM) for temperary stack until sdram is tested */
-/* see ./arch/powerpc/cpu/ppc4xx/start.S */
+/* see ./cpu/ppc4xx/start.S */
 #define CONFIG_SYS_TEMP_STACK_OCM	1
 
 /* On Chip Memory location */
 #define CONFIG_SYS_OCM_DATA_ADDR	0xF8000000
 #define CONFIG_SYS_OCM_DATA_SIZE	0x1000
 #define CONFIG_SYS_INIT_RAM_ADDR	CONFIG_SYS_OCM_DATA_ADDR /* inside of OCM		*/
-#define CONFIG_SYS_INIT_RAM_SIZE	CONFIG_SYS_OCM_DATA_SIZE /* Size of used area in RAM	*/
+#define CONFIG_SYS_INIT_RAM_END	CONFIG_SYS_OCM_DATA_SIZE /* End of used area in RAM	*/
 
-#define CONFIG_SYS_GBL_DATA_OFFSET	(CONFIG_SYS_INIT_RAM_SIZE - GENERATED_GBL_DATA_SIZE)
+#define CONFIG_SYS_GBL_DATA_SIZE	128  /* size in bytes reserved for initial data */
+#define CONFIG_SYS_GBL_DATA_OFFSET	(CONFIG_SYS_INIT_RAM_END - CONFIG_SYS_GBL_DATA_SIZE)
 #define CONFIG_SYS_INIT_SP_OFFSET      CONFIG_SYS_GBL_DATA_OFFSET
 
 /*-----------------------------------------------------------------------
@@ -238,7 +251,7 @@
  * Taken from PPCBoot board/icecube/icecube.h
  */
 
-/* see ./arch/powerpc/cpu/ppc4xx/cpu_init.c ./cpu/ppc4xx/ndfc.c */
+/* see ./cpu/ppc4xx/cpu_init.c ./cpu/ppc4xx/ndfc.c */
 #define CONFIG_SYS_EBC_PB0AP		0x04002480
 /* AMD NOR flash - this corresponds to FLASH_BASE so may be correct */
 #define CONFIG_SYS_EBC_PB0CR		0xFFC5A000
@@ -256,13 +269,13 @@
  *
  * Taken in part from PPCBoot board/icecube/icecube.h
  */
-/* see ./arch/powerpc/cpu/ppc4xx/cpu_init.c ./cpu/ppc4xx/start.S */
-#define CONFIG_SYS_GPIO0_OSRL		0x55555550
-#define CONFIG_SYS_GPIO0_OSRH		0x00000110
-#define CONFIG_SYS_GPIO0_ISR1L		0x00000000
-#define CONFIG_SYS_GPIO0_ISR1H		0x15555445
-#define CONFIG_SYS_GPIO0_TSRL		0x00000000
+/* see ./cpu/ppc4xx/cpu_init.c ./cpu/ppc4xx/start.S */
+#define CONFIG_SYS_GPIO0_OSRH		0x55555550
+#define CONFIG_SYS_GPIO0_OSRL		0x00000110
+#define CONFIG_SYS_GPIO0_ISR1H		0x00000000
+#define CONFIG_SYS_GPIO0_ISR1L		0x15555445
 #define CONFIG_SYS_GPIO0_TSRH		0x00000000
+#define CONFIG_SYS_GPIO0_TSRL		0x00000000
 #define CONFIG_SYS_GPIO0_TCR		0xFFFF8097
 #define CONFIG_SYS_GPIO0_ODR		0x00000000
 

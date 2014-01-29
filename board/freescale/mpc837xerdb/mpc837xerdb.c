@@ -3,14 +3,20 @@
  * Kevin Lam <kevin.lam@freescale.com>
  * Joe D'Abbraccio <joe.d'abbraccio@freescale.com>
  *
- * SPDX-License-Identifier:	GPL-2.0+
+ * See file CREDITS for list of people who contributed to this
+ * project.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation; either version 2 of
+ * the License, or (at your option) any later version.
  */
 
 #include <common.h>
 #include <hwconfig.h>
 #include <i2c.h>
 #include <asm/io.h>
-#include <asm/fsl_mpc83xx_serdes.h>
+#include <asm/fsl_serdes.h>
 #include <fdt_support.h>
 #include <spd_sdram.h>
 #include <vsc7385.h>

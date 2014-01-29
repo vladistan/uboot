@@ -2,7 +2,23 @@
  * (C) Copyright 2005-2007
  * Stefan Roese, DENX Software Engineering, sr@denx.de.
  *
- * SPDX-License-Identifier:	GPL-2.0+ 
+ * See file CREDITS for list of people who contributed to this
+ * project.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation; either version 2 of
+ * the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	 See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
+ * MA 02111-1307 USA
  */
 
 /************************************************************************
@@ -19,10 +35,6 @@
 #define CONFIG_440		1	/* ... PPC440 family	        */
 #define CONFIG_4xx		1	/* ... PPC4xx family	        */
 #define CONFIG_SYS_CLK_FREQ	33333333    /* external freq to pll	*/
-
-#ifndef CONFIG_SYS_TEXT_BASE
-#define CONFIG_SYS_TEXT_BASE	0xFFFA0000
-#endif
 
 /*
  * Include common defines/options for all AMCC eval boards
@@ -50,7 +62,8 @@
 #define CONFIG_SYS_PCI_MEMBASE3        CONFIG_SYS_PCI_MEMBASE2 + 0x10000000
 
 /*Don't change either of these*/
-#define CONFIG_SYS_PCI_BASE		0xe0000000	    /* internal PCI regs*/
+#define CONFIG_SYS_PERIPHERAL_BASE     0xef600000	    /* internal peripherals*/
+#define CONFIG_SYS_PCI_BASE	        0xe0000000	    /* internal PCI regs*/
 /*Don't change either of these*/
 
 #define CONFIG_SYS_USB_DEVICE          0x50000000
@@ -64,15 +77,17 @@
  *----------------------------------------------------------------------*/
 #define CONFIG_SYS_INIT_RAM_DCACHE	1		/* d-cache as init ram	*/
 #define CONFIG_SYS_INIT_RAM_ADDR	0x70000000	/* DCache       */
-#define CONFIG_SYS_INIT_RAM_SIZE	(4 << 10)
-#define CONFIG_SYS_GBL_DATA_OFFSET	(CONFIG_SYS_INIT_RAM_SIZE - GENERATED_GBL_DATA_SIZE)
+#define CONFIG_SYS_INIT_RAM_END	(4 << 10)
+#define CONFIG_SYS_GBL_DATA_SIZE	256		/* num bytes initial data	*/
+#define CONFIG_SYS_GBL_DATA_OFFSET	(CONFIG_SYS_INIT_RAM_END - CONFIG_SYS_GBL_DATA_SIZE)
 #define CONFIG_SYS_INIT_SP_OFFSET	CONFIG_SYS_GBL_DATA_OFFSET
 
 /*-----------------------------------------------------------------------
  * Serial Port
  *----------------------------------------------------------------------*/
-#define CONFIG_CONS_INDEX	1	/* Use UART0			*/
 #define CONFIG_SYS_EXT_SERIAL_CLOCK	11059200 /* use external 11.059MHz clk	*/
+/* define this if you want console on UART1 */
+#undef CONFIG_UART1_CONSOLE
 
 /*-----------------------------------------------------------------------
  * NVRAM/RTC
@@ -163,7 +178,9 @@
 
 #define CONFIG_SYS_NAND_ECCSIZE	256
 #define CONFIG_SYS_NAND_ECCBYTES	3
+#define CONFIG_SYS_NAND_ECCSTEPS	(CONFIG_SYS_NAND_PAGE_SIZE / CONFIG_SYS_NAND_ECCSIZE)
 #define CONFIG_SYS_NAND_OOBSIZE	16
+#define CONFIG_SYS_NAND_ECCTOTAL	(CONFIG_SYS_NAND_ECCBYTES * CONFIG_SYS_NAND_ECCSTEPS)
 #define CONFIG_SYS_NAND_ECCPOS		{0, 1, 2, 3, 6, 7}
 
 #ifdef CONFIG_ENV_IS_IN_NAND
@@ -206,7 +223,7 @@
 /*-----------------------------------------------------------------------
  * I2C
  *----------------------------------------------------------------------*/
-#define CONFIG_SYS_I2C_PPC4XX_SPEED_0		400000
+#define CONFIG_SYS_I2C_SPEED		400000	/* I2C speed and slave address	*/
 
 #define CONFIG_SYS_I2C_MULTI_EEPROMS
 #define CONFIG_SYS_I2C_EEPROM_ADDR	(0xa8>>1)
@@ -277,7 +294,6 @@
  */
 /* General PCI */
 #define CONFIG_PCI			/* include pci support	        */
-#define CONFIG_PCI_INDIRECT_BRIDGE	/* indirect PCI bridge support */
 #undef  CONFIG_PCI_PNP			/* do (not) pci plug-and-play   */
 #define CONFIG_PCI_SCAN_SHOW            /* show pci devices on startup  */
 #define CONFIG_SYS_PCI_TARGBASE        0x80000000 /* PCIaddr mapped to CONFIG_SYS_PCI_MEMBASE*/

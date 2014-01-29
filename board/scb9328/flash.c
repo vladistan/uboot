@@ -4,9 +4,26 @@
  * This code was inspired by Marius Groeger and Kyle Harris code
  * available in other board ports for U-Boot
  *
- * SPDX-License-Identifier:	GPL-2.0+
+ * See file CREDITS for list of people who contributed to this
+ * project.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation; either version 2 of
+ * the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
+ * MA 02111-1307 USA
  *
  * Written by Peter Figuli <peposh@etc.sk>, 2003.
+ *
  */
 
 #include <common.h>
@@ -80,12 +97,11 @@ static FLASH_BUS_RET flash_status_reg (void)
 static int flash_ready (ulong timeout)
 {
 	int ok = 1;
-	ulong start;
 
-	start = get_timer(0);
+	reset_timer_masked ();
 	while ((flash_status_reg () & FLASH_CMD (CFI_INTEL_SR_READY)) !=
 		   FLASH_CMD (CFI_INTEL_SR_READY)) {
-		if (get_timer(start) > timeout && timeout != 0) {
+		if (get_timer_masked () > timeout && timeout != 0) {
 			ok = 0;
 			break;
 		}

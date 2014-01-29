@@ -1,7 +1,23 @@
 /*
  * (C) Copyright 2007-2009 DENX Software Engineering
  *
- * SPDX-License-Identifier:	GPL-2.0+ 
+ * See file CREDITS for list of people who contributed to this
+ * project.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation; either version 2 of
+ * the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	 See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
+ * MA 02111-1307 USA
  */
 
 /*
@@ -30,19 +46,15 @@
  */
 #define CONFIG_E300		1	/* E300 Family */
 #define CONFIG_MPC512X		1	/* MPC512X family */
-
-#define	CONFIG_SYS_TEXT_BASE	0xFFF00000
+#define CONFIG_FSL_DIU_FB	1	/* FSL DIU */
+#undef CONFIG_FSL_DIU_LOGO_BMP		/* Don't include FSL DIU binary bmp */
 
 /* video */
-#ifdef CONFIG_FSL_DIU_FB
-#define CONFIG_SYS_DIU_ADDR	(CONFIG_SYS_IMMR + 0x2100)
-#define CONFIG_VIDEO
-#define CONFIG_CMD_BMP
+#undef CONFIG_VIDEO
+
+#if defined(CONFIG_VIDEO)
 #define CONFIG_CFB_CONSOLE
-#define CONFIG_VIDEO_SW_CURSOR
 #define CONFIG_VGA_AS_SINGLE_DEVICE
-#define CONFIG_VIDEO_LOGO
-#define CONFIG_VIDEO_BMP_LOGO
 #endif
 
 /* CONFIG_PCI is defined at config time */
@@ -58,6 +70,7 @@
 #define CONFIG_MISC_INIT_R
 
 #define CONFIG_SYS_IMMR		0x80000000
+#define CONFIG_SYS_DIU_ADDR		(CONFIG_SYS_IMMR+0x2100)
 
 #define CONFIG_SYS_MEMTEST_START	0x00200000      /* memtest region */
 #define CONFIG_SYS_MEMTEST_END		0x00400000
@@ -72,9 +85,6 @@
 #endif
 #define CONFIG_SYS_DDR_BASE		0x00000000	/* DDR is system memory*/
 #define CONFIG_SYS_SDRAM_BASE		CONFIG_SYS_DDR_BASE
-#define CONFIG_SYS_MAX_RAM_SIZE		0x20000000
-
-#define CONFIG_SYS_IOCTRL_MUX_DDR	0x00000036
 
 /* DDR Controller Configuration
  *
@@ -121,55 +131,28 @@
  *	[04:00] DRAM tRPA
  */
 #ifdef CONFIG_MPC5121ADS_REV2
-#define CONFIG_SYS_MDDRC_SYS_CFG	0xE8604A00
+#define CONFIG_SYS_MDDRC_SYS_CFG	0xF8604A00
+#define CONFIG_SYS_MDDRC_SYS_CFG_RUN	0xE8604A00
 #define CONFIG_SYS_MDDRC_TIME_CFG1	0x54EC1168
 #define CONFIG_SYS_MDDRC_TIME_CFG2	0x35210864
 #else
-#define CONFIG_SYS_MDDRC_SYS_CFG	0xEA804A00
-#define CONFIG_SYS_MDDRC_TIME_CFG1	0x68EC1168
-#define CONFIG_SYS_MDDRC_TIME_CFG2	0x34310864
+#define CONFIG_SYS_MDDRC_SYS_CFG	 0xFA804A00
+#define CONFIG_SYS_MDDRC_SYS_CFG_RUN	 0xEA804A00
+#define CONFIG_SYS_MDDRC_TIME_CFG1	 0x68EC1168
+#define CONFIG_SYS_MDDRC_TIME_CFG2	 0x34310864
 #endif
-#define CONFIG_SYS_MDDRC_TIME_CFG0	0x06183D2E
+#define CONFIG_SYS_MDDRC_SYS_CFG_EN	0xF0000000
+#define CONFIG_SYS_MDDRC_TIME_CFG0	0x00003D2E
+#define CONFIG_SYS_MDDRC_TIME_CFG0_RUN	0x06183D2E
 
-#define CONFIG_SYS_MDDRC_SYS_CFG_ELPIDA	 	0xEA802B00
-#define CONFIG_SYS_MDDRC_TIME_CFG1_ELPIDA	0x690e1189
-#define CONFIG_SYS_MDDRC_TIME_CFG2_ELPIDA	0x35310864
-
-#define CONFIG_SYS_DDRCMD_NOP		0x01380000
-#define CONFIG_SYS_DDRCMD_PCHG_ALL	0x01100400
-#define CONFIG_SYS_DDRCMD_EM2		0x01020000
-#define CONFIG_SYS_DDRCMD_EM3		0x01030000
-#define CONFIG_SYS_DDRCMD_EN_DLL	0x01010000
-#define CONFIG_SYS_DDRCMD_RFSH		0x01080000
-
-#define DDRCMD_EMR_OCD(pr, ohm) ( \
-	(1 << 24)	   | /* MDDRC Command Request	*/ \
-	(1 << 16)	   | /* MODE Reg BA[2:0] 	*/ \
-	(0 << 12)	   | /* Outputs 0=Enabled	*/ \
-	(0 << 11)	   | /* RDQS 			*/ \
-	(1 << 10)	   | /* DQS# 			*/ \
-	(pr <<  7)	   | /* OCD prog 7=deflt,0=exit	*/ \
-		    /* ODT Rtt[1:0] 0=0,1=75,2=150,3=50 */ \
-	((ohm & 0x2) <<  5)| /* Rtt1			*/ \
-	(0 <<  3)	   | /* additive posted CAS#	*/ \
-	((ohm & 0x1) <<  2)| /* Rtt0			*/ \
-	(0 <<  0)	   | /* Output Drive Strength	*/ \
-	(0 <<  0))	     /* DLL Enable 0=Normal	*/
-
-#define CONFIG_SYS_DDRCMD_OCD_DEFAULT	DDRCMD_EMR_OCD(7, 0)
-#define CONFIG_SYS_ELPIDA_OCD_EXIT	DDRCMD_EMR_OCD(0, 0)
-
-#define DDRCMD_MODE_REG(cas, wr) ( \
-	(1 << 24)    | /* MDDRC Command Request			*/ \
-	(0 << 16)    | /* MODE Reg BA[2:0] 			*/ \
-	((wr-1) << 9)| /* Write Recovery 			*/ \
-	(cas << 4)   | /* CAS 					*/ \
-	(0 << 3)     | /* Burst Type:0=Sequential,1=Interleaved	*/ \
-	(2 << 0))      /* 4 or 8 Burst Length:0x2=4 0x3=8	*/
-
-#define CONFIG_SYS_MICRON_INIT_DEV_OP	DDRCMD_MODE_REG(3, 3)
-#define CONFIG_SYS_ELPIDA_INIT_DEV_OP	DDRCMD_MODE_REG(4, 4)
-#define CONFIG_SYS_ELPIDA_RES_DLL	(DDRCMD_MODE_REG(4, 4) | (1 << 8))
+#define CONFIG_SYS_MICRON_NOP		0x01380000
+#define CONFIG_SYS_MICRON_PCHG_ALL	0x01100400
+#define CONFIG_SYS_MICRON_EM2		0x01020000
+#define CONFIG_SYS_MICRON_EM3		0x01030000
+#define CONFIG_SYS_MICRON_EN_DLL	0x01010000
+#define CONFIG_SYS_MICRON_RFSH		0x01080000
+#define CONFIG_SYS_MICRON_INIT_DEV_OP	0x01000432
+#define CONFIG_SYS_MICRON_OCD_DEFAULT	0x01010780
 
 /* DDR Priority Manager Configuration */
 #define CONFIG_SYS_MDDRCGRP_PM_CFG1	0x00077777
@@ -226,7 +209,10 @@
 #define CONFIG_SYS_NAND_BASE            0x40000000
 
 #define CONFIG_SYS_MAX_NAND_DEVICE      2
+#define NAND_MAX_CHIPS                  CONFIG_SYS_MAX_NAND_DEVICE
 #define CONFIG_SYS_NAND_SELECT_DEVICE	/* driver supports mutipl. chips */
+
+#define	CONFIG_SYS_64BIT_VSPRINTF	/* needed for nand_util.c */
 
 /*
  * Configuration parameters for MPC5121 NAND driver
@@ -242,8 +228,6 @@
  */
 #define CONFIG_SYS_CPLD_BASE		0x82000000
 #define CONFIG_SYS_CPLD_SIZE		0x00010000	/* 64 KB */
-#define CONFIG_SYS_CS2_START		CONFIG_SYS_CPLD_BASE
-#define CONFIG_SYS_CS2_SIZE		CONFIG_SYS_CPLD_SIZE
 
 #define CONFIG_SYS_SRAM_BASE		0x30000000
 #define CONFIG_SYS_SRAM_SIZE		0x00020000	/* 128 KB */
@@ -254,12 +238,13 @@
 
 /* Use SRAM for initial stack */
 #define CONFIG_SYS_INIT_RAM_ADDR	CONFIG_SYS_SRAM_BASE		/* Initial RAM address */
-#define CONFIG_SYS_INIT_RAM_SIZE	CONFIG_SYS_SRAM_SIZE		/* Size of used area in RAM */
+#define CONFIG_SYS_INIT_RAM_END	CONFIG_SYS_SRAM_SIZE		/* End of used area in RAM */
 
-#define CONFIG_SYS_GBL_DATA_OFFSET	(CONFIG_SYS_INIT_RAM_SIZE - GENERATED_GBL_DATA_SIZE)
+#define CONFIG_SYS_GBL_DATA_SIZE	0x100			/* num bytes initial data */
+#define CONFIG_SYS_GBL_DATA_OFFSET	(CONFIG_SYS_INIT_RAM_END - CONFIG_SYS_GBL_DATA_SIZE)
 #define CONFIG_SYS_INIT_SP_OFFSET	CONFIG_SYS_GBL_DATA_OFFSET
 
-#define CONFIG_SYS_MONITOR_BASE	CONFIG_SYS_TEXT_BASE		/* Start of monitor */
+#define CONFIG_SYS_MONITOR_BASE	TEXT_BASE		/* Start of monitor */
 #define CONFIG_SYS_MONITOR_LEN		(512 * 1024)		/* Reserve 512 kB for Mon */
 #ifdef	CONFIG_FSL_DIU_FB
 #define CONFIG_SYS_MALLOC_LEN		(6 * 1024 * 1024)	/* Reserved for malloc */
@@ -271,12 +256,12 @@
  * Serial Port
  */
 #define CONFIG_CONS_INDEX     1
+#undef CONFIG_SERIAL_SOFTWARE_FIFO
 
 /*
  * Serial console configuration
  */
 #define CONFIG_PSC_CONSOLE	3	/* console is on PSC3 */
-#define CONFIG_SYS_PSC3
 #if CONFIG_PSC_CONSOLE != 3
 #error CONFIG_PSC_CONSOLE must be 3
 #endif
@@ -293,34 +278,13 @@
 /* Use the HUSH parser */
 #define CONFIG_SYS_HUSH_PARSER
 #ifdef  CONFIG_SYS_HUSH_PARSER
+#define CONFIG_SYS_PROMPT_HUSH_PS2 "> "
 #endif
-
-/*
- * Clocks in use
- */
-#define SCCR1_CLOCKS_EN	(CLOCK_SCCR1_CFG_EN |				\
-			 CLOCK_SCCR1_DDR_EN |				\
-			 CLOCK_SCCR1_FEC_EN |				\
-			 CLOCK_SCCR1_LPC_EN |				\
-			 CLOCK_SCCR1_NFC_EN |				\
-			 CLOCK_SCCR1_PATA_EN |				\
-			 CLOCK_SCCR1_PCI_EN |				\
-			 CLOCK_SCCR1_PSC_EN(CONFIG_PSC_CONSOLE) |	\
-			 CLOCK_SCCR1_PSCFIFO_EN |			\
-			 CLOCK_SCCR1_TPR_EN)
-
-#define SCCR2_CLOCKS_EN	(CLOCK_SCCR2_DIU_EN |		\
-			 CLOCK_SCCR2_I2C_EN |		\
-			 CLOCK_SCCR2_MEM_EN |		\
-			 CLOCK_SCCR2_SPDIF_EN |		\
-			 CLOCK_SCCR2_USB1_EN |		\
-			 CLOCK_SCCR2_USB2_EN)
 
 /*
  * PCI
  */
 #ifdef CONFIG_PCI
-#define CONFIG_PCI_INDIRECT_BRIDGE
 
 /*
  * General PCI
@@ -344,6 +308,7 @@
 
 /* I2C */
 #define CONFIG_HARD_I2C			/* I2C with hardware support */
+#undef CONFIG_SOFT_I2C			/* so disable bit-banged I2C */
 #define CONFIG_I2C_MULTI_BUS
 #define CONFIG_SYS_I2C_SPEED		100000	/* I2C speed and slave address */
 #define CONFIG_SYS_I2C_SLAVE		0x7F
@@ -354,7 +319,7 @@
 /*
  * IIM - IC Identification Module
  */
-#undef CONFIG_FSL_IIM
+#undef CONFIG_IIM
 
 /*
  * EEPROM configuration
@@ -368,6 +333,7 @@
  * Ethernet configuration
  */
 #define CONFIG_MPC512x_FEC	1
+#define CONFIG_NET_MULTI
 #define CONFIG_PHY_ADDR		0x1
 #define CONFIG_MII		1	/* MII PHY management		*/
 #define CONFIG_FEC_AN_TIMEOUT	1
@@ -378,20 +344,6 @@
  */
 #define CONFIG_RTC_M41T62			/* use M41T62 rtc via i2 */
 #define CONFIG_SYS_I2C_RTC_ADDR		0x68	/* at address 0x68		*/
-
-/*
- * USB  Support
- */
-#define CONFIG_CMD_USB
-
-#if defined(CONFIG_CMD_USB)
-#define CONFIG_USB_EHCI				/* Enable EHCI Support	*/
-#define CONFIG_USB_EHCI_FSL			/* On a FSL platform	*/
-#define CONFIG_EHCI_MMIO_BIG_ENDIAN		/* With big-endian regs	*/
-#define CONFIG_EHCI_DESC_BIG_ENDIAN
-#define CONFIG_EHCI_IS_TDI
-#define CONFIG_USB_STORAGE
-#endif
 
 /*
  * Environment
@@ -461,15 +413,10 @@
 					"mpc5121.nand:-(data)"
 
 
-#if defined(CONFIG_CMD_IDE) || defined(CONFIG_CMD_EXT2) || defined(CONFIG_CMD_USB)
-
+#if defined(CONFIG_CMD_IDE) || defined(CONFIG_CMD_EXT2)
 #define CONFIG_DOS_PARTITION
 #define CONFIG_MAC_PARTITION
 #define CONFIG_ISO_PARTITION
-
-#define CONFIG_CMD_FAT
-#define CONFIG_SUPPORT_VFAT
-
 #endif /* defined(CONFIG_CMD_IDE) */
 
 /*
@@ -502,10 +449,10 @@
 
 /*
  * For booting Linux, the board info and command line data
- * have to be in the first 256 MB of memory, since this is
+ * have to be in the first 8 MB of memory, since this is
  * the maximum mapped by the Linux kernel during initialization.
  */
-#define CONFIG_SYS_BOOTMAPSZ	(256 << 20)	/* Initial Memory map for Linux*/
+#define CONFIG_SYS_BOOTMAPSZ	(8 << 20)	/* Initial Memory map for Linux*/
 
 /* Cache Configuration */
 #define CONFIG_SYS_DCACHE_SIZE		32768
@@ -520,6 +467,14 @@
 
 #define CONFIG_HIGH_BATS	1	/* High BATs supported */
 
+/*
+ * Internal Definitions
+ *
+ * Boot Flags
+ */
+#define BOOTFLAG_COLD		0x01	/* Normal Power-On: Boot from FLASH */
+#define BOOTFLAG_WARM		0x02	/* Software reboot */
+
 #ifdef CONFIG_CMD_KGDB
 #define CONFIG_KGDB_BAUDRATE	230400	/* speed of kgdb serial port */
 #define CONFIG_KGDB_SER_INDEX	2	/* which serial port to use */
@@ -531,8 +486,8 @@
 #define CONFIG_TIMESTAMP
 
 #define CONFIG_HOSTNAME		mpc5121ads
-#define CONFIG_BOOTFILE		"mpc5121ads/uImage"
-#define CONFIG_ROOTPATH		"/opt/eldk/ppc_6xx"
+#define CONFIG_BOOTFILE		mpc5121ads/uImage
+#define CONFIG_ROOTPATH		/opt/eldk/ppc_6xx
 
 #define CONFIG_LOADADDR		400000	/* default location for tftp and bootm */
 

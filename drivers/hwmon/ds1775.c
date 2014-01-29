@@ -1,5 +1,18 @@
 /*
- * SPDX-License-Identifier:	GPL-2.0+
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation; either version 2 of
+ * the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
+ * MA 02111-1307 USA
  */
 
 /*
@@ -85,7 +98,7 @@ int dtt_write(int sensor, int reg, int val)
 }
 
 
-int dtt_init_one(int sensor)
+static int _dtt_init(int sensor)
 {
 	int val;
 
@@ -119,6 +132,23 @@ int dtt_init_one(int sensor)
 
 	return 0;
 }
+
+
+int dtt_init (void)
+{
+	int i;
+	unsigned char sensors[] = CONFIG_DTT_SENSORS;
+
+	for (i = 0; i < sizeof(sensors); i++) {
+		if (_dtt_init(sensors[i]) != 0)
+			printf("DTT%d:  FAILED\n", i+1);
+		else
+			printf("DTT%d:  %i C\n", i+1, dtt_get_temp(sensors[i]));
+	}
+
+	return (0);
+}
+
 
 int dtt_get_temp(int sensor)
 {

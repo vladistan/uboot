@@ -30,7 +30,7 @@
 /*
  * Board settings
  */
-#define CONFIG_SMC91111	1
+#define CONFIG_DRIVER_SMC91111	1
 #define CONFIG_SMC91111_BASE	0x20300300
 
 /* FLASH/ETHERNET uses the same address range
@@ -40,6 +40,7 @@
 #define SHARED_RESOURCES	1
 
 /* Is I2C bit-banged? */
+#undef CONFIG_SOFT_I2
 
 /*
  * Clock Settings
@@ -68,13 +69,13 @@
  * Network settings
  */
 
-#ifdef CONFIG_SMC91111
+#ifdef CONFIG_DRIVER_SMC91111
 #define CONFIG_IPADDR		192.168.0.15
 #define CONFIG_NETMASK		255.255.255.0
 #define CONFIG_GATEWAYIP	192.168.0.1
 #define CONFIG_SERVERIP		192.168.0.2
 #define CONFIG_HOSTNAME		blackstamp
-#define CONFIG_ROOTPATH		"/checkout/uClinux-dist/romfs"
+#define CONFIG_ROOTPATH		/checkout/uClinux-dist/romfs
 #define CONFIG_SYS_AUTOLOAD		"no"
 
 /* To remove hardcoding and enable MAC storage in EEPROM  */
@@ -107,14 +108,14 @@
 
 #include <config_cmd_default.h>
 
-#ifdef CONFIG_SMC91111
+#ifdef CONFIG_DRIVER_SMC91111
 # define CONFIG_CMD_DHCP
 # define CONFIG_CMD_PING
 #else
 # undef CONFIG_CMD_NET
 #endif
 
-#ifdef CONFIG_SYS_I2C_SOFT
+#ifdef CONFIG_SOFT_I2C
 # define CONFIG_CMD_I2C
 #endif
 
@@ -129,12 +130,12 @@
 #define CONFIG_BOOTCOMMAND   "run ramboot"
 #define CONFIG_BOOTARGS \
 	"root=/dev/mtdblock0 rw " \
-	"clkin_hz=" __stringify(CONFIG_CLKIN_HZ) " " \
+	"clkin_hz=" MK_STR(CONFIG_CLKIN_HZ) " " \
 	"earlyprintk=" \
 		"serial," \
-		"uart" __stringify(CONFIG_UART_CONSOLE) "," \
-		__stringify(CONFIG_BAUDRATE) " " \
-	"console=ttyBF0," __stringify(CONFIG_BAUDRATE)
+		"uart" MK_STR(CONFIG_UART_CONSOLE) "," \
+		MK_STR(CONFIG_BAUDRATE) " " \
+	"console=ttyBF0," MK_STR(CONFIG_BAUDRATE)
 
 #if defined(CONFIG_CMD_NET)
 # if (CONFIG_BFIN_BOOT_MODE == BFIN_BOOT_BYPASS)
@@ -148,7 +149,7 @@
 		"eeprom write $(loadaddr) 0x0 $(filesize)"
 #  else
 #   define UBOOT_ENV_UPDATE \
-		"sf probe " __stringify(BFIN_BOOT_SPI_SSEL) ";" \
+		"sf probe " MK_STR(BFIN_BOOT_SPI_SSEL) ";" \
 		"sf erase 0 0x40000;" \
 		"sf write $(loadaddr) 0 $(filesize)"
 #  endif
@@ -203,11 +204,35 @@
  * Note these pins are arbitrarily chosen because we aren't using
  * them yet. You can (and probably should) change these values!
  */
-#ifdef CONFIG_SYS_I2C_SOFT
-#define CONFIG_SOFT_I2C_GPIO_SCL GPIO_PF9
-#define CONFIG_SOFT_I2C_GPIO_SDA GPIO_PF8
-#define CONFIG_SYS_I2C_SOFT_SPEED	50000
-#define CONFIG_SYS_I2C_SOFT_SLAVE	0xFE
+#ifdef CONFIG_SOFT_I2C
+
+#define PF_SCL			PF9
+#define PF_SDA			PF8
+
+#define I2C_INIT       do { *pFIO_DIR |= PF_SCL; SSYNC(); } while (0)
+#define I2C_ACTIVE     do { *pFIO_DIR |= PF_SDA; *pFIO_INEN &= ~PF_SDA; SSYNC(); } while (0)
+#define I2C_TRISTATE   do { *pFIO_DIR &= ~PF_SDA; *pFIO_INEN |= PF_SDA; SSYNC(); } while (0)
+#define I2C_READ       ((*pFIO_FLAG_D & PF_SDA) != 0)
+#define I2C_SDA(bit) \
+	do { \
+		if (bit) \
+			*pFIO_FLAG_S = PF_SDA; \
+		else \
+			*pFIO_FLAG_C = PF_SDA; \
+		SSYNC(); \
+	} while (0)
+#define I2C_SCL(bit) \
+	do { \
+		if (bit) \
+			*pFIO_FLAG_S = PF_SCL; \
+		else \
+			*pFIO_FLAG_C = PF_SCL; \
+		SSYNC(); \
+	} while (0)
+#define I2C_DELAY		udelay(5)	/* 1/4 I2C clock duration */
+
+#define CONFIG_SYS_I2C_SPEED		50000
+#define CONFIG_SYS_I2C_SLAVE		0xFE
 #endif
 
 /*

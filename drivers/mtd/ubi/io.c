@@ -2,7 +2,19 @@
  * Copyright (c) International Business Machines Corp., 2006
  * Copyright (c) Nokia Corporation, 2006, 2007
  *
- * SPDX-License-Identifier:	GPL-2.0+
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See
+ * the GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  *
  * Author: Artem Bityutskiy (Битюцкий Артём)
  */
@@ -142,7 +154,7 @@ int ubi_io_read(const struct ubi_device *ubi, void *buf, int pnum, int offset,
 
 	addr = (loff_t)pnum * ubi->peb_size + offset;
 retry:
-	err = mtd_read(ubi->mtd, addr, len, &read, buf);
+	err = ubi->mtd->read(ubi->mtd, addr, len, &read, buf);
 	if (err) {
 		if (err == -EUCLEAN) {
 			/*
@@ -256,7 +268,7 @@ int ubi_io_write(struct ubi_device *ubi, const void *buf, int pnum, int offset,
 	}
 
 	addr = (loff_t)pnum * ubi->peb_size + offset;
-	err = mtd_write(ubi->mtd, addr, len, &written, buf);
+	err = ubi->mtd->write(ubi->mtd, addr, len, &written, buf);
 	if (err) {
 		ubi_err("error %d while writing %d bytes to PEB %d:%d, written"
 			" %zd bytes", err, len, pnum, offset, written);
@@ -306,7 +318,7 @@ retry:
 	ei.callback = erase_callback;
 	ei.priv     = (unsigned long)&wq;
 
-	err = mtd_erase(ubi->mtd, &ei);
+	err = ubi->mtd->erase(ubi->mtd, &ei);
 	if (err) {
 		if (retries++ < UBI_IO_RETRIES) {
 			dbg_io("error %d while erasing PEB %d, retry",
@@ -504,7 +516,7 @@ int ubi_io_is_bad(const struct ubi_device *ubi, int pnum)
 	if (ubi->bad_allowed) {
 		int ret;
 
-		ret = mtd_block_isbad(mtd, (loff_t)pnum * ubi->peb_size);
+		ret = mtd->block_isbad(mtd, (loff_t)pnum * ubi->peb_size);
 		if (ret < 0)
 			ubi_err("error %d while checking if PEB %d is bad",
 				ret, pnum);
@@ -539,7 +551,7 @@ int ubi_io_mark_bad(const struct ubi_device *ubi, int pnum)
 	if (!ubi->bad_allowed)
 		return 0;
 
-	err = mtd_block_markbad(mtd, (loff_t)pnum * ubi->peb_size);
+	err = mtd->block_markbad(mtd, (loff_t)pnum * ubi->peb_size);
 	if (err)
 		ubi_err("cannot mark PEB %d bad, error %d", pnum, err);
 	return err;
@@ -1230,7 +1242,7 @@ static int paranoid_check_all_ff(struct ubi_device *ubi, int pnum, int offset,
 	loff_t addr = (loff_t)pnum * ubi->peb_size + offset;
 
 	mutex_lock(&ubi->dbg_buf_mutex);
-	err = mtd_read(ubi->mtd, addr, len, &read, ubi->dbg_peb_buf);
+	err = ubi->mtd->read(ubi->mtd, addr, len, &read, ubi->dbg_peb_buf);
 	if (err && err != -EUCLEAN) {
 		ubi_err("error %d while reading %d bytes from PEB %d:%d, "
 			"read %zd bytes", err, len, pnum, offset, read);

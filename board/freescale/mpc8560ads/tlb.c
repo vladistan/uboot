@@ -4,7 +4,23 @@
  * (C) Copyright 2000
  * Wolfgang Denk, DENX Software Engineering, wd@denx.de.
  *
- * SPDX-License-Identifier:	GPL-2.0+
+ * See file CREDITS for list of people who contributed to this
+ * project.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation; either version 2 of
+ * the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
+ * MA 02111-1307 USA
  */
 
 #include <common.h>
@@ -90,6 +106,25 @@ struct fsl_e_tlb_entry tlb_table[] = {
 	SET_TLB_ENTRY(1, CONFIG_SYS_BCSR, CONFIG_SYS_BCSR,
 		      MAS3_SX|MAS3_SW|MAS3_SR, MAS2_I|MAS2_G,
 		      0, 7, BOOKE_PAGESZ_16K, 1),
+
+#if !defined(CONFIG_SPD_EEPROM)
+	/*
+	 * TLB 8, 9:	128M	DDR
+	 * 0x00000000	64M	DDR System memory
+	 * 0x04000000	64M	DDR System memory
+	 * Without SPD EEPROM configured DDR, this must be setup manually.
+	 * Make sure the TLB count at the top of this table is correct.
+	 * Likely it needs to be increased by two for these entries.
+	 */
+#error("Update the number of table entries in tlb1_entry")
+	SET_TLB_ENTRY(1, CONFIG_SYS_DDR_SDRAM_BASE, CONFIG_SYS_DDR_SDRAM_BASE,
+		      MAS3_SX|MAS3_SW|MAS3_SR, 0,
+		      0, 8, BOOKE_PAGESZ_64M, 1),
+
+	SET_TLB_ENTRY(1, CONFIG_SYS_DDR_SDRAM_BASE + 0x4000000, CONFIG_SYS_DDR_SDRAM_BASE + 0x4000000,
+		      MAS3_SX|MAS3_SW|MAS3_SR, 0,
+		      0, 9, BOOKE_PAGESZ_64M, 1),
+#endif
 };
 
 int num_tlb_entries = ARRAY_SIZE(tlb_table);

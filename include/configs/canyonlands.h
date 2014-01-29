@@ -2,7 +2,20 @@
  * (C) Copyright 2008
  * Stefan Roese, DENX Software Engineering, sr@denx.de.
  *
- * SPDX-License-Identifier:	GPL-2.0+
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation; either version 2 of
+ * the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
+ * MA 02111-1307 USA
  */
 
 /************************************************************************
@@ -35,10 +48,6 @@
 #define CONFIG_440		1
 #define CONFIG_4xx		1	/* ... PPC4xx family */
 
-#ifndef CONFIG_SYS_TEXT_BASE
-#define CONFIG_SYS_TEXT_BASE	0xFFF80000
-#endif
-
 /*
  * Include common defines/options for all AMCC eval boards
  */
@@ -68,13 +77,6 @@
 #define CONFIG_SYS_PCIE0_XCFGBASE	0xc3000000
 #define CONFIG_SYS_PCIE1_XCFGBASE	0xc3001000
 
-/*
- * BCSR bits as defined in the Canyonlands board user manual.
- */
-#define BCSR_USBCTRL_OTG_RST	0x32
-#define BCSR_USBCTRL_HOST_RST	0x01
-#define BCSR_SELECT_PCIE	0x10
-
 #define	CONFIG_SYS_PCIE0_UTLBASE	0xc08010000ULL	/* 36bit physical addr	*/
 
 /* base address of inbound PCIe window */
@@ -102,8 +104,9 @@
 
 #define CONFIG_SYS_OCM_BASE		0xE3000000	/* OCM: 64k		*/
 #define CONFIG_SYS_SRAM_BASE		0xE8000000	/* SRAM: 256k		*/
-#define CONFIG_SYS_SRAM_SIZE		(256 << 10)
 #define CONFIG_SYS_LOCAL_CONF_REGS	0xEF000000
+
+#define CONFIG_SYS_PERIPHERAL_BASE	0xEF600000	/* internal peripherals */
 
 #define CONFIG_SYS_AHB_BASE		0xE2000000	/* internal AHB peripherals	*/
 
@@ -111,14 +114,15 @@
  * Initial RAM & stack pointer (placed in OCM)
  *----------------------------------------------------------------------*/
 #define CONFIG_SYS_INIT_RAM_ADDR	CONFIG_SYS_OCM_BASE	/* OCM			*/
-#define CONFIG_SYS_INIT_RAM_SIZE	(4 << 10)
-#define CONFIG_SYS_GBL_DATA_OFFSET	(CONFIG_SYS_INIT_RAM_SIZE - GENERATED_GBL_DATA_SIZE)
+#define CONFIG_SYS_INIT_RAM_END	(4 << 10)
+#define CONFIG_SYS_GBL_DATA_SIZE	256		/* num bytes initial data */
+#define CONFIG_SYS_GBL_DATA_OFFSET	(CONFIG_SYS_INIT_RAM_END - CONFIG_SYS_GBL_DATA_SIZE)
 #define CONFIG_SYS_INIT_SP_OFFSET	CONFIG_SYS_GBL_DATA_OFFSET
 
 /*-----------------------------------------------------------------------
  * Serial Port
  *----------------------------------------------------------------------*/
-#define CONFIG_CONS_INDEX	1	/* Use UART0			*/
+#undef CONFIG_UART1_CONSOLE	/* define this if you want console on UART1 */
 
 /*-----------------------------------------------------------------------
  * Environment
@@ -184,7 +188,9 @@
 
 #define CONFIG_SYS_NAND_ECCSIZE	256
 #define CONFIG_SYS_NAND_ECCBYTES	3
+#define CONFIG_SYS_NAND_ECCSTEPS	(CONFIG_SYS_NAND_PAGE_SIZE / CONFIG_SYS_NAND_ECCSIZE)
 #define CONFIG_SYS_NAND_OOBSIZE	64
+#define CONFIG_SYS_NAND_ECCTOTAL	(CONFIG_SYS_NAND_ECCBYTES * CONFIG_SYS_NAND_ECCSTEPS)
 #define CONFIG_SYS_NAND_ECCPOS		{40, 41, 42, 43, 44, 45, 46, 47, \
 				 48, 49, 50, 51, 52, 53, 54, 55, \
 				 56, 57, 58, 59, 60, 61, 62, 63}
@@ -316,7 +322,7 @@
 /*-----------------------------------------------------------------------
  * I2C
  *----------------------------------------------------------------------*/
-#define CONFIG_SYS_I2C_PPC4XX_SPEED_0		400000
+#define CONFIG_SYS_I2C_SPEED		400000	/* I2C speed			*/
 
 #define CONFIG_SYS_I2C_MULTI_EEPROMS
 #define CONFIG_SYS_I2C_EEPROM_ADDR		(0xa8>>1)
@@ -411,7 +417,6 @@
 #define CONFIG_SYS_USB_OHCI_REGS_BASE	(CONFIG_SYS_AHB_BASE | 0xd0000)
 #define CONFIG_SYS_USB_OHCI_SLOT_NAME	"ppc440"
 #define CONFIG_SYS_USB_OHCI_MAX_ROOT_PORTS 15
-#define CONFIG_SYS_USB_OHCI_BOARD_INIT
 #endif
 
 /*
@@ -483,7 +488,6 @@
  *----------------------------------------------------------------------*/
 /* General PCI */
 #define CONFIG_PCI			/* include pci support	        */
-#define CONFIG_PCI_INDIRECT_BRIDGE	/* indirect PCI bridge support */
 #define CONFIG_PCI_PNP			/* do pci plug-and-play   */
 #define CONFIG_PCI_SCAN_SHOW		/* show pci devices on startup  */
 #define CONFIG_PCI_CONFIG_HOST_BRIDGE
@@ -589,7 +593,7 @@
 #define CONFIG_SYS_EBC_PB1CR		(CONFIG_SYS_FPGA_BASE | 0x3a000) /* BAS=FPGA,BS=2MB,BU=R/W,BW=16bit*/
 #endif	/* !defined(CONFIG_ARCHES) */
 
-#define CONFIG_SYS_EBC_CFG		0xbfc00000
+#define CONFIG_SYS_EBC_CFG		0xB8400000		/*  EBC0_CFG */
 
 /*
  * Arches doesn't use PerCS3 but GPIO43, so let's configure the GPIO

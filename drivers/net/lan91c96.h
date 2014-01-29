@@ -8,7 +8,19 @@
  *       Developed by Simple Network Magic Corporation (SNMC)
  * Copyright (C) 1996 by Erik Stahlman (ES)
  *
- * SPDX-License-Identifier:	GPL-2.0+
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
  * This file contains register information and access macros for
  * the LAN91C96 single chip ethernet controller.  It is a modified
@@ -34,6 +46,14 @@
 #include <asm/io.h>
 #include <config.h>
 
+/*
+ * This function may be called by the board specific initialisation code
+ * in order to override the default mac address.
+ */
+
+void smc_set_mac_addr(const unsigned char *addr);
+
+
 /* I want some simple types */
 
 typedef unsigned char			byte;
@@ -56,7 +76,7 @@ typedef unsigned long int		dword;
 
 #define	SMC_IO_EXTENT	16
 
-#ifdef CONFIG_CPU_PXA25X
+#ifdef CONFIG_PXA250
 
 #ifdef	CONFIG_LUBBOCK
 #define	SMC_IO_SHIFT	2
@@ -66,109 +86,109 @@ typedef unsigned long int		dword;
 #define	SMC_IO_SHIFT	0
 #endif
 
-#define	SMCREG(edev, r)	((edev)->iobase+((r)<<SMC_IO_SHIFT))
+#define	SMCREG(r)	(SMC_BASE_ADDRESS+((r)<<SMC_IO_SHIFT))
 
-#define	SMC_inl(edev, r)	(*((volatile dword *)SMCREG(edev, r)))
-#define	SMC_inw(edev, r)	(*((volatile word *)SMCREG(edev, r)))
-#define SMC_inb(edev, p) ({ \
+#define	SMC_inl(r)	(*((volatile dword *)SMCREG(r)))
+#define	SMC_inw(r)	(*((volatile word *)SMCREG(r)))
+#define SMC_inb(p) ({ \
 	unsigned int __p = p; \
-	unsigned int __v = SMC_inw(edev, __p & ~1); \
+	unsigned int __v = SMC_inw(__p & ~1); \
 	if (__p & 1) __v >>= 8; \
 	else __v &= 0xff; \
 	__v; })
 
-#define	SMC_outl(edev, d, r)	(*((volatile dword *)SMCREG(edev, r)) = d)
-#define	SMC_outw(edev, d, r)	(*((volatile word *)SMCREG(edev, r)) = d)
-#define	SMC_outb(edev, d, r)	({	word __d = (byte)(d);  \
-				word __w = SMC_inw(edev, (r)&~1);  \
+#define	SMC_outl(d,r)	(*((volatile dword *)SMCREG(r)) = d)
+#define	SMC_outw(d,r)	(*((volatile word *)SMCREG(r)) = d)
+#define	SMC_outb(d,r)	({	word __d = (byte)(d);  \
+				word __w = SMC_inw((r)&~1);  \
 				__w &= ((r)&1) ? 0x00FF : 0xFF00;  \
 				__w |= ((r)&1) ? __d<<8 : __d;  \
-				SMC_outw(edev, __w, (r)&~1);  \
+				SMC_outw(__w,(r)&~1);  \
 			})
 
-#define SMC_outsl(edev, r, b, l)	({	int __i; \
+#define SMC_outsl(r,b,l)	({	int __i; \
 					dword *__b2; \
 					__b2 = (dword *) b; \
 					for (__i = 0; __i < l; __i++) { \
-						SMC_outl(edev, *(__b2 + __i),\
-							r); \
+					    SMC_outl( *(__b2 + __i), r ); \
 					} \
 				})
 
-#define SMC_outsw(edev, r, b, l)	({	int __i; \
+#define SMC_outsw(r,b,l)	({	int __i; \
 					word *__b2; \
 					__b2 = (word *) b; \
 					for (__i = 0; __i < l; __i++) { \
-						SMC_outw(edev, *(__b2 + __i),\
-							r); \
+					    SMC_outw( *(__b2 + __i), r ); \
 					} \
 				})
 
-#define SMC_insl(edev, r, b, l)		({	int __i ;  \
+#define SMC_insl(r,b,l)		({	int __i ;  \
 					dword *__b2;  \
 					__b2 = (dword *) b;  \
 					for (__i = 0; __i < l; __i++) {  \
-						*(__b2 + __i) = SMC_inl(edev,\
-							r);  \
-						SMC_inl(edev, 0);  \
+					  *(__b2 + __i) = SMC_inl(r);  \
+					  SMC_inl(0);  \
 					};  \
 				})
 
-#define SMC_insw(edev, r, b, l)		({	int __i ;  \
+#define SMC_insw(r,b,l)		({	int __i ;  \
 					word *__b2;  \
 					__b2 = (word *) b;  \
 					for (__i = 0; __i < l; __i++) {  \
-						*(__b2 + __i) = SMC_inw(edev,\
-							r);  \
-						SMC_inw(edev, 0);  \
+					  *(__b2 + __i) = SMC_inw(r);  \
+					  SMC_inw(0);  \
 					};  \
 				})
 
-#define SMC_insb(edev, r, b, l)		({	int __i ;  \
+#define SMC_insb(r,b,l)		({	int __i ;  \
 					byte *__b2;  \
 					__b2 = (byte *) b;  \
 					for (__i = 0; __i < l; __i++) {  \
-						*(__b2 + __i) = SMC_inb(edev,\
-							r);  \
-						SMC_inb(edev, 0);  \
+					  *(__b2 + __i) = SMC_inb(r);  \
+					  SMC_inb(0);  \
 					};  \
 				})
 
-#else /* if not CONFIG_CPU_PXA25X */
+#else /* if not CONFIG_PXA250 */
 
 /*
  * We have only 16 Bit PCMCIA access on Socket 0
  */
 
-#define	SMC_inw(edev, r)	(*((volatile word *)((edev)->iobase+(r))))
-#define  SMC_inb(edev, r)	(((r)&1) ? SMC_inw(edev, (r)&~1)>>8 :\
-					SMC_inw(edev, r)&0xFF)
+#define	SMC_inw(r)	(*((volatile word *)(SMC_BASE_ADDRESS+(r))))
+#define  SMC_inb(r)	(((r)&1) ? SMC_inw((r)&~1)>>8 : SMC_inw(r)&0xFF)
 
-#define	SMC_outw(edev, d, r)	(*((volatile word *)((edev)->iobase+(r))) = d)
-#define	SMC_outb(edev, d, r)	({	word __d = (byte)(d);  \
-				word __w = SMC_inw(edev, (r)&~1);  \
+#define	SMC_outw(d,r)	(*((volatile word *)(SMC_BASE_ADDRESS+(r))) = d)
+#define	SMC_outb(d,r)	({	word __d = (byte)(d);  \
+				word __w = SMC_inw((r)&~1);  \
 				__w &= ((r)&1) ? 0x00FF : 0xFF00;  \
 				__w |= ((r)&1) ? __d<<8 : __d;  \
-				SMC_outw(edev, __w, (r)&~1);  \
+				SMC_outw(__w,(r)&~1);  \
 			})
-#define SMC_outsw(edev, r, b, l)	({	int __i; \
+#if 0
+#define	SMC_outsw(r,b,l)	outsw(SMC_BASE_ADDRESS+(r), (b), (l))
+#else
+#define SMC_outsw(r,b,l)	({	int __i; \
 					word *__b2; \
 					__b2 = (word *) b; \
 					for (__i = 0; __i < l; __i++) { \
-						SMC_outw(edev, *(__b2 + __i),\
-							r); \
+					    SMC_outw( *(__b2 + __i), r); \
 					} \
 				})
+#endif
 
-#define SMC_insw(edev, r, b, l)	({	int __i ;  \
+#if 0
+#define	SMC_insw(r,b,l)	insw(SMC_BASE_ADDRESS+(r), (b), (l))
+#else
+#define SMC_insw(r,b,l)	({	int __i ;  \
 					word *__b2;  \
 					__b2 = (word *) b;  \
 					for (__i = 0; __i < l; __i++) {  \
-						*(__b2 + __i) = SMC_inw(edev,\
-							r);  \
-						SMC_inw(edev, 0);  \
+					  *(__b2 + __i) = SMC_inw(r);  \
+					  SMC_inw(0);  \
 					};  \
 				})
+#endif
 
 #endif
 
@@ -588,25 +608,25 @@ typedef unsigned long int		dword;
 
 /* select a register bank, 0 to 3  */
 
-#define SMC_SELECT_BANK(edev, x)  { SMC_outw(edev, x, LAN91C96_BANK_SELECT); }
+#define SMC_SELECT_BANK(x)  { SMC_outw( x, LAN91C96_BANK_SELECT ); }
 
 /* this enables an interrupt in the interrupt mask register */
-#define SMC_ENABLE_INT(edev, x) {\
+#define SMC_ENABLE_INT(x) {\
 		unsigned char mask;\
-		SMC_SELECT_BANK(edev, 2);\
-		mask = SMC_inb(edev, LAN91C96_INT_MASK);\
+		SMC_SELECT_BANK(2);\
+		mask = SMC_inb( LAN91C96_INT_MASK );\
 		mask |= (x);\
-		SMC_outb(edev, mask, LAN91C96_INT_MASK); \
+		SMC_outb( mask, LAN91C96_INT_MASK ); \
 }
 
 /* this disables an interrupt from the interrupt mask register */
 
-#define SMC_DISABLE_INT(edev, x) {\
+#define SMC_DISABLE_INT(x) {\
 		unsigned char mask;\
-		SMC_SELECT_BANK(edev, 2);\
-		mask = SMC_inb(edev, LAN91C96_INT_MASK);\
+		SMC_SELECT_BANK(2);\
+		mask = SMC_inb( LAN91C96_INT_MASK );\
 		mask &= ~(x);\
-		SMC_outb(edev, mask, LAN91C96_INT_MASK); \
+		SMC_outb( mask, LAN91C96_INT_MASK ); \
 }
 
 /*----------------------------------------------------------------------

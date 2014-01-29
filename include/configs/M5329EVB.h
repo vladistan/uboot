@@ -4,7 +4,23 @@
  * Copyright (C) 2004-2007 Freescale Semiconductor, Inc.
  * TsiChung Liew (Tsi-Chung.Liew@freescale.com)
  *
- * SPDX-License-Identifier:	GPL-2.0+ 
+ * See file CREDITS for list of people who contributed to this
+ * project.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation; either version 2 of
+ * the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	 See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
+ * MA 02111-1307 USA
  */
 
 /*
@@ -24,6 +40,7 @@
 #define CONFIG_MCFUART
 #define CONFIG_SYS_UART_PORT		(0)
 #define CONFIG_BAUDRATE		115200
+#define CONFIG_SYS_BAUDRATE_TABLE	{ 9600 , 19200 , 38400 , 57600, 115200 }
 
 #undef CONFIG_WATCHDOG
 #define CONFIG_WATCHDOG_TIMEOUT	5000	/* timeout in milliseconds, max timeout is 6.71sec */
@@ -43,7 +60,7 @@
 #define CONFIG_CMD_PING
 #define CONFIG_CMD_REGINFO
 
-#ifdef CONFIG_NANDFLASH_SIZE
+#ifdef NANDFLASH_SIZE
 #      define CONFIG_CMD_NAND
 #endif
 
@@ -51,6 +68,7 @@
 
 #define CONFIG_MCFFEC
 #ifdef CONFIG_MCFFEC
+#	define CONFIG_NET_MULTI		1
 #	define CONFIG_MII		1
 #	define CONFIG_MII_INIT		1
 #	define CONFIG_SYS_DISCOVER_PHY
@@ -79,11 +97,12 @@
 #undef CONFIG_MCFPIT
 
 /* I2C */
-#define CONFIG_SYS_I2C
-#define CONFIG_SYS_I2C_FSL
-#define CONFIG_SYS_FSL_I2C_SPEED	80000
-#define CONFIG_SYS_FSL_I2C_SLAVE	0x7F
-#define CONFIG_SYS_FSL_I2C_OFFSET	0x58000
+#define CONFIG_FSL_I2C
+#define CONFIG_HARD_I2C			/* I2C with hw support */
+#undef CONFIG_SOFT_I2C			/* I2C bit-banged */
+#define CONFIG_SYS_I2C_SPEED		80000
+#define CONFIG_SYS_I2C_SLAVE		0x7F
+#define CONFIG_SYS_I2C_OFFSET		0x58000
 #define CONFIG_SYS_IMMR		CONFIG_SYS_MBAR
 
 #define CONFIG_BOOTDELAY	1	/* autoboot after 5 seconds */
@@ -105,8 +124,8 @@
 	"u-boot=u-boot.bin\0"	\
 	"load=tftp ${loadaddr) ${u-boot}\0"	\
 	"upd=run load; run prog\0"	\
-	"prog=prot off 0 3ffff;"	\
-	"era 0 3ffff;"	\
+	"prog=prot off 0 2ffff;"	\
+	"era 0 2ffff;"	\
 	"cp.b ${loadaddr} 0 ${filesize};"	\
 	"save\0"	\
 	""
@@ -143,9 +162,10 @@
  * Definitions for initial stack pointer and data area (in DPRAM)
  */
 #define CONFIG_SYS_INIT_RAM_ADDR	0x80000000
-#define CONFIG_SYS_INIT_RAM_SIZE	0x8000	/* Size of used area in internal SRAM */
+#define CONFIG_SYS_INIT_RAM_END	0x8000	/* End of used area in internal SRAM */
 #define CONFIG_SYS_INIT_RAM_CTRL	0x221
-#define CONFIG_SYS_GBL_DATA_OFFSET	((CONFIG_SYS_INIT_RAM_SIZE - GENERATED_GBL_DATA_SIZE) - 0x10)
+#define CONFIG_SYS_GBL_DATA_SIZE	128	/* size in bytes reserved for initial data */
+#define CONFIG_SYS_GBL_DATA_OFFSET	((CONFIG_SYS_INIT_RAM_END - CONFIG_SYS_GBL_DATA_SIZE) - 0x10)
 #define CONFIG_SYS_INIT_SP_OFFSET	CONFIG_SYS_GBL_DATA_OFFSET
 
 /*-----------------------------------------------------------------------
@@ -191,7 +211,7 @@
 #	define CONFIG_SYS_FLASH_PROTECTION	/* "Real" (hardware) sectors protection */
 #endif
 
-#ifdef CONFIG_NANDFLASH_SIZE
+#ifdef NANDFLASH_SIZE
 #	define CONFIG_SYS_MAX_NAND_DEVICE	1
 #	define CONFIG_SYS_NAND_BASE		CONFIG_SYS_CS2_BASE
 #	define CONFIG_SYS_NAND_SIZE		1
@@ -211,22 +231,12 @@
 #define CONFIG_ENV_OFFSET		0x4000
 #define CONFIG_ENV_SECT_SIZE	0x2000
 #define CONFIG_ENV_IS_IN_FLASH	1
+#define CONFIG_ENV_IS_EMBEDDED	1
 
 /*-----------------------------------------------------------------------
  * Cache Configuration
  */
 #define CONFIG_SYS_CACHELINE_SIZE	16
-
-#define ICACHE_STATUS			(CONFIG_SYS_INIT_RAM_ADDR + \
-					 CONFIG_SYS_INIT_RAM_SIZE - 8)
-#define DCACHE_STATUS			(CONFIG_SYS_INIT_RAM_ADDR + \
-					 CONFIG_SYS_INIT_RAM_SIZE - 4)
-#define CONFIG_SYS_ICACHE_INV		(CF_CACR_CINVA)
-#define CONFIG_SYS_CACHE_ACR0		(CONFIG_SYS_SDRAM_BASE | \
-					 CF_ADDRMASK(CONFIG_SYS_SDRAM_SIZE) | \
-					 CF_ACR_EN | CF_ACR_SM_ALL)
-#define CONFIG_SYS_CACHE_ICACR		(CF_CACR_EC | CF_CACR_CINVA | \
-					 CF_CACR_DCM_P)
 
 /*-----------------------------------------------------------------------
  * Chipselect bank definitions
@@ -247,9 +257,9 @@
 #define CONFIG_SYS_CS1_MASK		0x001f0001
 #define CONFIG_SYS_CS1_CTRL		0x002A3780
 
-#ifdef CONFIG_NANDFLASH_SIZE
+#ifdef NANDFLASH_SIZE
 #define CONFIG_SYS_CS2_BASE		0x20000000
-#define CONFIG_SYS_CS2_MASK		((CONFIG_NANDFLASH_SIZE << 20) | 1)
+#define CONFIG_SYS_CS2_MASK		((NANDFLASH_SIZE << 20) | 1)
 #define CONFIG_SYS_CS2_CTRL		0x00001f60
 #endif
 

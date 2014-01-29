@@ -2,7 +2,23 @@
  * (C) Copyright 2000-2005
  * Stefan Roese, DENX Software Engineering, sr@denx.de.
  *
- * SPDX-License-Identifier:	GPL-2.0+ 
+ * See file CREDITS for list of people who contributed to this
+ * project.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation; either version 2 of
+ * the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	 See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
+ * MA 02111-1307 USA
  */
 
 /*
@@ -20,9 +36,7 @@
 #define CONFIG_405GP		1	/* This is a PPC405 CPU		*/
 #define CONFIG_4xx		1	/* ...member of PPC4xx family	*/
 #define CONFIG_WALNUT		1	/* ...on a WALNUT board		*/
-					/* ...or on a SYCAMORE board	*/
-
-#define	CONFIG_SYS_TEXT_BASE	0xFFFC0000
+					/* ...and on a SYCAMORE board	*/
 
 /*
  * Include common defines/options for all AMCC eval boards
@@ -70,7 +84,7 @@
  * If CONFIG_SYS_405_UART_ERRATA_59 and 200MHz CPU clock,
  * set Linux BASE_BAUD to 403200.
  */
-#define CONFIG_CONS_INDEX	1	/* Use UART0			*/
+#undef	CONFIG_SERIAL_SOFTWARE_FIFO
 #undef	CONFIG_SYS_EXT_SERIAL_CLOCK	       /* external serial clock */
 #undef	CONFIG_SYS_405_UART_ERRATA_59	       /* 405GP/CR Rev. D silicon */
 #define CONFIG_SYS_BASE_BAUD	    691200
@@ -79,7 +93,7 @@
  * I2C stuff
  *-----------------------------------------------------------------------
  */
-#define CONFIG_SYS_I2C_PPC4XX_SPEED_0		400000
+#define CONFIG_SYS_I2C_SPEED		400000	/* I2C speed and slave address	*/
 
 #define CONFIG_SYS_I2C_MULTI_EEPROMS
 #define CONFIG_SYS_I2C_EEPROM_ADDR	(0xa8>>1)
@@ -96,7 +110,6 @@
 #define PCI_HOST_AUTO	2		/* detected via arbiter enable	*/
 
 #define CONFIG_PCI			/* include pci support		*/
-#define CONFIG_PCI_INDIRECT_BRIDGE	/* indirect PCI bridge support */
 #define CONFIG_PCI_HOST PCI_HOST_FORCE	/* select pci host function	*/
 #define CONFIG_PCI_PNP			/* do pci plug-and-play		*/
 					/* resource configuration	*/
@@ -202,8 +215,9 @@
 #define CONFIG_SYS_INIT_DCACHE_CS	4	/* use cs # 4 for data cache memory    */
 
 #define CONFIG_SYS_INIT_RAM_ADDR	0x40000000  /* inside of SDRAM			   */
-#define CONFIG_SYS_INIT_RAM_SIZE	0x2000	/* Size of used area in RAM	       */
-#define CONFIG_SYS_GBL_DATA_OFFSET    (CONFIG_SYS_INIT_RAM_SIZE - GENERATED_GBL_DATA_SIZE)
+#define CONFIG_SYS_INIT_RAM_END	0x2000	/* End of used area in RAM	       */
+#define CONFIG_SYS_GBL_DATA_SIZE      128  /* size in bytes reserved for initial data */
+#define CONFIG_SYS_GBL_DATA_OFFSET    (CONFIG_SYS_INIT_RAM_END - CONFIG_SYS_GBL_DATA_SIZE)
 #define CONFIG_SYS_INIT_SP_OFFSET	CONFIG_SYS_GBL_DATA_OFFSET
 
 /*-----------------------------------------------------------------------

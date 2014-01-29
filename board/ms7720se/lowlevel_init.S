@@ -2,7 +2,20 @@
  * (C) Copyright 2007
  * Yoshihiro Shimoda <shimoda.yoshihiro@renesas.com>
  *
- * SPDX-License-Identifier:	GPL-2.0+
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation; either version 2 of
+ * the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
+ * MA 02111-1307 USA
  */
 
 #include <asm/macro.h>
@@ -101,10 +114,10 @@ FRQCR_A:	.long	0xA415FF80	/* FRQCR Address */
 WTCNT_A:	.long	0xA415FF84
 WTCSR_A:	.long	0xA415FF86
 UCLKCR_A:	.long	0xA40A0008
-FRQCR_D:	.word	0x1103		/* I:B:P=8:4:2 */
-WTCNT_D:	.word	0x5A00
-WTCSR_D:	.word	0xA506
-UCLKCR_D:	.word	0xA5C0
+FRQCR_D:	.long	0x1103		/* I:B:P=8:4:2 */
+WTCNT_D:	.long	0x5A00
+WTCSR_D:	.long	0xA506
+UCLKCR_D:	.long	0xA5C0
 
 #define BSC_BASE	0xA4FD0000
 CMNCR_A:	.long	BSC_BASE
@@ -151,8 +164,7 @@ SDCR_D1:	.long	0x00000011
 RTCSR_D:	.long	0xA55A0010
 RTCNT_D:	.long	0xA55A001F
 RTCOR_D:	.long	0xA55A001F
-SDMR3_D:	.word	0x0000
-.align 2
+SDMR3_D:	.long	0x0000
 SDCR_D2:	.long	0x00000811
 
 #define PFC_BASE	0xA4050100
@@ -166,16 +178,15 @@ PTCR_A:		.long	PFC_BASE + 0x1E
 PVCR_A:		.long	PFC_BASE + 0x22
 PSELA_A:	.long	PFC_BASE + 0x24
 
-PCCR_D:		.word	0x0000
-PDCR_D:		.word	0x0000
-PECR_D:		.word	0x0000
-PGCR_D:		.word	0x0000
-PHCR_D:		.word	0x0000
-PPCR_D:		.word	0x00AA
-PTCR_D:		.word	0x0280
-PVCR_D:		.word	0x0000
-PSELA_D:	.word	0x0000
-.align 2
+PCCR_D:		.long	0x0000
+PDCR_D:		.long	0x0000
+PECR_D:		.long	0x0000
+PGCR_D:		.long	0x0000
+PHCR_D:		.long	0x0000
+PPCR_D:		.long	0x00AA
+PTCR_D:		.long	0x0280
+PVCR_D:		.long	0x0000
+PSELA_D:	.long	0x0000
 
 CCR_A:		.long	0xFFFFFFEC
 !CCR_D:		.long	0x0000000D

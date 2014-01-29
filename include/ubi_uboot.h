@@ -15,7 +15,6 @@
 #define __UBOOT_UBI_H
 
 #include <common.h>
-#include <compiler.h>
 #include <malloc.h>
 #include <div64.h>
 #include <linux/crc32.h>
@@ -51,6 +50,9 @@ do {									\
 #undef CONFIG_MTD_UBI_DEBUG_MSG_IO
 #undef CONFIG_MTD_UBI_DEBUG_MSG_BLD
 #define CONFIG_MTD_UBI_DEBUG_DISABLE_BGT
+
+/* compiler options */
+#define uninitialized_var(x)		x = x
 
 /* build.c */
 #define get_device(...)
@@ -123,7 +125,7 @@ typedef int	wait_queue_head_t;
 #define init_rwsem(...)			do { } while (0)
 #define down_read(...)			do { } while (0)
 #define down_write(...)			do { } while (0)
-#define down_write_trylock(...)		1
+#define down_write_trylock(...)		0
 #define up_read(...)			do { } while (0)
 #define up_write(...)			do { } while (0)
 
@@ -191,6 +193,9 @@ static inline long IS_ERR(const void *ptr)
 	return IS_ERR_VALUE((unsigned long)ptr);
 }
 
+/* Force a compilation error if condition is true */
+#define BUILD_BUG_ON(condition) ((void)sizeof(char[1 - 2*!!(condition)]))
+
 /* module */
 #define THIS_MODULE		0
 #define try_module_get(...)	1
@@ -214,9 +219,6 @@ static inline long IS_ERR(const void *ptr)
 extern int ubi_mtd_param_parse(const char *val, struct kernel_param *kp);
 extern int ubi_init(void);
 extern void ubi_exit(void);
-extern int ubi_part(char *part_name, const char *vid_header_offset);
-extern int ubi_volume_write(char *volume, void *buf, size_t size);
-extern int ubi_volume_read(char *volume, char *buf, size_t size);
 
 extern struct ubi_device *ubi_devices[];
 

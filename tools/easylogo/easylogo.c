@@ -276,42 +276,7 @@ int image_rgb_to_yuyv (image_t * rgb_image, image_t * yuyv_image)
 	return 0;
 }
 
-int image_rgb888_to_rgb565(image_t *rgb888_image, image_t *rgb565_image)
-{
-	rgb_t *rgb_ptr = (rgb_t *) rgb888_image->data;
-	unsigned short *dest;
-	int count = 0;
-
-	rgb565_image->pixel_size = 2;
-	rgb565_image->bpp = 16;
-	rgb565_image->yuyv = 0;
-	rgb565_image->width = rgb888_image->width;
-	rgb565_image->height = rgb888_image->height;
-	rgb565_image->pixels = rgb565_image->width * rgb565_image->height;
-	rgb565_image->size = rgb565_image->pixels * rgb565_image->pixel_size;
-	dest = (unsigned short *) (rgb565_image->data =
-				   xmalloc(rgb565_image->size));
-	rgb565_image->palette = 0;
-	rgb565_image->palette_size = 0;
-
-	while ((count++) < rgb888_image->pixels) {
-
-		*dest++ = ((rgb_ptr->b & 0xF8) << 8) |
-			((rgb_ptr->g & 0xFC) << 3) |
-			(rgb_ptr->r >> 3);
-		rgb_ptr++;
-	}
-
-	return 0;
-}
-
-enum comp_t {
-	COMP_NONE,
-	COMP_GZIP,
-	COMP_LZMA,
-};
-static enum comp_t compression = COMP_NONE;
-static bool bss_storage = false;
+int use_gzip = 0;
 
 int image_save_header (image_t * image, char *filename, char *varname)
 {
@@ -335,74 +300,58 @@ int image_save_header (image_t * image, char *filename, char *varname)
 	fprintf (file, " *\t\t'x'\t\tis the horizontal position\n");
 	fprintf (file, " *\t\t'y'\t\tis the vertical position\n */\n\n");
 
-	/* image compress */
-	if (compression != COMP_NONE) {
+	/*  gzip compress */
+	if (use_gzip & 0x1) {
 		const char *errstr = NULL;
 		unsigned char *compressed;
-		const char *comp_name;
 		struct stat st;
-		FILE *compfp;
-		size_t filename_len = strlen(filename);
-		char *compfilename = xmalloc(filename_len + 20);
-		char *compcmd = xmalloc(filename_len + 50);
+		FILE *gz;
+		char *gzfilename = xmalloc(strlen (filename) + 20);
+		char *gzcmd = xmalloc(strlen (filename) + 20);
 
-		sprintf(compfilename, "%s.bin", filename);
-		switch (compression) {
-		case COMP_GZIP:
-			strcpy(compcmd, "gzip");
-			comp_name = "GZIP";
-			break;
-		case COMP_LZMA:
-			strcpy(compcmd, "lzma");
-			comp_name = "LZMA";
-			break;
-		default:
-			errstr = "\nerror: unknown compression method";
-			goto done;
-		}
-		strcat(compcmd, " > ");
-		strcat(compcmd, compfilename);
-		compfp = popen(compcmd, "w");
-		if (!compfp) {
+		sprintf (gzfilename, "%s.gz", filename);
+		sprintf (gzcmd, "gzip > %s", gzfilename);
+		gz = popen (gzcmd, "w");
+		if (!gz) {
 			errstr = "\nerror: popen() failed";
 			goto done;
 		}
-		if (fwrite(image->data, image->size, 1, compfp) != 1) {
+		if (fwrite (image->data, image->size, 1, gz) != 1) {
 			errstr = "\nerror: writing data to gzip failed";
 			goto done;
 		}
-		if (pclose(compfp)) {
+		if (pclose (gz)) {
 			errstr = "\nerror: gzip process failed";
 			goto done;
 		}
 
-		compfp = fopen(compfilename, "r");
-		if (!compfp) {
+		gz = fopen (gzfilename, "r");
+		if (!gz) {
 			errstr = "\nerror: open() on gzip data failed";
 			goto done;
 		}
-		if (stat(compfilename, &st)) {
+		if (stat (gzfilename, &st)) {
 			errstr = "\nerror: stat() on gzip file failed";
 			goto done;
 		}
-		compressed = xmalloc(st.st_size);
-		if (fread(compressed, st.st_size, 1, compfp) != 1) {
+		compressed = xmalloc (st.st_size);
+		if (fread (compressed, st.st_size, 1, gz) != 1) {
 			errstr = "\nerror: reading gzip data failed";
 			goto done;
 		}
-		fclose(compfp);
+		fclose (gz);
 
-		unlink(compfilename);
+		unlink (gzfilename);
 
 		dataptr = compressed;
 		count = st.st_size;
-		fprintf(file, "#define EASYLOGO_ENABLE_%s %i\n\n", comp_name, count);
-		if (bss_storage)
+		fprintf (file, "#define EASYLOGO_ENABLE_GZIP %i\n\n", count);
+		if (use_gzip & 0x2)
 			fprintf (file, "static unsigned char EASYLOGO_DECOMP_BUFFER[%i];\n\n", image->size);
 
  done:
-		free(compfilename);
-		free(compcmd);
+		free (gzfilename);
+		free (gzcmd);
 
 		if (errstr) {
 			perror (errstr);
@@ -485,10 +434,8 @@ static void usage (int exit_status)
 		"Syntax:	easylogo [options] inputfile [outputvar [outputfile]]\n"
 		"\n"
 		"Options:\n"
-		"  -r     Output RGB888 instead of YUYV\n"
-		"  -s     Output RGB565 instead of YUYV\n"
+		"  -r     Output RGB instead of YUYV\n"
 		"  -g     Compress with gzip\n"
-		"  -l     Compress with lzma\n"
 		"  -b     Preallocate space in bss for decompressing image\n"
 		"  -h     Help output\n"
 		"\n"
@@ -502,37 +449,28 @@ static void usage (int exit_status)
 int main (int argc, char *argv[])
 {
 	int c;
-	bool use_rgb888 = false;
-	bool use_rgb565 = false;
+	bool use_rgb = false;
 	char inputfile[DEF_FILELEN],
 		outputfile[DEF_FILELEN], varname[DEF_FILELEN];
 
-	image_t rgb888_logo, rgb565_logo, yuyv_logo;
+	image_t rgb_logo, yuyv_logo;
 
-	while ((c = getopt(argc, argv, "hrsglb")) > 0) {
+	while ((c = getopt(argc, argv, "hrgb")) > 0) {
 		switch (c) {
 		case 'h':
 			usage (0);
 			break;
 		case 'r':
-			use_rgb888 = true;
-			puts("Using 24-bit RGB888 Output Fromat");
-			break;
-		case 's':
-			use_rgb565 = true;
-			puts("Using 16-bit RGB565 Output Fromat");
+			use_rgb = true;
+			puts ("Using 24-bit RGB Output Fromat");
 			break;
 		case 'g':
-			compression = COMP_GZIP;
-			puts("Compressing with gzip");
-			break;
-		case 'l':
-			compression = COMP_LZMA;
-			puts("Compressing with lzma");
+			use_gzip |= 0x1;
+			puts ("Compressing with gzip");
 			break;
 		case 'b':
-			bss_storage = true;
-			puts("Preallocating bss space for decompressing image");
+			use_gzip |= 0x2;
+			puts ("Preallocating bss space for decompressing image");
 			break;
 		default:
 			usage (1);
@@ -574,35 +512,28 @@ int main (int argc, char *argv[])
 	/* Import TGA logo */
 
 	printf ("L");
-	if (image_load_tga(&rgb888_logo, inputfile) < 0) {
+	if (image_load_tga (&rgb_logo, inputfile) < 0) {
 		printf ("input file not found!\n");
 		exit (1);
 	}
 
-	/* Convert, save, and free the image */
+	/* Convert it to YUYV format if wanted */
 
-	if (!use_rgb888 && !use_rgb565) {
+	if (!use_rgb) {
 		printf ("C");
-		image_rgb_to_yuyv(&rgb888_logo, &yuyv_logo);
-
-		printf("S");
-		image_save_header(&yuyv_logo, outputfile, varname);
-		image_free(&yuyv_logo);
-	} else if (use_rgb565) {
-		printf("C");
-		image_rgb888_to_rgb565(&rgb888_logo, &rgb565_logo);
-
-		printf("S");
-		image_save_header(&rgb565_logo, outputfile, varname);
-		image_free(&rgb565_logo);
-	} else {
-		printf("S");
-		image_save_header(&rgb888_logo, outputfile, varname);
+		image_rgb_to_yuyv (&rgb_logo, &yuyv_logo);
 	}
+
+	/* Save it into a header format */
+
+	printf ("S");
+	image_save_header (use_rgb ? &rgb_logo : &yuyv_logo, outputfile, varname);
 
 	/* Free original image and copy */
 
-	image_free(&rgb888_logo);
+	image_free (&rgb_logo);
+	if (!use_rgb)
+		image_free (&yuyv_logo);
 
 	printf ("\n");
 

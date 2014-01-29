@@ -3,7 +3,23 @@
  *
  * Developed for DENX Software Engineering GmbH
  *
- * SPDX-License-Identifier:	GPL-2.0+
+ * See file CREDITS for list of people who contributed to this
+ * project.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation; either version 2 of
+ * the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
+ * MA 02111-1307 USA
  */
 
 #include <post.h>
@@ -22,7 +38,7 @@
  *
  * LCD backlight is not enabled if temperature values are not within
  * allowed ranges (-30 .. + 80). The brightness of backlite can be
- * controlled by setting "brightness" environment variable. Default value is 50%
+ * controlled by setting "brightness" enviroment variable. Default value is 50%
  *
  * See the list of all parameters in the sysmon_table below
  */
@@ -40,7 +56,9 @@
 DECLARE_GLOBAL_DATA_PTR;
 
 /* from dspic.c */
-extern int dspic_read(ushort reg, ushort *data);
+extern int dspic_read(ushort reg);
+
+#define	RELOC(x) if (x != NULL) x = (void *) ((ulong) (x) + gd->reloc_off)
 
 #define REG_TEMPERATURE			0x12BC
 #define REG_VOLTAGE_5V			0x12CA
@@ -60,38 +78,31 @@ extern int dspic_read(ushort reg, ushort *data);
 typedef struct sysmon_s sysmon_t;
 typedef struct sysmon_table_s sysmon_table_t;
 
-static void sysmon_dspic_init(sysmon_t *this);
-static int sysmon_dspic_read(sysmon_t *this, uint addr, int *val);
-static int sysmon_dspic_read_sgn(sysmon_t *this, uint addr,  int *val);
-static void sysmon_backlight_disable(sysmon_table_t *this);
+static void sysmon_dspic_init (sysmon_t * this);
+static int sysmon_dspic_read (sysmon_t * this, uint addr);
+static void sysmon_backlight_disable (sysmon_table_t * this);
 
-struct sysmon_s {
+struct sysmon_s
+{
 	uchar	chip;
 	void	(*init)(sysmon_t *);
-	int	(*read)(sysmon_t *, uint, int *);
+	int	(*read)(sysmon_t *, uint);
 };
 
-static sysmon_t sysmon_dspic = {
-	CONFIG_SYS_I2C_DSPIC_IO_ADDR,
-	sysmon_dspic_init,
-	sysmon_dspic_read
-};
+static sysmon_t sysmon_dspic =
+	{CONFIG_SYS_I2C_DSPIC_IO_ADDR, sysmon_dspic_init, sysmon_dspic_read};
 
-static sysmon_t sysmon_dspic_sgn = {
-	CONFIG_SYS_I2C_DSPIC_IO_ADDR,
-	sysmon_dspic_init,
-	sysmon_dspic_read_sgn
-};
-
-static sysmon_t *sysmon_list[] = {
+static sysmon_t * sysmon_list[] =
+{
 	&sysmon_dspic,
 	NULL
 };
 
-struct sysmon_table_s {
-	char		*name;
-	char		*unit_name;
-	sysmon_t	*sysmon;
+struct sysmon_table_s
+{
+	char *		name;
+	char *		unit_name;
+	sysmon_t *	sysmon;
 	void		(*exec_before)(sysmon_table_t *);
 	void		(*exec_after)(sysmon_table_t *);
 
@@ -109,43 +120,37 @@ struct sysmon_table_s {
 	uint		addr;
 };
 
-static sysmon_table_t sysmon_table[] = {
+static sysmon_table_t sysmon_table[] =
+{
 	{
-		"Temperature", " C", &sysmon_dspic, NULL, sysmon_backlight_disable,
-		1, 1, -32768, 32767, 0xFFFF,
-		0x8000 + TEMPERATURE_MIN,	  0x8000 + TEMPERATURE_MAX,	    0,
-		0x8000 + TEMPERATURE_DISPLAY_MIN, 0x8000 + TEMPERATURE_DISPLAY_MAX, 0,
-		REG_TEMPERATURE,
+	"Temperature", " C", &sysmon_dspic, NULL, sysmon_backlight_disable,
+	1, 1, -32768, 32767, 0xFFFF,
+	0x8000 + TEMPERATURE_MIN,	  0x8000 + TEMPERATURE_MAX,	    0,
+	0x8000 + TEMPERATURE_DISPLAY_MIN, 0x8000 + TEMPERATURE_DISPLAY_MAX, 0,
+	REG_TEMPERATURE,
 	},
 
 	{
-		"+ 5 V", "V", &sysmon_dspic, NULL, NULL,
-		100, 1000, -0x8000, 0x7FFF, 0xFFFF,
-		0x8000 + VOLTAGE_5V_MIN, 0x8000 + VOLTAGE_5V_MAX, 0,
-		0x8000 + VOLTAGE_5V_MIN, 0x8000 + VOLTAGE_5V_MAX, 0,
-		REG_VOLTAGE_5V,
+	"+ 5 V", "V", &sysmon_dspic, NULL, NULL,
+	100, 1000, -0x8000, 0x7FFF, 0xFFFF,
+	0x8000 + VOLTAGE_5V_MIN, 0x8000 + VOLTAGE_5V_MAX, 0,
+	0x8000 + VOLTAGE_5V_MIN, 0x8000 + VOLTAGE_5V_MAX, 0,
+	REG_VOLTAGE_5V,
 	},
 
 	{
-		"+ 5 V standby", "V", &sysmon_dspic, NULL, NULL,
-		100, 1000, -0x8000, 0x7FFF, 0xFFFF,
-		0x8000 + VOLTAGE_5V_STANDBY_MIN, 0x8000 + VOLTAGE_5V_STANDBY_MAX, 0,
-		0x8000 + VOLTAGE_5V_STANDBY_MIN, 0x8000 + VOLTAGE_5V_STANDBY_MAX, 0,
-		REG_VOLTAGE_5V_STANDBY,
-	},
-
-	{
-		"Temperature", "°C", &sysmon_dspic_sgn, NULL, sysmon_backlight_disable,
-		1, 1, -32768, 32767, 0xFFFF,
-		0x8000 + TEMPERATURE_MIN,	  0x8000 + TEMPERATURE_MAX,	    0,
-		0x8000 + TEMPERATURE_DISPLAY_MIN, 0x8000 + TEMPERATURE_DISPLAY_MAX, 0,
-		REG_TEMPERATURE,
+	"+ 5 V standby", "V", &sysmon_dspic, NULL, NULL,
+	100, 1000, -0x8000, 0x7FFF, 0xFFFF,
+	0x8000 + VOLTAGE_5V_STANDBY_MIN, 0x8000 + VOLTAGE_5V_STANDBY_MAX, 0,
+	0x8000 + VOLTAGE_5V_STANDBY_MIN, 0x8000 + VOLTAGE_5V_STANDBY_MAX, 0,
+	REG_VOLTAGE_5V_STANDBY,
 	},
 };
+static int sysmon_table_size = sizeof(sysmon_table) / sizeof(sysmon_table[0]);
 
-int sysmon_init_f(void)
+int sysmon_init_f (void)
 {
-	sysmon_t **l;
+	sysmon_t ** l;
 
 	for (l = sysmon_list; *l; l++)
 		(*l)->init(*l);
@@ -153,12 +158,25 @@ int sysmon_init_f(void)
 	return 0;
 }
 
-void sysmon_reloc(void)
+void sysmon_reloc (void)
 {
-	/* Do nothing for now, sysmon_reloc() is required by the sysmon post */
+	sysmon_t ** l;
+	sysmon_table_t * t;
+
+	for (l = sysmon_list; *l; l++) {
+		RELOC(*l);
+		RELOC((*l)->init);
+		RELOC((*l)->read);
+	}
+
+	for (t = sysmon_table; t < sysmon_table + sysmon_table_size; t ++) {
+		RELOC(t->exec_before);
+		RELOC(t->exec_after);
+		RELOC(t->sysmon);
+	}
 }
 
-static char *sysmon_unit_value(sysmon_table_t *s, uint val)
+static char *sysmon_unit_value (sysmon_table_t *s, uint val)
 {
 	static char buf[32];
 	char *p, sign;
@@ -173,13 +191,14 @@ static char *sysmon_unit_value(sysmon_table_t *s, uint val)
 	if (unit_val < 0) {
 		sign = '-';
 		unit_val = -unit_val;
-	} else {
+	} else
 		sign = '+';
-	}
 
 	p = buf + sprintf(buf, "%c%2d", sign, unit_val / s->unit_div);
 
+
 	frac = unit_val % s->unit_div;
+
 	frac /= (s->unit_div / s->unit_precision);
 
 	decimal = s->unit_precision;
@@ -193,84 +212,58 @@ static char *sysmon_unit_value(sysmon_table_t *s, uint val)
 	return buf;
 }
 
-static void sysmon_dspic_init(sysmon_t *this)
+static void sysmon_dspic_init (sysmon_t * this)
 {
 }
 
-static int sysmon_dspic_read(sysmon_t *this, uint addr, int *val)
+static int sysmon_dspic_read (sysmon_t * this, uint addr)
 {
-	ushort data;
+	int res = dspic_read(addr);
 
-	if (dspic_read(addr, &data) == 0){
-		/* To fit into the table range we should add 0x8000 */
-		*val = data + 0x8000;
-		return 0;
-	}
-
-	return -1;
+	/* To fit into the table range we should add 0x8000 */
+	return (res == -1) ? -1 : (res + 0x8000);
 }
 
-static int sysmon_dspic_read_sgn(sysmon_t *this, uint addr, int *val)
-{
-	ushort data;
-
-	if (dspic_read(addr, &data) == 0){
-		/* To fit into the table range we should add 0x8000 */
-		*val = (signed short)data + 0x8000;
-		return 0;
-	}
-
-	return -1;
-}
-
-static void sysmon_backlight_disable(sysmon_table_t *this)
+static void sysmon_backlight_disable (sysmon_table_t * this)
 {
 #if defined(CONFIG_VIDEO)
 	board_backlight_switch(this->val_valid_alt);
 #endif
 }
 
-int sysmon_post_test(int flags)
+int sysmon_post_test (int flags)
 {
 	int res = 0;
 	sysmon_table_t * t;
 	int val;
 
-	for (t = sysmon_table; t < sysmon_table + ARRAY_SIZE(sysmon_table); t++) {
-		t->val_valid = 1;
+	for (t = sysmon_table; t < sysmon_table + sysmon_table_size; t ++) {
 		if (t->exec_before)
 			t->exec_before(t);
 
-		if (t->sysmon->read(t->sysmon, t->addr, &val) != 0) {
-			t->val_valid = 0;
-			t->val_valid_alt = 0;
-			post_log(": read failed\n");
-			res = 1;
-			break;
-		}
-
-		if (t->val_valid != 0) {
+		val = t->sysmon->read(t->sysmon, t->addr);
+		if (val != -1) {
 			t->val_valid = val >= t->val_min && val <= t->val_max;
 			t->val_valid_alt = val >= t->val_min_alt && val <= t->val_max_alt;
+		} else {
+			t->val_valid = 0;
+			t->val_valid_alt = 0;
 		}
 
 		if (t->exec_after)
 			t->exec_after(t);
 
-		if ((!t->val_valid) || (flags)) {
-			post_log("\n\t%-17s = %-10s ", t->name, sysmon_unit_value(t, val));
-			post_log("allowed range");
-			post_log(" %-8s ..", sysmon_unit_value(t, t->val_min));
-			post_log(" %-8s", sysmon_unit_value(t, t->val_max));
-			post_log("     %s", t->val_valid ? "OK" : "FAIL");
+		if ((!t->val_valid) || (flags & POST_MANUAL)) {
+			printf("%-17s = %-10s ", t->name, sysmon_unit_value(t, val));
+			printf("allowed range");
+			printf(" %-8s ..", sysmon_unit_value(t, t->val_min));
+			printf(" %-8s", sysmon_unit_value(t, t->val_max));
+			printf("     %s\n", t->val_valid ? "OK" : "FAIL");
 		}
 
-		if (!t->val_valid) {
+		if (!t->val_valid)
 			res = 1;
-			break;
-		}
 	}
-	post_log("\n");
 
 	return res;
 }

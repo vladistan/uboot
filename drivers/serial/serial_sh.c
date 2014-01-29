@@ -1,17 +1,25 @@
 /*
  * SuperH SCIF device driver.
- * Copyright (C) 2007,2008,2010 Nobuhiro Iwamatsu
- * Copyright (C) 2002 - 2008  Paul Mundt
+ * Copyright (c) 2007,2008 Nobuhiro Iwamatsu
  *
- * SPDX-License-Identifier:	GPL-2.0+
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
 #include <common.h>
 #include <asm/io.h>
 #include <asm/processor.h>
-#include "serial_sh.h"
-#include <serial.h>
-#include <linux/compiler.h>
 
 #if defined(CONFIG_CONS_SCIF0)
 # define SCIF_BASE	SCIF0_BASE
@@ -25,138 +33,190 @@
 # define SCIF_BASE	SCIF4_BASE
 #elif defined(CONFIG_CONS_SCIF5)
 # define SCIF_BASE	SCIF5_BASE
-#elif defined(CONFIG_CONS_SCIF6)
-# define SCIF_BASE	SCIF6_BASE
-#elif defined(CONFIG_CONS_SCIF7)
-# define SCIF_BASE	SCIF7_BASE
 #else
 # error "Default SCIF doesn't set....."
 #endif
 
-#if defined(CONFIG_SCIF_A)
-	#define SCIF_BASE_PORT	PORT_SCIFA
+/* Base register */
+#define SCSMR	(vu_short *)(SCIF_BASE + 0x0)
+#define SCBRR	(vu_char  *)(SCIF_BASE + 0x4)
+#define SCSCR	(vu_short *)(SCIF_BASE + 0x8)
+#define SCFCR	(vu_short *)(SCIF_BASE + 0x18)
+#define SCFDR	(vu_short *)(SCIF_BASE + 0x1C)
+#if defined(CONFIG_CPU_SH7720) || \
+	(defined(CONFIG_CPU_SH7723) && defined(CONFIG_SCIF_A))
+# define SCFSR	(vu_short *)(SCIF_BASE + 0x14)	/* SCSSR */
+# define SCFTDR	(vu_char  *)(SCIF_BASE + 0x20)
+# define SCFRDR	(vu_char  *)(SCIF_BASE + 0x24)
 #else
-	#define SCIF_BASE_PORT	PORT_SCIF
+# define SCFTDR (vu_char  *)(SCIF_BASE + 0xC)
+# define SCFSR	(vu_short *)(SCIF_BASE + 0x10)
+# define SCFRDR (vu_char  *)(SCIF_BASE + 0x14)
 #endif
 
-static struct uart_port sh_sci = {
-	.membase	= (unsigned char*)SCIF_BASE,
-	.mapbase	= SCIF_BASE,
-	.type		= SCIF_BASE_PORT,
-};
+#if	defined(CONFIG_CPU_SH7780) || \
+	defined(CONFIG_CPU_SH7785)
+# define SCRFDR	(vu_short *)(SCIF_BASE + 0x20)
+# define SCSPTR	(vu_short *)(SCIF_BASE + 0x24)
+# define SCLSR	(vu_short *)(SCIF_BASE + 0x28)
+# define SCRER	(vu_short *)(SCIF_BASE + 0x2C)
+# define LSR_ORER	1
+# define FIFOLEVEL_MASK	0xFF
+#elif defined(CONFIG_CPU_SH7763)
+# if defined(CONFIG_CONS_SCIF2)
+# define SCSPTR	(vu_short *)(SCIF_BASE + 0x20)
+# define SCLSR	(vu_short *)(SCIF_BASE + 0x24)
+# define LSR_ORER	1
+# define FIFOLEVEL_MASK	0x1F
+# else
+# define SCRFDR	(vu_short *)(SCIF_BASE + 0x20)
+# define SCSPTR	(vu_short *)(SCIF_BASE + 0x24)
+# define SCLSR	(vu_short *)(SCIF_BASE + 0x28)
+# define SCRER	(vu_short *)(SCIF_BASE + 0x2C)
+# define LSR_ORER	1
+# define FIFOLEVEL_MASK	0xFF
+# endif
+#elif defined(CONFIG_CPU_SH7723)
+# if defined(CONFIG_SCIF_A)
+# define SCLSR	SCFSR
+# define LSR_ORER	0x0200
+# define FIFOLEVEL_MASK	0x3F
+#else
+# define SCLSR	(vu_short *)(SCIF_BASE + 0x24)
+# define LSR_ORER	1
+# define FIFOLEVEL_MASK	0x1F
+#endif
+#elif defined(CONFIG_CPU_SH7750) || \
+	defined(CONFIG_CPU_SH7751) || \
+	defined(CONFIG_CPU_SH7722) || \
+	defined(CONFIG_CPU_SH7203)
+# define SCSPTR	(vu_short *)(SCIF_BASE + 0x20)
+# define SCLSR	(vu_short *)(SCIF_BASE + 0x24)
+# define LSR_ORER	1
+# define FIFOLEVEL_MASK	0x1F
+#elif defined(CONFIG_CPU_SH7720)
+# define SCLSR		SCFSR
+# define LSR_ORER	0x0200
+# define FIFOLEVEL_MASK	0x1F
+#elif defined(CONFIG_CPU_SH7710) || \
+	defined(CONFIG_CPU_SH7712)
+# define SCLSR	SCFSR		/* SCSSR */
+# define LSR_ORER	1
+# define FIFOLEVEL_MASK	0x1F
+#endif
 
-static void sh_serial_setbrg(void)
+/* SCBRR register value setting */
+#if defined(CONFIG_CPU_SH7720)
+# define SCBRR_VALUE(bps, clk) (((clk * 2) + 16 * bps) / (32 * bps) - 1)
+#elif defined(CONFIG_CPU_SH7723) && defined(CONFIG_SCIF_A)
+/* SH7723 SCIFA use bus clock. So clock *2 */
+# define SCBRR_VALUE(bps, clk) (((clk * 2 * 2) + 16 * bps) / (32 * bps) - 1)
+#else /* Generic SuperH */
+# define SCBRR_VALUE(bps, clk) ((clk + 16 * bps) / (32 * bps) - 1)
+#endif
+
+#define SCR_RE		(1 << 4)
+#define SCR_TE		(1 << 5)
+#define FCR_RFRST	(1 << 1)	/* RFCL */
+#define FCR_TFRST	(1 << 2)	/* TFCL */
+#define FSR_DR		(1 << 0)
+#define FSR_RDF		(1 << 1)
+#define FSR_FER		(1 << 3)
+#define FSR_BRK		(1 << 4)
+#define FSR_FER		(1 << 3)
+#define FSR_TEND	(1 << 6)
+#define FSR_ER		(1 << 7)
+
+/*----------------------------------------------------------------------*/
+
+void serial_setbrg(void)
 {
 	DECLARE_GLOBAL_DATA_PTR;
-	sci_out(&sh_sci, SCBRR, SCBRR_VALUE(gd->baudrate, CONFIG_SYS_CLK_FREQ));
+
+	writeb(SCBRR_VALUE(gd->baudrate, CONFIG_SYS_CLK_FREQ), SCBRR);
 }
 
-static int sh_serial_init(void)
+int serial_init(void)
 {
-	sci_out(&sh_sci, SCSCR , SCSCR_INIT(&sh_sci));
-	sci_out(&sh_sci, SCSCR , SCSCR_INIT(&sh_sci));
-	sci_out(&sh_sci, SCSMR, 0);
-	sci_out(&sh_sci, SCSMR, 0);
-	sci_out(&sh_sci, SCFCR, SCFCR_RFRST|SCFCR_TFRST);
-	sci_in(&sh_sci, SCFCR);
-	sci_out(&sh_sci, SCFCR, 0);
+	writew((SCR_RE | SCR_TE), SCSCR);
+	writew(0, SCSMR);
+	writew(0, SCSMR);
+	writew((FCR_RFRST | FCR_TFRST), SCFCR);
+	readw(SCFCR);
+	writew(0, SCFCR);
 
 	serial_setbrg();
 	return 0;
 }
 
-#if defined(CONFIG_CPU_SH7760) || \
-	defined(CONFIG_CPU_SH7780) || \
-	defined(CONFIG_CPU_SH7785) || \
-	defined(CONFIG_CPU_SH7786)
-static int scif_rxfill(struct uart_port *port)
-{
-	return sci_in(port, SCRFDR) & 0xff;
-}
-#elif defined(CONFIG_CPU_SH7763)
-static int scif_rxfill(struct uart_port *port)
-{
-	if ((port->mapbase == 0xffe00000) ||
-		(port->mapbase == 0xffe08000)) {
-		/* SCIF0/1*/
-		return sci_in(port, SCRFDR) & 0xff;
-	} else {
-		/* SCIF2 */
-		return sci_in(port, SCFDR) & SCIF2_RFDC_MASK;
-	}
-}
-#elif defined(CONFIG_ARCH_SH7372)
-static int scif_rxfill(struct uart_port *port)
-{
-	if (port->type == PORT_SCIFA)
-		return sci_in(port, SCFDR) & SCIF_RFDC_MASK;
-	else
-		return sci_in(port, SCRFDR);
-}
-#else
-static int scif_rxfill(struct uart_port *port)
-{
-	return sci_in(port, SCFDR) & SCIF_RFDC_MASK;
-}
-#endif
-
 static int serial_rx_fifo_level(void)
 {
-	return scif_rxfill(&sh_sci);
-}
-
-static void handle_error(void)
-{
-	sci_in(&sh_sci, SCxSR);
-	sci_out(&sh_sci, SCxSR, SCxSR_ERROR_CLEAR(&sh_sci));
-	sci_in(&sh_sci, SCLSR);
-	sci_out(&sh_sci, SCLSR, 0x00);
+#if defined(SCRFDR)
+	return (readw(SCRFDR) >> 0) & FIFOLEVEL_MASK;
+#else
+	return (readw(SCFDR) >> 0) & FIFOLEVEL_MASK;
+#endif
 }
 
 void serial_raw_putc(const char c)
 {
+	unsigned int fsr_bits_to_clear;
+
 	while (1) {
-		/* Tx fifo is empty */
-		if (sci_in(&sh_sci, SCxSR) & SCxSR_TEND(&sh_sci))
+		if (readw(SCFSR) & FSR_TEND) { /* Tx fifo is empty */
+			fsr_bits_to_clear = FSR_TEND;
 			break;
+		}
 	}
 
-	sci_out(&sh_sci, SCxTDR, c);
-	sci_out(&sh_sci, SCxSR, sci_in(&sh_sci, SCxSR) & ~SCxSR_TEND(&sh_sci));
+	writeb(c, SCFTDR);
+	if (fsr_bits_to_clear != 0)
+		writew(readw(SCFSR) & ~fsr_bits_to_clear, SCFSR);
 }
 
-static void sh_serial_putc(const char c)
+void serial_putc(const char c)
 {
 	if (c == '\n')
 		serial_raw_putc('\r');
 	serial_raw_putc(c);
 }
 
-static int sh_serial_tstc(void)
+void serial_puts(const char *s)
 {
-	if (sci_in(&sh_sci, SCxSR) & SCIF_ERRORS) {
-		handle_error();
-		return 0;
-	}
+	char c;
+	while ((c = *s++) != 0)
+		serial_putc(c);
+}
 
+int serial_tstc(void)
+{
 	return serial_rx_fifo_level() ? 1 : 0;
 }
 
+#define FSR_ERR_CLEAR	0x0063
+#define RDRF_CLEAR		0x00fc
+void handle_error(void)
+{
+	readw(SCFSR);
+	writew(FSR_ERR_CLEAR, SCFSR);
+	readw(SCLSR);
+	writew(0x00, SCLSR);
+}
 
 int serial_getc_check(void)
 {
 	unsigned short status;
 
-	status = sci_in(&sh_sci, SCxSR);
+	status = readw(SCFSR);
 
-	if (status & SCIF_ERRORS)
+	if (status & (FSR_FER | FSR_ER | FSR_BRK))
 		handle_error();
-	if (sci_in(&sh_sci, SCLSR) & SCxSR_ORER(&sh_sci))
+	if (readw(SCLSR) & LSR_ORER)
 		handle_error();
-	return status & (SCIF_DR | SCxSR_RDxF(&sh_sci));
+	return status & (FSR_DR | FSR_RDF);
 }
 
-static int sh_serial_getc(void)
+int serial_getc(void)
 {
 	unsigned short status;
 	char ch;
@@ -164,36 +224,16 @@ static int sh_serial_getc(void)
 	while (!serial_getc_check())
 		;
 
-	ch = sci_in(&sh_sci, SCxRDR);
-	status = sci_in(&sh_sci, SCxSR);
+	ch = readb(SCFRDR);
+	status = readw(SCFSR);
 
-	sci_out(&sh_sci, SCxSR, SCxSR_RDxF_CLEAR(&sh_sci));
+	writew(RDRF_CLEAR, SCFSR);
 
-	if (status & SCIF_ERRORS)
-			handle_error();
-
-	if (sci_in(&sh_sci, SCLSR) & SCxSR_ORER(&sh_sci))
+	if (status & (FSR_FER | FSR_FER | FSR_ER | FSR_BRK))
 		handle_error();
+
+	if (readw(SCLSR) & LSR_ORER)
+		handle_error();
+
 	return ch;
-}
-
-static struct serial_device sh_serial_drv = {
-	.name	= "sh_serial",
-	.start	= sh_serial_init,
-	.stop	= NULL,
-	.setbrg	= sh_serial_setbrg,
-	.putc	= sh_serial_putc,
-	.puts	= default_serial_puts,
-	.getc	= sh_serial_getc,
-	.tstc	= sh_serial_tstc,
-};
-
-void sh_serial_initialize(void)
-{
-	serial_register(&sh_serial_drv);
-}
-
-__weak struct serial_device *default_serial_console(void)
-{
-	return &sh_serial_drv;
 }

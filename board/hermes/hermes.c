@@ -2,7 +2,23 @@
  * (C) Copyright 2000
  * Wolfgang Denk, DENX Software Engineering, wd@denx.de.
  *
- * SPDX-License-Identifier:	GPL-2.0+
+ * See file CREDITS for list of people who contributed to this
+ * project.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation; either version 2 of
+ * the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
+ * MA 02111-1307 USA
  */
 
 #include <common.h>
@@ -11,7 +27,7 @@
 
 #ifdef CONFIG_SHOW_BOOT_PROGRESS
 # include <status_led.h>
-# define SHOW_BOOT_PROGRESS(arg)	bootstage_mark(arg)
+# define SHOW_BOOT_PROGRESS(arg)	show_boot_progress(arg)
 #else
 # define SHOW_BOOT_PROGRESS(arg)
 #endif
@@ -91,19 +107,21 @@ const uint sdram_table[] = {
 
 int checkboard (void)
 {
-	char buf[64];
-	int i;
-	int l = getenv_f("serial#", buf, sizeof(buf));
+	char *s = getenv ("serial#");
+	char *e;
 
 	puts ("Board: ");
 
-	if (l < 0 || strncmp(buf, "HERMES", 6)) {
+	if (!s || strncmp (s, "HERMES", 6)) {
 		puts ("### No HW ID - assuming HERMES-PRO");
 	} else {
-		for (i = 0; i < l; i++) {
-			if (buf[i] == ' ')
+		for (e = s; *e; ++e) {
+			if (*e == ' ')
 				break;
-			putc (buf[i]);
+		}
+
+		for (; s < e; ++s) {
+			putc (*s);
 		}
 	}
 
@@ -354,7 +372,7 @@ static ulong board_init (void)
 			immr->im_ioport.iop_pcdat |= PC_REP_RES;
 		}
 	}
-	SHOW_BOOT_PROGRESS(BOOTSTAGE_ID_CHECK_MAGIC);
+	SHOW_BOOT_PROGRESS (0x00);
 
 	return ((revision << 16) | (speed & 0xFFFF));
 }
@@ -579,9 +597,7 @@ void show_boot_progress (int status)
 {
 	volatile immap_t *immr = (immap_t *) CONFIG_SYS_IMMR;
 
-	/* let things compatible */
-	if (status < -BOOTSTAGE_ID_POST_FAIL_R)
-		status = -1;
+	if (status < -32) status = -1;	/* let things compatible */
 	status ^= 0x0F;
 	status = (status & 0x0F) << 14;
 	immr->im_cpm.cp_pbdat = (immr->im_cpm.cp_pbdat & ~PB_LED_ALL) | status;

@@ -2,7 +2,23 @@
  * (C) Copyright 2000-2005
  * Wolfgang Denk, DENX Software Engineering, wd@denx.de.
  *
- * SPDX-License-Identifier:	GPL-2.0+
+ * See file CREDITS for list of people who contributed to this
+ * project.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation; either version 2 of
+ * the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
+ * MA 02111-1307 USA
  */
 
 /*
@@ -23,8 +39,6 @@
 #define CONFIG_MPC857		1       /* 857 is a variant of the 862  */
 
 #define CONFIG_UC100		1	/* ...on a UC100 module	        */
-
-#define	CONFIG_SYS_TEXT_BASE	0x40700000
 
 #define MPC8XX_FACT		4		/* Multiply by 4	*/
 #define MPC8XX_XIN		25000000	/* 25.0 MHz in		*/
@@ -146,6 +160,9 @@
 #if 0
 #define	CONFIG_SYS_HUSH_PARSER		1	/* use "hush" command parser	*/
 #endif
+#ifdef	CONFIG_SYS_HUSH_PARSER
+#define	CONFIG_SYS_PROMPT_HUSH_PS2	"> "
+#endif
 
 #if defined(CONFIG_CMD_KGDB)
 #define	CONFIG_SYS_CBSIZE		1024	/* Console I/O Buffer Size	*/
@@ -163,6 +180,8 @@
 
 #define	CONFIG_SYS_HZ			1000	/* decrementer freq: 1 ms ticks	*/
 
+#define CONFIG_SYS_BAUDRATE_TABLE	{ 9600, 19200, 38400, 57600, 115200 }
+
 #define CONFIG_AUTO_COMPLETE	1       /* add autocompletion support   */
 
 /*
@@ -179,8 +198,9 @@
  * Definitions for initial stack pointer and data area (in DPRAM)
  */
 #define CONFIG_SYS_INIT_RAM_ADDR	CONFIG_SYS_IMMR
-#define	CONFIG_SYS_INIT_RAM_SIZE	0x2F00	/* Size of used area in DPRAM	*/
-#define CONFIG_SYS_GBL_DATA_OFFSET	(CONFIG_SYS_INIT_RAM_SIZE - GENERATED_GBL_DATA_SIZE)
+#define	CONFIG_SYS_INIT_RAM_END	0x2F00	/* End of used area in DPRAM	*/
+#define	CONFIG_SYS_GBL_DATA_SIZE	64  /* size in bytes reserved for initial data */
+#define CONFIG_SYS_GBL_DATA_OFFSET	(CONFIG_SYS_INIT_RAM_END - CONFIG_SYS_GBL_DATA_SIZE)
 #define	CONFIG_SYS_INIT_SP_OFFSET	CONFIG_SYS_GBL_DATA_OFFSET
 
 /*-----------------------------------------------------------------------
@@ -315,7 +335,6 @@
  *-----------------------------------------------------------------------
  */
 
-#define CONFIG_IDE_PREINIT	1	/* Use preinit IDE hook */
 #define	CONFIG_IDE_8xx_PCCARD	1	/* Use IDE with PC Card	Adapter	*/
 
 #undef	CONFIG_IDE_8xx_DIRECT		/* Direct IDE    not supported	*/
@@ -448,10 +467,13 @@
  */
 
 /* enable I2C and select the hardware/software driver */
-#define CONFIG_SYS_I2C
-#define CONFIG_SYS_I2C_SOFT		/* I2C bit-banged */
-#define CONFIG_SYS_I2C_SOFT_SPEED	93000 /* 93 kHz is supposed to work */
-#define CONFIG_SYS_I2C_SOFT_SLAVE	0xFE
+#undef	CONFIG_HARD_I2C			/* I2C with hardware support	*/
+#define	CONFIG_SOFT_I2C         1	/* I2C bit-banged		*/
+
+#define CONFIG_SYS_I2C_SPEED		93000	/* 93 kHz is supposed to work	*/
+#define CONFIG_SYS_I2C_SLAVE		0xFE
+
+#ifdef CONFIG_SOFT_I2C
 /*
  * Software (bit-bang) I2C driver configuration
  */
@@ -467,6 +489,7 @@
 #define I2C_SCL(bit)	if(bit) immr->im_cpm.cp_pbdat |=  PB_SCL; \
 			else    immr->im_cpm.cp_pbdat &= ~PB_SCL
 #define I2C_DELAY	udelay(2)	/* 1/4 I2C clock duration */
+#endif	/* CONFIG_SOFT_I2C */
 
 /*-----------------------------------------------------------------------
  * I2C EEPROM (24C164)
@@ -475,6 +498,14 @@
 #define CONFIG_SYS_I2C_EEPROM_ADDR_LEN	1
 #define CONFIG_SYS_EEPROM_PAGE_WRITE_DELAY_MS	10	/* takes up to 10 msec	*/
 #define CONFIG_SYS_EEPROM_PAGE_WRITE_BITS	4
+
+/*
+ * Internal Definitions
+ *
+ * Boot Flags
+ */
+#define	BOOTFLAG_COLD	0x01		/* Normal Power-On: Boot from FLASH	*/
+#define BOOTFLAG_WARM	0x02		/* Software reboot			*/
 
 #define	CONFIG_FEC_ENET		1	/* use FEC ethernet  */
 #define FEC_ENET

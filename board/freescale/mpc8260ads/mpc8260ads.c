@@ -17,7 +17,23 @@
  * Vitaly Bordug <vbordug@ru.mvista.com>
  * Added support for PCI.
  *
- * SPDX-License-Identifier:	GPL-2.0+
+ * See file CREDITS for list of people who contributed to this
+ * project.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation; either version 2 of
+ * the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
+ * MA 02111-1307 USA
  */
 
 #include <common.h>
@@ -227,8 +243,8 @@ void reset_phy (void)
 	 * Enable autonegotiation.
 	 */
 	bb_miiphy_write(NULL, CONFIG_SYS_PHY_ADDR, 16, 0x610);
-	bb_miiphy_write(NULL, CONFIG_SYS_PHY_ADDR, MII_BMCR,
-			BMCR_ANENABLE | BMCR_ANRESTART);
+	bb_miiphy_write(NULL, CONFIG_SYS_PHY_ADDR, PHY_BMCR,
+			PHY_BMCR_AUTON | PHY_BMCR_RST_NEG);
 #else
 	/*
 	 * Ethernet PHY is configured (by means of configuration pins)
@@ -238,13 +254,13 @@ void reset_phy (void)
 	 */
 
 	/* Advertise all capabilities */
-	bb_miiphy_write(NULL, CONFIG_SYS_PHY_ADDR, MII_ADVERTISE, 0x01E1);
+	bb_miiphy_write(NULL, CONFIG_SYS_PHY_ADDR, PHY_ANAR, 0x01E1);
 
 	/* Do not bypass Rx/Tx (de)scrambler */
-	bb_miiphy_write(NULL, CONFIG_SYS_PHY_ADDR, MII_FCSCOUNTER,  0x0000);
+	bb_miiphy_write(NULL, CONFIG_SYS_PHY_ADDR, PHY_DCR,  0x0000);
 
-	bb_miiphy_write(NULL, CONFIG_SYS_PHY_ADDR, MII_BMCR,
-			BMCR_ANENABLE | BMCR_ANRESTART);
+	bb_miiphy_write(NULL, CONFIG_SYS_PHY_ADDR, PHY_BMCR,
+			PHY_BMCR_AUTON | PHY_BMCR_RST_NEG);
 #endif /* CONFIG_ADSTYPE == CONFIG_SYS_PQ2FADS */
 #endif /* CONFIG_MII */
 }
@@ -534,11 +550,24 @@ void pci_init_board(void)
 #endif
 
 #if defined(CONFIG_OF_LIBFDT) && defined(CONFIG_OF_BOARD_SETUP)
+void ft_blob_update(void *blob, bd_t *bd)
+{
+	int ret;
+
+	ret = fdt_fixup_memory(blob, (u64)bd->bi_memstart, (u64)bd->bi_memsize);
+
+	if (ret < 0) {
+		printf("ft_blob_update(): cannot set /memory/reg "
+			"property err:%s\n", fdt_strerror(ret));
+	}
+}
+
 void ft_board_setup(void *blob, bd_t *bd)
 {
 	ft_cpu_setup(blob, bd);
 #ifdef CONFIG_PCI
 	ft_pci_setup(blob, bd);
 #endif
+	ft_blob_update(blob, bd);
 }
 #endif

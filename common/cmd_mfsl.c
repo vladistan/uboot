@@ -1,9 +1,25 @@
-ve received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * who contributed to this
+/*
+ * (C) Copyright 2007 Michal Simek
+ *
+ * Michal  SIMEK <monstr@monstr.eu>
+ *
+ * See file CREDITS for list of people who contributed to this
  * project.
  *
- * SPDX-License-Identifier:	GPL-2.0+
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation; either version 2 of
+ * the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
+ * MA 02111-1307 USA
  */
 
 /*
@@ -15,20 +31,23 @@ ve received a copy of the GNU General Public License
 #include <command.h>
 #include <asm/asm.h>
 
-int do_frd (cmd_tbl_t * cmdtp, int flag, int argc, char * const argv[])
+int do_frd (cmd_tbl_t * cmdtp, int flag, int argc, char *argv[])
 {
 	unsigned int fslnum;
 	unsigned int num;
 	unsigned int blocking;
 
-	if (argc < 2)
-		return CMD_RET_USAGE;
+	if (argc < 2) {
+		cmd_usage(cmdtp);
+		return 1;
+	}
 
 	fslnum = (unsigned int)simple_strtoul (argv[1], NULL, 16);
 	blocking = (unsigned int)simple_strtoul (argv[2], NULL, 16);
 	if (fslnum < 0 || fslnum >= XILINX_FSL_NUMBER) {
 		puts ("Bad number of FSL\n");
-		return CMD_RET_USAGE;
+		cmd_usage(cmdtp);
+		return 1;
 	}
 
 	switch (fslnum) {
@@ -170,20 +189,24 @@ int do_frd (cmd_tbl_t * cmdtp, int flag, int argc, char * const argv[])
 	return 0;
 }
 
-int do_fwr (cmd_tbl_t * cmdtp, int flag, int argc, char * const argv[])
+int do_fwr (cmd_tbl_t * cmdtp, int flag, int argc, char *argv[])
 {
 	unsigned int fslnum;
 	unsigned int num;
 	unsigned int blocking;
 
-	if (argc < 3)
-		return CMD_RET_USAGE;
+	if (argc < 3) {
+		cmd_usage(cmdtp);
+		return 1;
+	}
 
 	fslnum = (unsigned int)simple_strtoul (argv[1], NULL, 16);
 	num = (unsigned int)simple_strtoul (argv[2], NULL, 16);
 	blocking = (unsigned int)simple_strtoul (argv[3], NULL, 16);
-	if (fslnum < 0 || fslnum >= XILINX_FSL_NUMBER)
-		return CMD_RET_USAGE;
+	if (fslnum < 0 || fslnum >= XILINX_FSL_NUMBER) {
+		cmd_usage(cmdtp);
+		return 1;
+	}
 
 	switch (fslnum) {
 #if (XILINX_FSL_NUMBER > 0)
@@ -325,14 +348,15 @@ int do_fwr (cmd_tbl_t * cmdtp, int flag, int argc, char * const argv[])
 
 }
 
-int do_rspr (cmd_tbl_t * cmdtp, int flag, int argc, char * const argv[])
+int do_rspr (cmd_tbl_t * cmdtp, int flag, int argc, char *argv[])
 {
 	unsigned int reg = 0;
 	unsigned int val = 0;
 
-	if (argc < 2)
-		return CMD_RET_USAGE;
-
+	if (argc < 2) {
+		cmd_usage(cmdtp);
+		return 1;
+	}
 	reg = (unsigned int)simple_strtoul (argv[1], NULL, 16);
 	val = (unsigned int)simple_strtoul (argv[2], NULL, 16);
 	switch (reg) {

@@ -2,14 +2,30 @@
  * (C) Copyright 2004
  * Tolunay Orkun, Nextio Inc., torkun@nextio.com
  *
- * SPDX-License-Identifier:	GPL-2.0+ 
+ * See file CREDITS for list of people who contributed to this
+ * project.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation; either version 2 of
+ * the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	 See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
+ * MA 02111-1307 USA
  */
 
 #include <common.h>
 #include <asm/processor.h>
 #include <i2c.h>
 #include <miiphy.h>
-#include <asm/ppc4xx-emac.h>
+#include <ppc4xx_enet.h>
 
 void sdram_init(void);
 
@@ -35,7 +51,7 @@ uchar pll_fs6377_regs[16] = {
  */
 int pll_init(void)
 {
-	i2c_set_bus_num(0);
+	i2c_init(CONFIG_SYS_I2C_SPEED, CONFIG_SYS_I2C_SLAVE);
 
 	return  i2c_write(CONFIG_SYS_I2C_PLL_ADDR, 0, 1,
 		(uchar *) pll_fs6377_regs, sizeof(pll_fs6377_regs));
@@ -71,15 +87,15 @@ int board_early_init_f(void)
    |
    +-------------------------------------------------------------------------*/
 
-	mtdcr (UIC0SR, 0xFFFFFFFF);   /* clear all ints */
-	mtdcr (UIC0ER, 0x00000000);   /* disable all ints */
-	mtdcr (UIC0CR, 0x00000000);   /* set all to be non-critical */
-	mtdcr (UIC0PR, 0xFFFFFF83);   /* set int polarities */
-	mtdcr (UIC0TR, 0x10000000);   /* set int trigger levels */
-	mtdcr (UIC0VCR, 0x00000001);  /* set vect base=0,INT0 highest priority */
-	mtdcr (UIC0SR, 0xFFFFFFFF);   /* clear all ints */
+	mtdcr (uicsr, 0xFFFFFFFF);   /* clear all ints */
+	mtdcr (uicer, 0x00000000);   /* disable all ints */
+	mtdcr (uiccr, 0x00000000);   /* set all to be non-critical */
+	mtdcr (uicpr, 0xFFFFFF83);   /* set int polarities */
+	mtdcr (uictr, 0x10000000);   /* set int trigger levels */
+	mtdcr (uicvcr, 0x00000001);  /* set vect base=0,INT0 highest priority */
+	mtdcr (uicsr, 0xFFFFFFFF);   /* clear all ints */
 
-	mtebc (EBC0_CFG, 0xa8400000);   /* EBC always driven */
+	mtebc (epcr, 0xa8400000);   /* EBC always driven */
 
 	return 0; /* success */
 }
@@ -113,35 +129,35 @@ phys_size_t initdram (int board_type)
 	/*
 	 * ToDo: Move the asm init routine sdram_init() to this C file,
 	 * or even better use some common ppc4xx code available
-	 * in arch/powerpc/cpu/ppc4xx
+	 * in cpu/ppc4xx
 	 */
 	sdram_init();
 
 	tot_size = 0;
 
-	mtdcr (SDRAM0_CFGADDR, SDRAM0_B0CR);
-	tmp = mfdcr (SDRAM0_CFGDATA);
+	mtdcr (memcfga, mem_mb0cf);
+	tmp = mfdcr (memcfgd);
 	if (tmp & 0x00000001) {
 		bank_size = 0x00400000 << ((tmp >> 17) & 0x7);
 		tot_size += bank_size;
 	}
 
-	mtdcr (SDRAM0_CFGADDR, SDRAM0_B1CR);
-	tmp = mfdcr (SDRAM0_CFGDATA);
+	mtdcr (memcfga, mem_mb1cf);
+	tmp = mfdcr (memcfgd);
 	if (tmp & 0x00000001) {
 		bank_size = 0x00400000 << ((tmp >> 17) & 0x7);
 		tot_size += bank_size;
 	}
 
-	mtdcr (SDRAM0_CFGADDR, SDRAM0_B2CR);
-	tmp = mfdcr (SDRAM0_CFGDATA);
+	mtdcr (memcfga, mem_mb2cf);
+	tmp = mfdcr (memcfgd);
 	if (tmp & 0x00000001) {
 		bank_size = 0x00400000 << ((tmp >> 17) & 0x7);
 		tot_size += bank_size;
 	}
 
-	mtdcr (SDRAM0_CFGADDR, SDRAM0_B3CR);
-	tmp = mfdcr (SDRAM0_CFGDATA);
+	mtdcr (memcfga, mem_mb3cf);
+	tmp = mfdcr (memcfgd);
 	if (tmp & 0x00000001) {
 		bank_size = 0x00400000 << ((tmp >> 17) & 0x7);
 		tot_size += bank_size;
@@ -160,11 +176,11 @@ int last_stage_init(void)
 	miiphy_reset("ppc_4xx_eth0", CONFIG_PHY_ADDR);
 
 	/* AUTO neg */
-	miiphy_write("ppc_4xx_eth0", CONFIG_PHY_ADDR, MII_BMCR,
-			BMCR_ANENABLE | BMCR_ANRESTART);
+	miiphy_write("ppc_4xx_eth0", CONFIG_PHY_ADDR, PHY_BMCR,
+			PHY_BMCR_AUTON | PHY_BMCR_RST_NEG);
 
 	/* LEDs     */
-	miiphy_write("ppc_4xx_eth0", CONFIG_PHY_ADDR, MII_NWAYTEST, 0x0d08);
+	miiphy_write("ppc_4xx_eth0", CONFIG_PHY_ADDR, PHY_FCSCR, 0x0d08);
 
 
 	return 0; /* success */

@@ -59,8 +59,7 @@ void sha1_starts( sha1_context *ctx );
  * \param input    buffer holding the  data
  * \param ilen	   length of the input data
  */
-void sha1_update(sha1_context *ctx, const unsigned char *input,
-		 unsigned int ilen);
+void sha1_update( sha1_context *ctx, unsigned char *input, int ilen );
 
 /**
  * \brief	   SHA-1 final digest
@@ -77,8 +76,8 @@ void sha1_finish( sha1_context *ctx, unsigned char output[20] );
  * \param ilen	   length of the input data
  * \param output   SHA-1 checksum result
  */
-void sha1_csum(const unsigned char *input, unsigned int ilen,
-		unsigned char *output);
+void sha1_csum( unsigned char *input, int ilen,
+		unsigned char output[20] );
 
 /**
  * \brief	   Output = SHA-1( input buffer ), with watchdog triggering
@@ -88,8 +87,17 @@ void sha1_csum(const unsigned char *input, unsigned int ilen,
  * \param output   SHA-1 checksum result
  * \param chunk_sz watchdog triggering period (in bytes of input processed)
  */
-void sha1_csum_wd(const unsigned char *input, unsigned int ilen,
-		unsigned char *output, unsigned int chunk_sz);
+void sha1_csum_wd (unsigned char *input, int ilen,
+		unsigned char output[20], unsigned int chunk_sz);
+
+/**
+ * \brief	   Output = SHA-1( file contents )
+ *
+ * \param path	   input file name
+ * \param output   SHA-1 checksum result
+ * \return	   0 if successful, or 1 if fopen failed
+ */
+int sha1_file( char *path, unsigned char output[20] );
 
 /**
  * \brief	   Output = HMAC-SHA-1( input buffer, hmac key )
@@ -100,9 +108,9 @@ void sha1_csum_wd(const unsigned char *input, unsigned int ilen,
  * \param ilen	   length of the input data
  * \param output   HMAC-SHA-1 result
  */
-void sha1_hmac(const unsigned char *key, int keylen,
-		const unsigned char *input, unsigned int ilen,
-		unsigned char *output);
+void sha1_hmac( unsigned char *key, int keylen,
+		unsigned char *input, int ilen,
+		unsigned char output[20] );
 
 /**
  * \brief	   Checkup routine

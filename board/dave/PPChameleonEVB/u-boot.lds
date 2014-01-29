@@ -1,37 +1,91 @@
 /*
- * Copyright 2007-2009 Freescale Semiconductor, Inc.
+ * (C) Copyright 2000
+ * Wolfgang Denk, DENX Software Engineering, wd@denx.de.
  *
- * SPDX-License-Identifier:	GPL-2.0+
+ * See file CREDITS for list of people who contributed to this
+ * project.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation; either version 2 of
+ * the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
+ * MA 02111-1307 USA
  */
 
-#include "config.h"	/* CONFIG_BOARDDIR */
-
-#ifndef RESET_VECTOR_ADDRESS
-#define RESET_VECTOR_ADDRESS	0xfffffffc
-#endif
-
 OUTPUT_ARCH(powerpc)
-
-PHDRS
-{
-  text PT_LOAD;
-  bss PT_LOAD;
-}
-
+/* Do we need any of these for elf?
+   __DYNAMIC = 0;    */
 SECTIONS
 {
+  .resetvec 0xFFFFFFFC :
+  {
+    *(.resetvec)
+  } = 0xffff
+
   /* Read-only sections, merged into text segment: */
   . = + SIZEOF_HEADERS;
+  .interp : { *(.interp) }
+  .hash          : { *(.hash)		}
+  .dynsym        : { *(.dynsym)		}
+  .dynstr        : { *(.dynstr)		}
+  .rel.text      : { *(.rel.text)		}
+  .rela.text     : { *(.rela.text)	}
+  .rel.data      : { *(.rel.data)		}
+  .rela.data     : { *(.rela.data)	}
+  .rel.rodata    : { *(.rel.rodata)	}
+  .rela.rodata   : { *(.rela.rodata)	}
+  .rel.got       : { *(.rel.got)		}
+  .rela.got      : { *(.rela.got)		}
+  .rel.ctors     : { *(.rel.ctors)	}
+  .rela.ctors    : { *(.rela.ctors)	}
+  .rel.dtors     : { *(.rel.dtors)	}
+  .rela.dtors    : { *(.rela.dtors)	}
+  .rel.bss       : { *(.rel.bss)		}
+  .rela.bss      : { *(.rela.bss)		}
+  .rel.plt       : { *(.rel.plt)		}
+  .rela.plt      : { *(.rela.plt)		}
+  .init          : { *(.init)	}
+  .plt : { *(.plt) }
   .text      :
   {
-    *(.text*)
-   } :text
-    _etext = .;
-    PROVIDE (etext = .);
-    .rodata    :
-   {
+    /* WARNING - the following is hand-optimized to fit within	*/
+    /* the sector layout of our flash chips!	XXX FIXME XXX	*/
+
+    cpu/ppc4xx/start.o	(.text)
+    cpu/ppc4xx/traps.o	(.text)
+    cpu/ppc4xx/interrupts.o	(.text)
+    cpu/ppc4xx/4xx_uart.o	(.text)
+    cpu/ppc4xx/cpu_init.o	(.text)
+    cpu/ppc4xx/speed.o	(.text)
+    drivers/net/4xx_enet.o	(.text)
+    common/dlmalloc.o	(.text)
+    lib_generic/crc32.o		(.text)
+    lib_ppc/extable.o	(.text)
+    lib_generic/zlib.o		(.text)
+
+    *(.text)
+    *(.fixup)
+    *(.got1)
+  }
+  _etext = .;
+  PROVIDE (etext = .);
+  .rodata    :
+  {
+    *(.eh_frame)
     *(SORT_BY_ALIGNMENT(SORT_BY_NAME(.rodata*)))
-  } :text
+  }
+  .fini      : { *(.fini)    } =0
+  .ctors     : { *(.ctors)   }
+  .dtors     : { *(.dtors)   }
 
   /* Read-write section, merged into data segment: */
   . = (. + 0x00FF) & 0xFFFFFF00;
@@ -39,30 +93,32 @@ SECTIONS
   PROVIDE (erotext = .);
   .reloc   :
   {
+    *(.got)
     _GOT2_TABLE_ = .;
-    KEEP(*(.got2))
-    KEEP(*(.got))
-    PROVIDE(_GLOBAL_OFFSET_TABLE_ = . + 4);
+    *(.got2)
     _FIXUP_TABLE_ = .;
-    KEEP(*(.fixup))
+    *(.fixup)
   }
-  __got2_entries = (_FIXUP_TABLE_ - _GOT2_TABLE_) >> 2;
-  __fixup_entries = (. - _FIXUP_TABLE_) >> 2;
+  __got2_entries = (_FIXUP_TABLE_ - _GOT2_TABLE_) >>2;
+  __fixup_entries = (. - _FIXUP_TABLE_)>>2;
 
   .data    :
   {
-    *(.data*)
-    *(.sdata*)
+    *(.data)
+    *(.data1)
+    *(.sdata)
+    *(.sdata2)
+    *(.dynamic)
+    CONSTRUCTORS
   }
   _edata  =  .;
   PROVIDE (edata = .);
 
   . = .;
+  __u_boot_cmd_start = .;
+  .u_boot_cmd : { *(.u_boot_cmd) }
+  __u_boot_cmd_end = .;
 
-  . = ALIGN(4);
-  .u_boot_list : {
-	KEEP(*(SORT(.u_boot_list*)));
-  }
 
   . = .;
   __start___ex_table = .;
@@ -76,40 +132,23 @@ SECTIONS
   . = ALIGN(256);
   __init_end = .;
 
-  ppcenv_assert = ASSERT(. < 0xFFFF8000, ".bss section too big, overlaps .ppcenv section. Please update your confguration: CONFIG_SYS_MONITOR_BASE, CONFIG_SYS_MONITOR_LEN and CONFIG_SYS_TEXT_BASE may need to be modified.");
+  __bss_start = .;
+  .bss (NOLOAD)       :
+  {
+   *(.sbss) *(.scommon)
+   *(.dynbss)
+   *(.bss)
+   *(COMMON)
+   . = ALIGN(4);
+  }
+
+  ppcenv_assert = ASSERT(. < 0xFFFF8000, ".bss section too big, overlaps .ppcenv section. Please update your confguration: CONFIG_SYS_MONITOR_BASE, CONFIG_SYS_MONITOR_LEN and TEXT_BASE may need to be modified.");
   . = 0xFFFF8000;
   .ppcenv :
   {
     common/env_embedded.o(.ppcenv);
   }
 
-  .resetvec RESET_VECTOR_ADDRESS :
-  {
-    KEEP(*(.resetvec))
-  } :text = 0xffff
-
-  . = RESET_VECTOR_ADDRESS + 0x4;
-
-  /*
-   * Make sure that the bss segment isn't linked at 0x0, otherwise its
-   * address won't be updated during relocation fixups.  Note that
-   * this is a temporary fix.  Code to dynamically the fixup the bss
-   * location will be added in the future.  When the bss relocation
-   * fixup code is present this workaround should be removed.
-   */
-#if (RESET_VECTOR_ADDRESS == 0xfffffffc)
-  . |= 0x10;
-#endif
-
-  __bss_start = .;
-  .bss (NOLOAD)       :
-  {
-   *(.bss*)
-   *(.sbss*)
-   *(COMMON)
-  } :bss
-
-  . = ALIGN(4);
-  __bss_end = . ;
+  _end = . ;
   PROVIDE (end = .);
 }

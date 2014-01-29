@@ -1,8 +1,28 @@
-/*
- * SPDX-License-Identifier:	GPL-2.0	IBM-pibs
- */
+/******************************************************************************
+ *   This source code is dual-licensed.  You may use it under the terms of the
+ *   GNU General Public License version 2, or under the license below.
+ *
+ *	 This source code has been made available to you by IBM on an AS-IS
+ *	 basis.	 Anyone receiving this source is licensed under IBM
+ *	 copyrights to use it in any way he or she deems fit, including
+ *	 copying it, modifying it, compiling it, and redistributing it either
+ *	 with or without modifications.	 No license under IBM patents or
+ *	 patent applications is to be implied by the copyright license.
+ *
+ *	 Any user of this software should understand that IBM cannot provide
+ *	 technical support for this software and will not be responsible for
+ *	 any consequences resulting from the use of this software.
+ *
+ *	 Any person who transfers this source code or any derivative work
+ *	 must include the IBM copyright notice, this paragraph, and the
+ *	 preceding two paragraphs in the transferred software.
+ *
+ *	 COPYRIGHT   I B M   CORPORATION 1995
+ *	 LICENSED MATERIAL  -  PROGRAM PROPERTY OF I B M
+ *
+ *****************************************************************************/
 #include <config.h>
-#include <asm/ppc4xx.h>
+#include <ppc4xx.h>
 
 #define _LINUX_CONFIG_H 1	/* avoid reading Linux autoconf.h file	*/
 
@@ -18,17 +38,17 @@
 
 #define WDCR_EBC(reg,val) \
 	addi    r4,0,reg;\
-	mtdcr   EBC0_CFGADDR,r4;\
+	mtdcr   ebccfga,r4;\
 	addis   r4,0,val@h;\
 	ori     r4,r4,val@l;\
-	mtdcr   EBC0_CFGDATA,r4
+	mtdcr   ebccfgd,r4
 
 #define WDCR_SDRAM(reg,val) \
 	addi    r4,0,reg;\
-	mtdcr   SDRAM0_CFGADDR,r4;\
+	mtdcr   memcfga,r4;\
 	addis   r4,0,val@h;\
 	ori     r4,r4,val@l;\
-	mtdcr   SDRAM0_CFGDATA,r4
+	mtdcr   memcfgd,r4
 
 /******************************************************************************
  * Function:	ext_bus_cntlr_init
@@ -86,51 +106,51 @@ ext_bus_cntlr_init:
 	 * SETUP CPC0_CR0
 	 *******************************************************************/
 	LI32(r4, 0x007000c0)
-	mtdcr	CPC0_CR0, r4
+	mtdcr	cntrl0, r4
 
 	/********************************************************************
 	 * Setup CPC0_CR1: Change PCIINT signal to PerWE
 	 *******************************************************************/
-	mfdcr	r4, CPC0_CR1
+	mfdcr	r4, cntrl1
 	ori	r4, r4, 0x4000
-	mtdcr	CPC0_CR1, r4
+	mtdcr	cntrl1, r4
 
 	/********************************************************************
 	 * Setup External Bus Controller (EBC).
 	 *******************************************************************/
-	WDCR_EBC(EBC0_CFG, 0xd84c0000)
+	WDCR_EBC(epcr, 0xd84c0000)
 	/********************************************************************
 	 * Memory Bank 0 (Intel 28F128J3 Flash) initialization
 	 *******************************************************************/
-	/*WDCR_EBC(PB1AP, 0x02869200)*/
-	WDCR_EBC(PB1AP, 0x07869200)
-	WDCR_EBC(PB0CR, 0xfe0bc000)
+	/*WDCR_EBC(pb0ap, 0x02869200)*/
+	WDCR_EBC(pb0ap, 0x07869200)
+	WDCR_EBC(pb0cr, 0xfe0bc000)
 	/********************************************************************
 	 * Memory Bank 1 (Holtek HT6542B PS/2) initialization
 	 *******************************************************************/
-	WDCR_EBC(PB1AP, 0x1f869200)
-	WDCR_EBC(PB1CR, 0xf0818000)
+	WDCR_EBC(pb1ap, 0x1f869200)
+	WDCR_EBC(pb1cr, 0xf0818000)
 	/********************************************************************
 	 * Memory Bank 2 (Epson S1D13506) initialization
 	 *******************************************************************/
-	WDCR_EBC(PB2AP, 0x05860300)
-	WDCR_EBC(PB2CR, 0xf045a000)
+	WDCR_EBC(pb2ap, 0x05860300)
+	WDCR_EBC(pb2cr, 0xf045a000)
 	/********************************************************************
 	 * Memory Bank 3 (Philips SJA1000 CAN Controllers) initialization
 	 *******************************************************************/
-	WDCR_EBC(PB3AP, 0x0387d200)
-	WDCR_EBC(PB3CR, 0xf021c000)
+	WDCR_EBC(pb3ap, 0x0387d200)
+	WDCR_EBC(pb3cr, 0xf021c000)
 	/********************************************************************
 	 * Memory Bank 4-7 (Unused) initialization
 	 *******************************************************************/
-	WDCR_EBC(PB4AP, 0)
-	WDCR_EBC(PB4CR, 0)
-	WDCR_EBC(PB5AP, 0)
-	WDCR_EBC(PB5CR, 0)
-	WDCR_EBC(PB6AP, 0)
-	WDCR_EBC(PB6CR, 0)
-	WDCR_EBC(PB7AP, 0)
-	WDCR_EBC(PB7CR, 0)
+	WDCR_EBC(pb4ap, 0)
+	WDCR_EBC(pb4cr, 0)
+	WDCR_EBC(pb5ap, 0)
+	WDCR_EBC(pb5cr, 0)
+	WDCR_EBC(pb6ap, 0)
+	WDCR_EBC(pb6cr, 0)
+	WDCR_EBC(pb7ap, 0)
+	WDCR_EBC(pb7cr, 0)
 
 	/* We are all done */
 	mtlr	r0			/* Restore link register */
@@ -155,26 +175,26 @@ sdram_init:
 	 * Disable memory controller to allow
 	 * values to be changed.
 	 */
-	WDCR_SDRAM(SDRAM0_CFG, 0x00000000)
+	WDCR_SDRAM(mem_mcopt1, 0x00000000)
 
 	/*
 	 * Configure Memory Banks
 	 */
-	WDCR_SDRAM(SDRAM0_B0CR, 0x00084001)
-	WDCR_SDRAM(SDRAM0_B1CR, 0x00000000)
-	WDCR_SDRAM(SDRAM0_B2CR, 0x00000000)
-	WDCR_SDRAM(SDRAM0_B3CR, 0x00000000)
+	WDCR_SDRAM(mem_mb0cf, 0x00084001)
+	WDCR_SDRAM(mem_mb1cf, 0x00000000)
+	WDCR_SDRAM(mem_mb2cf, 0x00000000)
+	WDCR_SDRAM(mem_mb3cf, 0x00000000)
 
 	/*
 	 * Set up SDTR1 (SDRAM Timing Register)
 	 */
-	WDCR_SDRAM(SDRAM0_TR, 0x00854009)
+	WDCR_SDRAM(mem_sdtr1, 0x00854009)
 
 	/*
 	 * Set RTR (Refresh Timing Register)
 	 */
-	WDCR_SDRAM(SDRAM0_RTR,   0x10000000)
-	/* WDCR_SDRAM(SDRAM0_RTR,   0x05f00000) */
+	WDCR_SDRAM(mem_rtr,   0x10000000)
+	/* WDCR_SDRAM(mem_rtr,   0x05f00000) */
 
 	/********************************************************************
 	 * Delay to ensure 200usec have elapsed since reset. Assume worst
@@ -190,7 +210,7 @@ sdram_init:
 	/********************************************************************
 	 * Set memory controller options reg, MCOPT1.
 	 *******************************************************************/
-	WDCR_SDRAM(SDRAM0_CFG,0x80800000)
+	WDCR_SDRAM(mem_mcopt1,0x80800000)
 
 ..sdri_done:
 	blr				/* Return to calling function */

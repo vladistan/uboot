@@ -3,7 +3,23 @@
  *
  * Copyright (C) 2007 Nobuhiro Iwamatsu <iwamatsu@nigauri.org>
  *
- * SPDX-License-Identifier:	GPL-2.0+
+ * See file CREDITS for list of people who contributed to this
+ * project.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation; either version 2 of
+ * the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
+ * MA 02111-1307 USA
  */
 
 #ifndef __MIGO_R_H
@@ -22,6 +38,7 @@
 #define CONFIG_CMD_NET
 #define CONFIG_CMD_PING
 #define CONFIG_CMD_NFS
+#define CONFIG_CMD_DFL
 #define CONFIG_CMD_SDRAM
 #define CONFIG_CMD_SAVEENV
 
@@ -33,7 +50,7 @@
 #undef  CONFIG_SHOW_BOOT_PROGRESS
 
 /* SMC9111 */
-#define CONFIG_SMC91111
+#define CONFIG_DRIVER_SMC91111
 #define CONFIG_SMC91111_BASE    (0xB0000000)
 
 /* MEMORY */
@@ -41,7 +58,6 @@
 #define MIGO_R_FLASH_BASE_1	(0xA0000000)
 #define MIGO_R_FLASH_BANK_SIZE	(64 * 1024 * 1024)
 
-#define CONFIG_SYS_TEXT_BASE	0x8FFC0000
 #define CONFIG_SYS_LONGHELP			/* undef to save memory	*/
 #define CONFIG_SYS_PROMPT		"=> "	/* Monitor Command Prompt */
 #define CONFIG_SYS_CBSIZE		256		/* Buffer size for input from the Console */
@@ -81,6 +97,8 @@
 #define CONFIG_SYS_MONITOR_LEN	(128 * 1024)
 /* Size of DRAM reserved for malloc() use */
 #define CONFIG_SYS_MALLOC_LEN	(256 * 1024)
+/* size in bytes reserved for initial data */
+#define CONFIG_SYS_GBL_DATA_SIZE	(256)
 #define CONFIG_SYS_BOOTMAPSZ	(8 * 1024 * 1024)
 
 /* FLASH */

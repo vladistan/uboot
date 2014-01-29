@@ -1,9 +1,24 @@
 /*
  * (C) Copyright 2004
  * Pierre Aubert, Staubli Faverges , <p.aubert@staubli.com>
- * Copyright 2011 Freescale Semiconductor, Inc.
  *
- * SPDX-License-Identifier:	GPL-2.0+ 
+ * See file CREDITS for list of people who contributed to this
+ * project.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation; either version 2 of
+ * the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	 See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
+ * MA 02111-1307 USA
  */
 
 /************************************************************************
@@ -58,8 +73,6 @@
 ****************************************************************************/
 
 #include <common.h>
-#include <linux/ctype.h>
-
 #include "videomodes.h"
 
 const struct ctfb_vesa_modes vesa_modes[VESA_MODES_COUNT] = {
@@ -143,18 +156,15 @@ video_search_param (char *start, char *param)
 int video_get_params (struct ctfb_res_modes *pPar, char *penv)
 {
 	char *p, *s, *val_s;
-	int i = 0;
+	int i = 0, t;
 	int bpp;
 	int mode;
-
 	/* first search for the environment containing the real param string */
 	s = penv;
-
-	if ((p = getenv (s)) != NULL)
+	if ((p = getenv (s)) != NULL) {
 		s = p;
-
-	/*
-	 * in case of the bootargs line, we have to start
+	}
+	/* in case of the bootargs line, we have to start
 	 * after "video=ctfb:"
 	 */
 	i = video_search_param (s, "video=ctfb:");
@@ -164,22 +174,19 @@ int video_get_params (struct ctfb_res_modes *pPar, char *penv)
 	}
 	/* search for mode as a default value */
 	p = s;
+	t = 0;
 	mode = 0;		/* default */
-
 	while ((i = video_get_param_len (p, ',')) != 0) {
 		GET_OPTION ("mode:", mode)
 			p += i;
 		if (*p != 0)
 			p++;	/* skip ',' */
 	}
-
 	if (mode >= RES_MODES_COUNT)
 		mode = 0;
-
 	*pPar = res_mode_init[mode];	/* copy default values */
 	bpp = 24 - ((mode % 3) * 8);
 	p = s;			/* restart */
-
 	while ((i = video_get_param_len (p, ',')) != 0) {
 		GET_OPTION ("x:", pPar->xres)
 			GET_OPTION ("y:", pPar->yres)
@@ -198,65 +205,4 @@ int video_get_params (struct ctfb_res_modes *pPar, char *penv)
 			p++;	/* skip ',' */
 	}
 	return bpp;
-}
-
-/*
- * Parse the 'video-mode' environment variable
- *
- * Example: "video-mode=fslfb:1280x1024-32@60,monitor=dvi".  See
- * doc/README.video for more information on how to set the variable.
- *
- * @xres: returned value of X-resolution
- * @yres: returned value of Y-resolution
- * @depth: returned value of color depth
- * @freq: returned value of monitor frequency
- * @options: pointer to any remaining options, or NULL
- *
- * Returns 1 if valid values were found, 0 otherwise
- */
-int video_get_video_mode(unsigned int *xres, unsigned int *yres,
-	unsigned int *depth, unsigned int *freq, const char **options)
-{
-	char *p = getenv("video-mode");
-	if (!p)
-		return 0;
-
-	/* Skip over the driver name, which we don't care about. */
-	p = strchr(p, ':');
-	if (!p)
-		return 0;
-
-	/* Get the X-resolution*/
-	while (*p && !isdigit(*p))
-		p++;
-	*xres = simple_strtoul(p, &p, 10);
-	if (!*xres)
-		return 0;
-
-	/* Get the Y-resolution */
-	while (*p && !isdigit(*p))
-		p++;
-	*yres = simple_strtoul(p, &p, 10);
-	if (!*yres)
-		return 0;
-
-	/* Get the depth */
-	while (*p && !isdigit(*p))
-		p++;
-	*depth = simple_strtoul(p, &p, 10);
-	if (!*depth)
-		return 0;
-
-	/* Get the frequency */
-	while (*p && !isdigit(*p))
-		p++;
-	*freq = simple_strtoul(p, &p, 10);
-	if (!*freq)
-		return 0;
-
-	/* Find the extra options, if any */
-	p = strchr(p, ',');
-	*options = p ? p + 1 : NULL;
-
-	return 1;
 }

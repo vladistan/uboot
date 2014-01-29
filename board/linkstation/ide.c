@@ -2,7 +2,24 @@
  * (C) Copyright 2000
  * Wolfgang Denk, DENX Software Engineering, wd@denx.de.
  *
- * SPDX-License-Identifier:	GPL-2.0+
+ * See file CREDITS for list of people who contributed to this
+ * project.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation; either version 2 of
+ * the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
+ * MA 02111-1307 USA
+ *
  */
 /* ide.c - ide support functions */
 
@@ -20,6 +37,7 @@
 #define IT8212_PCI_IdeBusSkewCONTROL	0x4c
 #define IT8212_PCI_IdeDrivingCURRENT	0x42
 
+extern ulong ide_bus_offset[CONFIG_SYS_IDE_MAXBUS];
 extern struct pci_controller hose;
 
 int ide_preinit (void)
@@ -36,24 +54,20 @@ int ide_preinit (void)
 	if (devbusfn == -1)
 		devbusfn = pci_find_device(PCI_VENDOR_ID_ITE,PCI_DEVICE_ID_ITE_8212,0);
 	if (devbusfn != -1) {
-		u32 ide_bus_offset32;
-
 		status = 0;
 
 		pci_read_config_dword (devbusfn, PCI_BASE_ADDRESS_0,
-							   &ide_bus_offset32);
-		ide_bus_offset[0] = ide_bus_offset32 & 0xfffffffe;
+							   (u32 *) &ide_bus_offset[0]);
+		ide_bus_offset[0] &= 0xfffffffe;
 		ide_bus_offset[0] = pci_hose_bus_to_phys(&hose,
-						ide_bus_offset[0] & 0xfffffffe,
-						PCI_REGION_IO);
-		if (CONFIG_SYS_IDE_MAXBUS > 1) {
-			pci_read_config_dword(devbusfn, PCI_BASE_ADDRESS_2,
-					      (u32 *) &ide_bus_offset[1]);
-			ide_bus_offset[1] &= 0xfffffffe;
-			ide_bus_offset[1] = pci_hose_bus_to_phys(&hose,
-						ide_bus_offset[1] & 0xfffffffe,
-						PCI_REGION_IO);
-		}
+							 ide_bus_offset[0] & 0xfffffffe,
+							 PCI_REGION_IO);
+		pci_read_config_dword(devbusfn, PCI_BASE_ADDRESS_2,
+				      (u32 *) &ide_bus_offset[1]);
+		ide_bus_offset[1] &= 0xfffffffe;
+		ide_bus_offset[1] = pci_hose_bus_to_phys(&hose,
+							 ide_bus_offset[1] & 0xfffffffe,
+							 PCI_REGION_IO);
 	}
 
 	if (pci_find_device (PCI_VENDOR_ID_ITE, PCI_DEVICE_ID_ITE_8212, 0) != -1) {

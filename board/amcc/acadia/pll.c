@@ -2,12 +2,28 @@
  * (C) Copyright 2007
  * Stefan Roese, DENX Software Engineering, sr@denx.de.
  *
- * SPDX-License-Identifier:	GPL-2.0+
+ * See file CREDITS for list of people who contributed to this
+ * project.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation; either version 2 of
+ * the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
+ * MA 02111-1307 USA
  */
 
 #include <common.h>
 #include <asm/processor.h>
-#include <asm/ppc405.h>
+#include <ppc405.h>
 
 /* test-only: move into cpu directory!!! */
 
@@ -35,11 +51,11 @@ void board_pll_init_f(void)
 	 */
 
 	/* Initialize PLL */
-	mtcpr(CPR0_PLLC, 0x0000033c);
-	mtcpr(CPR0_PLLD, 0x0c010200);
-	mtcpr(CPR0_PRIMAD, 0x04060c0c);
-	mtcpr(CPR0_PERD0, 0x000c0000);	/* SPI clk div. eq. OPB clk div. */
-	mtcpr(CPR0_CLKUPD, 0x40000000);
+	mtcpr(cprpllc, 0x0000033c);
+	mtcpr(cprplld, 0x0c010200);
+	mtcpr(cprprimad, 0x04060c0c);
+	mtcpr(cprperd0, 0x000c0000);	/* SPI clk div. eq. OPB clk div. */
+	mtcpr(cprclkupd, 0x40000000);
 }
 
 #elif defined(PLLMR0_266_160_80)
@@ -67,13 +83,13 @@ void board_pll_init_f(void)
 	 */
 
 	/* Initialize PLL */
-	mtcpr(CPR0_PLLC, 0x20000238);
-	mtcpr(CPR0_PLLD, 0x03010400);
-	mtcpr(CPR0_PRIMAD, 0x03050a0a);
-	mtcpr(CPR0_PERC0, 0x00000000);
-	mtcpr(CPR0_PERD0, 0x070a0707);	/* SPI clk div. eq. OPB clk div. */
-	mtcpr(CPR0_PERD1, 0x07323200);
-	mtcpr(CPR0_CLKUP, 0x40000000);
+	mtcpr(cprpllc, 0x20000238);
+	mtcpr(cprplld, 0x03010400);
+	mtcpr(cprprimad, 0x03050a0a);
+	mtcpr(cprperc0, 0x00000000);
+	mtcpr(cprperd0, 0x070a0707);	/* SPI clk div. eq. OPB clk div. */
+	mtcpr(cprperd1, 0x07323200);
+	mtcpr(cprclkupd, 0x40000000);
 }
 
 #elif defined(PLLMR0_333_166_83)
@@ -101,12 +117,12 @@ void board_pll_init_f(void)
 	 */
 
 	/* Initialize PLL */
-	mtcpr(CPR0_PLLC, 0x0000033C);
-	mtcpr(CPR0_PLLD, 0x0a010000);
-	mtcpr(CPR0_PRIMAD, 0x02040808);
-	mtcpr(CPR0_PERD0, 0x02080505);	/* SPI clk div. eq. OPB clk div. */
-	mtcpr(CPR0_PERD1, 0xA6A60300);
-	mtcpr(CPR0_CLKUP, 0x40000000);
+	mtcpr(cprpllc, 0x0000033C);
+	mtcpr(cprplld, 0x0a010000);
+	mtcpr(cprprimad, 0x02040808);
+	mtcpr(cprperd0, 0x02080505);	/* SPI clk div. eq. OPB clk div. */
+	mtcpr(cprperd1, 0xA6A60300);
+	mtcpr(cprclkupd, 0x40000000);
 }
 
 #elif defined(PLLMR0_100_100_12)
@@ -127,12 +143,12 @@ void board_pll_init_f(void)
 	 */
 
 	/* Initialize PLL */
-	mtcpr(CPR0_PLLC, 0x000003BC);
-	mtcpr(CPR0_PLLD, 0x06060600);
-	mtcpr(CPR0_PRIMAD, 0x02020004);
-	mtcpr(CPR0_PERD0, 0x04002828);	/* SPI clk div. eq. OPB clk div. */
-	mtcpr(CPR0_PERD1, 0xC8C81600);
-	mtcpr(CPR0_CLKUP, 0x40000000);
+	mtcpr(cprpllc, 0x000003BC);
+	mtcpr(cprplld, 0x06060600);
+	mtcpr(cprprimad, 0x02020004);
+	mtcpr(cprperd0, 0x04002828);	/* SPI clk div. eq. OPB clk div. */
+	mtcpr(cprperd1, 0xC8C81600);
+	mtcpr(cprclkupd, 0x40000000);
 }
 #endif				/* CPU_<speed>_405EZ */
 
@@ -151,12 +167,12 @@ unsigned long get_tbclk(void)
 	/*
 	 * Read PLL Mode registers
 	 */
-	mfcpr(CPR0_PLLD, cpr_plld);
+	mfcpr(cprplld, cpr_plld);
 
 	/*
 	 * Read CPR_PRIMAD register
 	 */
-	mfcpr(CPR0_PRIMAD, cpr_primad);
+	mfcpr(cprprimad, cpr_primad);
 
 	/*
 	 * Determine CPU clock frequency

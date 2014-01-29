@@ -7,14 +7,25 @@
  *
  * Ming-Len Wu <minglen_wu@techware.com.tw>
  *
- * SPDX-License-Identifier:	GPL-2.0+
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation; either version 2 of
+ * the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
+ * MA 02111-1307 USA
  */
 
 #include <common.h>
-#include <netdev.h>
 /*#include <mc9328.h>*/
 #include <asm/arch/imx-regs.h>
-#include <asm/io.h>
 
 DECLARE_GLOBAL_DATA_PTR;
 
@@ -66,8 +77,10 @@ void SetAsynchMode (void)
 
 static u32 mc9328sid;
 
-int board_early_init_f(void)
+int board_init (void)
 {
+	volatile unsigned int tmp;
+
 	mc9328sid = SIDR;
 
 	GPCR = 0x000003AB;	/* I/O pad driving strength     */
@@ -93,10 +106,14 @@ int board_early_init_f(void)
 	GIUS (0) &= 0xFF3FFFFF;
 	GPR (0) &= 0xFF3FFFFF;
 
-	readl(0x1500000C);
-	readl(0x1500000C);
+	tmp = *(unsigned int *) (0x1500000C);
+	tmp = *(unsigned int *) (0x1500000C);
 
 	SetAsynchMode ();
+
+	gd->bd->bi_arch_number = MACH_TYPE_MX1ADS;
+
+	gd->bd->bi_boot_params = 0x08000100;	/* adress of boot parameters    */
 
 	icache_enable ();
 	dcache_enable ();
@@ -112,15 +129,6 @@ int board_early_init_f(void)
 /*	MX1_INTTYPEH = 0;
 	MX1_INTTYPEL = 0;
 */
-	return 0;
-}
-
-int board_init(void)
-{
-	gd->bd->bi_arch_number = MACH_TYPE_MX1ADS;
-
-	gd->bd->bi_boot_params = 0x08000100;	/* adress of boot parameters */
-
 	return 0;
 }
 
@@ -152,27 +160,10 @@ int board_late_init (void)
 	return 0;
 }
 
-int dram_init(void)
-{
-	/* dram_init must store complete ramsize in gd->ram_size */
-	gd->ram_size = get_ram_size((void *)PHYS_SDRAM_1,
-				PHYS_SDRAM_1_SIZE);
-	return 0;
-}
-
-void dram_init_banksize(void)
+int dram_init (void)
 {
 	gd->bd->bi_dram[0].start = PHYS_SDRAM_1;
 	gd->bd->bi_dram[0].size = PHYS_SDRAM_1_SIZE;
-}
 
-#ifdef CONFIG_CMD_NET
-int board_eth_init(bd_t *bis)
-{
-	int rc = 0;
-#ifdef CONFIG_CS8900
-	rc = cs8900_initialize(0, CONFIG_CS8900_BASE);
-#endif
-	return rc;
+	return 0;
 }
-#endif

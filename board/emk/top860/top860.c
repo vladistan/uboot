@@ -12,13 +12,28 @@
  * - ethernet io initialisation
  *
  * -----------------------------------------------------------------
- * SPDX-License-Identifier:	GPL-2.0+ 
+ * See file CREDITS for list of people who contributed to this
+ * project.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation; either version 2 of
+ * the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	 See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
+ * MA 02111-1307 USA
  */
 
 #include <common.h>
 #include <commproc.h>
 #include <mpc8xx.h>
-#include <asm/io.h>
 
 /*****************************************************************************
  * UPM table for 60ns EDO RAM at 25 MHz bus/external clock
@@ -72,7 +87,7 @@ phys_size_t initdram (int board_type)
 	 */
 	if ((ulong) initdram & 0xff000000) {
 		volatile uint *addr1, *addr2;
-		uint i;
+		uint i, j;
 
 		upmconfig (UPMA, (uint *) edo_60ns_25MHz_tbl,
 			   sizeof (edo_60ns_25MHz_tbl) / sizeof (uint));
@@ -85,8 +100,8 @@ phys_size_t initdram (int board_type)
 		 */
 		addr1 = (volatile uint *) 0;
 		addr2 = (volatile uint *) 0x00400000;
-		for (i = 0; i < 8; i++)
-			in_be32(addr1);
+		for (i = 0, j = 0; i < 8; i++)
+			j = addr1[0];
 
 		/*
 		 * Now check whether we got 4MB or 16MB populated

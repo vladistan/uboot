@@ -2,7 +2,23 @@
  * (C) Copyright 2001
  * Wolfgang Denk, DENX Software Engineering, wd@denx.de.
  *
- * SPDX-License-Identifier:	GPL-2.0+ 
+ * See file CREDITS for list of people who contributed to this
+ * project.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation; either version 2 of
+ * the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	 See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
+ * MA 02111-1307 USA
  */
 
 
@@ -27,9 +43,6 @@
 #define MVBLUE_BOARD_BOX	1
 #define MVBLUE_BOARD_LYNX	2
 
-#define	CONFIG_SYS_TEXT_BASE	0xFFF00000
-#define CONFIG_SYS_LDSCRIPT	"board/mvblue/u-boot.lds"
-
 #if 0
 #define ERR_LED(code)	do { if (code) \
 		*(volatile char *)(0xff000003) = ( 3 | (code<<4) ) & 0xf3; \
@@ -50,6 +63,7 @@
 
 #define CONFIG_CONS_INDEX	1
 #define CONFIG_BAUDRATE		115200
+#define CONFIG_SYS_BAUDRATE_TABLE	{ 9600, 19200, 38400, 57600, 115200 }
 
 #define CONFIG_BOOTDELAY	3
 #define CONFIG_BOOT_RETRY_TIME	-1
@@ -74,6 +88,7 @@
 #define CONFIG_CMD_SAVEENV
 #define CONFIG_CMD_FLASH
 #define CONFIG_CMD_IMI
+#define CONFIG_CMD_IRQ
 #define CONFIG_CMD_NET
 #define CONFIG_CMD_PCI
 #define CONFIG_CMD_RUN
@@ -138,10 +153,10 @@
  */
 
 #define CONFIG_PCI
-#define CONFIG_PCI_INDIRECT_BRIDGE
 #define CONFIG_PCI_PNP
 #define CONFIG_PCI_SCAN_SHOW
 
+#define CONFIG_NET_MULTI
 #define CONFIG_NET_RETRY_COUNT		5
 
 #define CONFIG_TULIP
@@ -158,7 +173,7 @@
 #define CONFIG_SYS_SDRAM_BASE	    0x00000000
 
 #define CONFIG_SYS_FLASH_BASE      0xFFF00000
-#define CONFIG_SYS_MONITOR_BASE    CONFIG_SYS_TEXT_BASE
+#define CONFIG_SYS_MONITOR_BASE    TEXT_BASE
 
 #define CONFIG_SYS_RESET_ADDRESS   0xFFF00100
 #define CONFIG_SYS_EUMB_ADDR	    0xFC000000
@@ -198,8 +213,9 @@
  * Definitions for initial stack pointer and data area
  */
 #define CONFIG_SYS_INIT_RAM_ADDR     0x40000000
-#define CONFIG_SYS_INIT_RAM_SIZE      0x1000
-#define CONFIG_SYS_GBL_DATA_OFFSET   (CONFIG_SYS_INIT_RAM_SIZE - GENERATED_GBL_DATA_SIZE)
+#define CONFIG_SYS_INIT_RAM_END      0x1000
+#define CONFIG_SYS_GBL_DATA_SIZE     128
+#define CONFIG_SYS_GBL_DATA_OFFSET   (CONFIG_SYS_INIT_RAM_END - CONFIG_SYS_GBL_DATA_SIZE)
 
 /*
  * Low Level Configuration Settings
@@ -325,4 +341,13 @@
 #if defined(CONFIG_CMD_KGDB)
 #define CONFIG_SYS_CACHELINE_SHIFT	5	/* log base 2 of the above value	*/
 #endif
+
+/*
+ * Internal Definitions
+ *
+ * Boot Flags
+ */
+#define BOOTFLAG_COLD		0x01	/* Normal Power-On: Boot from FLASH	*/
+#define BOOTFLAG_WARM		0x02	/* Software reboot			*/
+
 #endif	/* __CONFIG_H */

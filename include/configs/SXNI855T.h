@@ -6,7 +6,24 @@
  *
  * Copyright (c) 2000-2002 Dave Ellis, SIXNET, dge@sixnetio.com
  *
- * SPDX-License-Identifier:	GPL-2.0+
+ * See file CREDITS for list of people who contributed to this
+ * project.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation; either version 2 of
+ * the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
+ * MA 02111-1307 USA
+ *
  */
 
 /*
@@ -46,8 +63,6 @@
 #define CONFIG_MPC860		1
 #define CONFIG_MPC860T		1
 #define CONFIG_MPC855T		1
-
-#define	CONFIG_SYS_TEXT_BASE	0xF8000000
 
 #define	CONFIG_8xx_CONS_SMC1	1	/* Console is on SMC1		*/
 #undef	CONFIG_8xx_CONS_SMC2
@@ -104,10 +119,7 @@
 
 #define	CONFIG_RTC_DS1306		/* Dallas 1306 real time clock	*/
 
-#define CONFIG_SYS_I2C
-#define CONFIG_SYS_I2C_SOFT		/* I2C bit-banged */
-#define CONFIG_SYS_I2C_SOFT_SPEED	50000
-#define CONFIG_SYS_I2C_SOFT_SLAVE	0xFE
+#define	CONFIG_SOFT_I2C			/* I2C bit-banged		*/
 /*
  * Software (bit-bang) I2C driver configuration
  */
@@ -124,6 +136,8 @@
 			else    immr->im_cpm.cp_pbdat &= ~PB_SCL
 #define I2C_DELAY	udelay(5)	/* 1/4 I2C clock duration */
 
+# define CONFIG_SYS_I2C_SPEED		50000
+# define CONFIG_SYS_I2C_SLAVE		0xFE
 # define CONFIG_SYS_I2C_EEPROM_ADDR	0x50	/* Atmel 24C64			*/
 # define CONFIG_SYS_I2C_EEPROM_ADDR_LEN 2	/* two byte address		*/
 
@@ -172,6 +186,8 @@
 
 #define	CONFIG_SYS_HZ		1000		/* decrementer freq: 1 ms ticks	*/
 
+#define CONFIG_SYS_BAUDRATE_TABLE	{ 9600, 19200, 38400, 57600, 115200 }
+
 /*
  * Low Level Configuration Settings
  * (address mappings, register initial values, etc.)
@@ -187,8 +203,9 @@
  * Definitions for initial stack pointer and data area (in DPRAM)
  */
 #define CONFIG_SYS_INIT_RAM_ADDR	CONFIG_SYS_IMMR
-#define	CONFIG_SYS_INIT_RAM_SIZE	0x2F00	/* Size of used area in DPRAM	*/
-#define CONFIG_SYS_GBL_DATA_OFFSET	(CONFIG_SYS_INIT_RAM_SIZE - GENERATED_GBL_DATA_SIZE)
+#define	CONFIG_SYS_INIT_RAM_END	0x2F00	/* End of used area in DPRAM	*/
+#define	CONFIG_SYS_GBL_DATA_SIZE	64  /* size in bytes reserved for initial data */
+#define CONFIG_SYS_GBL_DATA_OFFSET	(CONFIG_SYS_INIT_RAM_END - CONFIG_SYS_GBL_DATA_SIZE)
 #define	CONFIG_SYS_INIT_SP_OFFSET	CONFIG_SYS_GBL_DATA_OFFSET
 
 /*-----------------------------------------------------------------------
@@ -354,6 +371,13 @@
 #define DUART_BR_VALUE (BR_MS_UPMB | BR_PS_8 | BR_V)
 #define DUART_BR5_VALUE ((CONFIG_SYS_DUARTA_BASE & BR_BA_MSK ) | DUART_BR_VALUE)
 #define DUART_BR6_VALUE ((CONFIG_SYS_DUARTB_BASE & BR_BA_MSK ) | DUART_BR_VALUE)
+
+/**********************************************************
+ *
+ * Boot Flags
+ */
+#define	BOOTFLAG_COLD	0x01		/* Normal Power-On: Boot from FLASH	*/
+#define BOOTFLAG_WARM	0x02		/* Software reboot			*/
 
 #define CONFIG_RESET_ON_PANIC		/* reset if system panic() */
 

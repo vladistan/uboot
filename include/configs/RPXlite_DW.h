@@ -3,7 +3,23 @@
  * Wolfgang Denk, DENX Software Engineering, wd@denx.de.
  * Sam Song, IEMC. SHU, samsongshu@yahoo.com.cn
  *
- * SPDX-License-Identifier:	GPL-2.0+
+ * See file CREDITS for list of people who contributed to this
+ * project.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation; either version 2 of
+ * the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	 See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
+ * MA 02111-1307 USA
  */
 
 /*
@@ -35,10 +51,7 @@
 #define CONFIG_MPC823		1	/* This is a MPC823e CPU. */
 #define CONFIG_RPXLITE		1	/* RPXlite DW version board */
 
-#define	CONFIG_SYS_TEXT_BASE	0xff000000
-
 #ifdef	CONFIG_LCD			/* with LCD controller ?	*/
-#define CONFIG_MPC8XX_LCD
 #define CONFIG_SPLASH_SCREEN		/* ... with splashscreen support*/
 #endif
 
@@ -163,6 +176,7 @@
 #define CONFIG_SYS_LOAD_ADDR		0x100000	/* default load address */
 
 #define CONFIG_SYS_HZ		1000		/* decrementer freq: 1 ms ticks */
+#define CONFIG_SYS_BAUDRATE_TABLE	{ 9600, 19200, 38400, 57600, 115200 }
 
 /*
  * Low Level Configuration Settings
@@ -178,8 +192,9 @@
  * Definitions for initial stack pointer and data area (in DPRAM)
  */
 #define CONFIG_SYS_INIT_RAM_ADDR	CONFIG_SYS_IMMR
-#define CONFIG_SYS_INIT_RAM_SIZE	0x2F00		/* Size of used area in DPRAM	*/
-#define CONFIG_SYS_GBL_DATA_OFFSET	(CONFIG_SYS_INIT_RAM_SIZE - GENERATED_GBL_DATA_SIZE)
+#define CONFIG_SYS_INIT_RAM_END	0x2F00		/* End of used area in DPRAM	*/
+#define CONFIG_SYS_GBL_DATA_SIZE	64		/* size in bytes reserved for initial data */
+#define CONFIG_SYS_GBL_DATA_OFFSET	(CONFIG_SYS_INIT_RAM_END - CONFIG_SYS_GBL_DATA_SIZE)
 #define CONFIG_SYS_INIT_SP_OFFSET	CONFIG_SYS_GBL_DATA_OFFSET
 
 /*-----------------------------------------------------------------------
@@ -320,7 +335,6 @@
  * IDE/ATA stuff (Supports IDE harddisk on PCMCIA Adapter)
  *-----------------------------------------------------------------------
  */
-#define CONFIG_IDE_PREINIT	1	/* Use preinit IDE hook */
 #define CONFIG_IDE_8xx_PCCARD	1	/* Use IDE with PC Card Adapter */
 
 #undef	CONFIG_IDE_8xx_DIRECT		/* Direct IDE	 not supported	*/
@@ -400,6 +414,14 @@
 			MAMR_AMA_TYPE_1 | MAMR_DSA_1_CYCL | MAMR_G0CLA_A10)
 /* CONFIG_SYS_MAMR_9COL:0x20904000 @ 64MHz */
 
+/*
+ * Internal Definitions
+ *
+ * Boot Flags
+ */
+#define BOOTFLAG_COLD	0x01		/* Normal Power-On: Boot from FLASH	*/
+#define BOOTFLAG_WARM	0x02		/* Software reboot			*/
+
 /*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% */
 /* Configuration variable added by yooth. */
 /*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% */
@@ -457,8 +479,8 @@
 #define CONFIG_ETHADDR	00:10:EC:00:37:5B
 #define CONFIG_IPADDR	172.16.115.7
 #define CONFIG_SERVERIP 172.16.115.6
-#define CONFIG_ROOTPATH "/workspace/myfilesystem/target/"
-#define CONFIG_BOOTFILE "uImage.rpxusb"
+#define CONFIG_ROOTPATH /workspace/myfilesystem/target/
+#define CONFIG_BOOTFILE uImage.rpxusb
 #define CONFIG_HOSTNAME LITE_H1_DW
 
 #endif	/* __CONFIG_H */

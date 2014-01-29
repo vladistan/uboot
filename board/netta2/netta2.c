@@ -3,7 +3,23 @@
  * Pantelis Antoniou, Intracom S.A., panto@intracom.gr
  * Wolfgang Denk, DENX Software Engineering, wd@denx.de.
  *
- * SPDX-License-Identifier:	GPL-2.0+ 
+ * See file CREDITS for list of people who contributed to this
+ * project.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation; either version 2 of
+ * the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	 See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
+ * MA 02111-1307 USA
  */
 
 /*
@@ -470,13 +486,13 @@ void reset_phys(void)
 	mii_init();
 
 	for (phyno = 0; phyno < 32; ++phyno) {
-		fec8xx_miiphy_read(NULL, phyno, MII_PHYSID1, &v);
+		fec8xx_miiphy_read(NULL, phyno, PHY_PHYIDR1, &v);
 		if (v == 0xFFFF)
 			continue;
-		fec8xx_miiphy_write(NULL, phyno, MII_BMCR, BMCR_PDOWN);
+		fec8xx_miiphy_write(NULL, phyno, PHY_BMCR, PHY_BMCR_POWD);
 		udelay(10000);
-		fec8xx_miiphy_write(NULL, phyno, MII_BMCR,
-				BMCR_RESET | BMCR_ANENABLE);
+		fec8xx_miiphy_write(NULL, phyno, PHY_BMCR,
+				PHY_BMCR_RESET | PHY_BMCR_AUTON);
 		udelay(10000);
 	}
 }

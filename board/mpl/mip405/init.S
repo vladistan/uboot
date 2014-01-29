@@ -1,6 +1,26 @@
-/*
- * SPDX-License-Identifier:	GPL-2.0	IBM-pibs
- */
+/*------------------------------------------------------------------------------+
+ *      This source code is dual-licensed.  You may use it under the terms of
+ *      the GNU General Public License version 2, or under the license below.
+ *
+ *      This source code has been made available to you by IBM on an AS-IS
+ *      basis.  Anyone receiving this source is licensed under IBM
+ *      copyrights to use it in any way he or she deems fit, including
+ *      copying it, modifying it, compiling it, and redistributing it either
+ *      with or without modifications.  No license under IBM patents or
+ *      patent applications is to be implied by the copyright license.
+ *
+ *      Any user of this software should understand that IBM cannot provide
+ *      technical support for this software and will not be responsible for
+ *      any consequences resulting from the use of this software.
+ *
+ *      Any person who transfers this source code or any derivative work
+ *      must include the IBM copyright notice, this paragraph, and the
+ *      preceding two paragraphs in the transferred software.
+ *
+ *      COPYRIGHT   I B M   CORPORATION 1995
+ *      LICENSED MATERIAL  -  PROGRAM PROPERTY OF I B M
+ *-------------------------------------------------------------------------------*/
+
 /*-----------------------------------------------------------------------------
  * Function:     ext_bus_cntlr_init
  * Description:  Initializes the External Bus Controller for the external
@@ -19,6 +39,8 @@
  *	Bank 6 - not used
  *	Bank 7 - PLD Register
  *-----------------------------------------------------------------------------*/
+#include <ppc4xx.h>
+
 #define _LINUX_CONFIG_H 1	/* avoid reading Linux autoconf.h file	*/
 
 #include <configs/MIP405.h>
@@ -27,14 +49,13 @@
 
 #include <asm/cache.h>
 #include <asm/mmu.h>
-#include <asm/ppc4xx.h>
 #include "mip405.h"
 
 
   .globl ext_bus_cntlr_init
 ext_bus_cntlr_init:
   mflr   r4                      /* save link register */
-  mfdcr  r3,CPC0_PSR                /* get strapping reg */
+  mfdcr  r3,strap                /* get strapping reg */
   andi.  r0, r3, PSR_ROM_LOC     /* mask out irrelevant bits */
   bnelr                          /* jump back if PCI boot */
 
@@ -63,9 +84,9 @@ ext_bus_cntlr_init:
 	/*-----------------------------------------------------------------------
 	 * decide boot up mode
 	 *----------------------------------------------------------------------- */
-	addi		r4,0,PB0CR
-	mtdcr		EBC0_CFGADDR,r4
-	mfdcr		r4,EBC0_CFGDATA
+	addi		r4,0,pb0cr
+	mtdcr		ebccfga,r4
+	mfdcr		r4,ebccfgd
 
 	andi.		r0, r4, 0x2000			/* mask out irrelevant bits */
 	beq		0f				/* jump if 8 bit bus width */
@@ -75,18 +96,18 @@ ext_bus_cntlr_init:
    * Memory Bank 0 (16 Bit Flash) initialization
    *---------------------------------------------------------------------- */
 
-	addi    r4,0,PB1AP
-	mtdcr   EBC0_CFGADDR,r4
+	addi    r4,0,pb0ap
+	mtdcr   ebccfga,r4
 	addis   r4,0,(FLASH_AP_B)@h
 	ori     r4,r4,(FLASH_AP_B)@l
-	mtdcr   EBC0_CFGDATA,r4
+	mtdcr   ebccfgd,r4
 
-	addi    r4,0,PB0CR
-	mtdcr   EBC0_CFGADDR,r4
+	addi    r4,0,pb0cr
+	mtdcr   ebccfga,r4
 	/* BS=0x010(4MB),BU=0x3(R/W), */
 	addis   r4,0,(FLASH_CR_B)@h
 	ori     r4,r4,(FLASH_CR_B)@l
-	mtdcr   EBC0_CFGDATA,r4
+	mtdcr   ebccfgd,r4
 	b				1f
 
 0:
@@ -96,66 +117,66 @@ ext_bus_cntlr_init:
 	* Memory Bank 0 Multi Purpose Socket initialization
 	*----------------------------------------------------------------------- */
 	/* 0x7F8FFE80 slowest boot */
-	addi    r4,0,PB1AP
-	mtdcr   EBC0_CFGADDR,r4
+	addi    r4,0,pb0ap
+	mtdcr   ebccfga,r4
 	addis   r4,0,(MPS_AP_B)@h
 	ori     r4,r4,(MPS_AP_B)@l
-	mtdcr   EBC0_CFGDATA,r4
+	mtdcr   ebccfgd,r4
 
-	addi    r4,0,PB0CR
-	mtdcr   EBC0_CFGADDR,r4
+	addi    r4,0,pb0cr
+	mtdcr   ebccfga,r4
 	/* BS=0x010(4MB),BU=0x3(R/W), */
 	addis   r4,0,(MPS_CR_B)@h
 	ori     r4,r4,(MPS_CR_B)@l
 
-	mtdcr   EBC0_CFGDATA,r4
+	mtdcr   ebccfgd,r4
 
 
 1:
   /*-----------------------------------------------------------------------
    * Memory Bank 2-3-4-5-6 (not used) initialization
    *-----------------------------------------------------------------------*/
-  addi    r4,0,PB1CR
-  mtdcr   EBC0_CFGADDR,r4
+  addi    r4,0,pb1cr
+  mtdcr   ebccfga,r4
   addis   r4,0,0x0000
   ori     r4,r4,0x0000
-  mtdcr   EBC0_CFGDATA,r4
+  mtdcr   ebccfgd,r4
 
-  addi    r4,0,PB2CR
-  mtdcr   EBC0_CFGADDR,r4
+  addi    r4,0,pb2cr
+  mtdcr   ebccfga,r4
   addis   r4,0,0x0000
   ori     r4,r4,0x0000
-  mtdcr   EBC0_CFGDATA,r4
+  mtdcr   ebccfgd,r4
 
-  addi    r4,0,PB3CR
-  mtdcr   EBC0_CFGADDR,r4
+  addi    r4,0,pb3cr
+  mtdcr   ebccfga,r4
   addis   r4,0,0x0000
   ori     r4,r4,0x0000
-  mtdcr   EBC0_CFGDATA,r4
+  mtdcr   ebccfgd,r4
 
-  addi    r4,0,PB4CR
-  mtdcr   EBC0_CFGADDR,r4
+  addi    r4,0,pb4cr
+  mtdcr   ebccfga,r4
   addis   r4,0,0x0000
   ori     r4,r4,0x0000
-  mtdcr   EBC0_CFGDATA,r4
+  mtdcr   ebccfgd,r4
 
-  addi    r4,0,PB5CR
-  mtdcr   EBC0_CFGADDR,r4
+  addi    r4,0,pb5cr
+  mtdcr   ebccfga,r4
   addis   r4,0,0x0000
   ori     r4,r4,0x0000
-  mtdcr   EBC0_CFGDATA,r4
+  mtdcr   ebccfgd,r4
 
-  addi    r4,0,PB6CR
-  mtdcr   EBC0_CFGADDR,r4
+  addi    r4,0,pb6cr
+  mtdcr   ebccfga,r4
   addis   r4,0,0x0000
   ori     r4,r4,0x0000
-  mtdcr   EBC0_CFGDATA,r4
+  mtdcr   ebccfgd,r4
 
-  addi    r4,0,PB7CR
-  mtdcr   EBC0_CFGADDR,r4
+  addi    r4,0,pb7cr
+  mtdcr   ebccfga,r4
   addis   r4,0,0x0000
   ori     r4,r4,0x0000
-  mtdcr   EBC0_CFGDATA,r4
+  mtdcr   ebccfgd,r4
   nop				/* pass2 DCR errata #8 */
   blr
 

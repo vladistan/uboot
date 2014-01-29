@@ -8,7 +8,10 @@
  *
  * Copyright 2002 Etinsys Inc.
  *
- * SPDX-License-Identifier:	GPL-2.0+
+ * This program is free software; you can redistribute  it and/or modify it
+ * under  the terms of  the GNU General  Public License as published by the
+ * Free Software Foundation;  either version 2 of the  License, or (at your
+ * option) any later version.
  */
 
 #include <common.h>
@@ -154,6 +157,16 @@ void rtc_reset(void)
 		if (( reg_c & RTC_CC_BATTERY_FLAG ) == 0 )
 			printf( "RTC battery low. Clock setting may not be reliable.\n");
 	}
+}
+
+inline unsigned bcd2bin (uchar n)
+{
+	return ((((n >> 4) & 0x0F) * 10) + (n & 0x0F));
+}
+
+inline unsigned char bin2bcd (unsigned int n)
+{
+	return (((n / 10) << 4) | (n % 10));
 }
 
 static int get_century_flag(void)

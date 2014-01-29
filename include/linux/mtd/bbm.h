@@ -10,7 +10,9 @@
  *  Copyright (c) 2000-2005
  *  Thomas Gleixner <tglx@linuxtronix.de>
  *
- * SPDX-License-Identifier:	GPL-2.0+
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 2 as
+ * published by the Free Software Foundation.
  */
 #ifndef __LINUX_MTD_BBM_H
 #define __LINUX_MTD_BBM_H
@@ -68,53 +70,24 @@ struct nand_bbt_descr {
 #define NAND_BBT_LASTBLOCK	0x00000010
 /* The bbt is at the given page, else we must scan for the bbt */
 #define NAND_BBT_ABSPAGE	0x00000020
+/* The bbt is at the given page, else we must scan for the bbt */
+#define NAND_BBT_SEARCH		0x00000040
 /* bbt is stored per chip on multichip devices */
 #define NAND_BBT_PERCHIP	0x00000080
 /* bbt has a version counter at offset veroffs */
 #define NAND_BBT_VERSION	0x00000100
-/* Create a bbt if none exists */
+/* Create a bbt if none axists */
 #define NAND_BBT_CREATE		0x00000200
-/*
- * Create an empty BBT with no vendor information. Vendor's information may be
- * unavailable, for example, if the NAND controller has a different data and OOB
- * layout or if this information is already purged. Must be used in conjunction
- * with NAND_BBT_CREATE.
- */
-#define NAND_BBT_CREATE_EMPTY	0x00000400
 /* Search good / bad pattern through all pages of a block */
-#define NAND_BBT_SCANALLPAGES	0x00000800
+#define NAND_BBT_SCANALLPAGES	0x00000400
 /* Scan block empty during good / bad block scan */
-#define NAND_BBT_SCANEMPTY	0x00001000
+#define NAND_BBT_SCANEMPTY	0x00000800
 /* Write bbt if neccecary */
-#define NAND_BBT_WRITE		0x00002000
+#define NAND_BBT_WRITE		0x00001000
 /* Read and write back block contents when writing bbt */
-#define NAND_BBT_SAVECONTENT	0x00004000
+#define NAND_BBT_SAVECONTENT	0x00002000
 /* Search good / bad pattern on the first and the second page */
-#define NAND_BBT_SCAN2NDPAGE	0x00008000
-/* Search good / bad pattern on the last page of the eraseblock */
-#define NAND_BBT_SCANLASTPAGE	0x00010000
-/*
- * Use a flash based bad block table. By default, OOB identifier is saved in
- * OOB area. This option is passed to the default bad block table function.
- */
-#define NAND_BBT_USE_FLASH	0x00020000
-/*
- * Do not store flash based bad block table marker in the OOB area; store it
- * in-band.
- */
-#define NAND_BBT_NO_OOB		0x00040000
-/*
- * Do not write new bad block markers to OOB; useful, e.g., when ECC covers
- * entire spare area. Must be used with NAND_BBT_USE_FLASH.
- */
-#define NAND_BBT_NO_OOB_BBM	0x00080000
-
-/*
- * Flag set by nand_create_default_bbt_descr(), marking that the nand_bbt_descr
- * was allocated dynamicaly and must be freed in nand_release(). Has no meaning
- * in nand_chip.bbt_options.
- */
-#define NAND_BBT_DYNAMICSTRUCT	0x80000000
+#define NAND_BBT_SCAN2NDPAGE	0x00004000
 
 /* The maximum number of blocks to scan for a bbt */
 #define NAND_BBT_SCAN_MAXBLOCKS	4

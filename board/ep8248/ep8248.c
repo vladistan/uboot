@@ -5,7 +5,23 @@
  * Support for Embedded Planet EP8248 boards.
  * Tested on EP8248E.
  *
- * SPDX-License-Identifier:	GPL-2.0+
+ * See file CREDITS for list of people who contributed to this
+ * project.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation; either version 2 of
+ * the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
+ * MA 02111-1307 USA
  */
 
 #include <common.h>
@@ -19,8 +35,8 @@
  * according to the five values podr/pdir/ppar/psor/pdat for that entry
  */
 
-#define CONFIG_SYS_FCC1 (CONFIG_ETHER_ON_FCC1 == 1)
-#define CONFIG_SYS_FCC2 (CONFIG_ETHER_ON_FCC2 == 1)
+#define CONFIG_SYS_FCC1 (CONFIG_ETHER_INDEX == 1)
+#define CONFIG_SYS_FCC2 (CONFIG_ETHER_INDEX == 2)
 
 const iop_conf_t iop_conf_tab[4][32] = {
 
@@ -245,10 +261,3 @@ int checkboard(void)
 
 	return 0;
 }
-
-#if defined(CONFIG_OF_BOARD_SETUP) && defined(CONFIG_OF_LIBFDT)
-void ft_board_setup(void *blob, bd_t *bd)
-{
-	ft_cpu_setup( blob, bd);
-}
-#endif /* defined(CONFIG_OF_BOARD_SETUP) && defined(CONFIG_OF_LIBFDT) */

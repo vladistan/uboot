@@ -2,7 +2,23 @@
  * (C) Copyright 2000
  * Wolfgang Denk, DENX Software Engineering, wd@denx.de.
  *
- * SPDX-License-Identifier:	GPL-2.0+
+ * See file CREDITS for list of people who contributed to this
+ * project.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation; either version 2 of
+ * the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
+ * MA 02111-1307 USA
  *
  * hacked for Hymod FPGA support by Murray.Jensen@csiro.au, 29-Jan-01
  */
@@ -59,14 +75,14 @@ DECLARE_GLOBAL_DATA_PTR;
  */
 
 int
-fpga_load(int mezz, const uchar *addr, ulong size)
+fpga_load (int mezz, uchar *addr, ulong size)
 {
 	hymod_conf_t *cp = &gd->bd->bi_hymod_conf;
 	xlx_info_t *fp;
 	xlx_iopins_t *fpgaio;
 	volatile uchar *fpgabase;
 	volatile uint cnt;
-	const uchar *eaddr = addr + size;
+	uchar *eaddr = addr + size;
 	int result;
 
 	if (mezz)
@@ -125,7 +141,7 @@ fpga_load(int mezz, const uchar *addr, ulong size)
 
 /* ------------------------------------------------------------------------- */
 int
-do_fpga (cmd_tbl_t * cmdtp, int flag, int argc, char * const argv[])
+do_fpga (cmd_tbl_t * cmdtp, int flag, int argc, char *argv[])
 {
 	uchar *addr, *save_addr;
 	ulong size;
@@ -184,7 +200,7 @@ do_fpga (cmd_tbl_t * cmdtp, int flag, int argc, char * const argv[])
 			load_addr = simple_strtoul (argv[3], NULL, 16);
 			NetBootFileXferSize = 0;
 
-			if (NetLoop(TFTPGET) <= 0) {
+			if (NetLoop (TFTP) <= 0) {
 				printf ("tftp transfer failed - aborting "
 					"fgpa load\n");
 				return 1;
@@ -256,7 +272,8 @@ do_fpga (cmd_tbl_t * cmdtp, int flag, int argc, char * const argv[])
 		break;
 	}
 
-	return cmd_usage(cmdtp);
+	cmd_usage(cmdtp);
+	return 1;
 }
 U_BOOT_CMD(
 	fpga,	6,	1,	do_fpga,
@@ -284,7 +301,7 @@ U_BOOT_CMD(
 );
 /* ------------------------------------------------------------------------- */
 int
-do_eecl (cmd_tbl_t * cmdtp, int flag, int argc, char * const argv[])
+do_eecl (cmd_tbl_t * cmdtp, int flag, int argc, char *argv[])
 {
 	uchar data[HYMOD_EEPROM_SIZE];
 	uint addr = CONFIG_SYS_I2C_EEPROM_ADDR;
@@ -307,7 +324,8 @@ do_eecl (cmd_tbl_t * cmdtp, int flag, int argc, char * const argv[])
 		/* fall through ... */
 
 	default:
-		return cmd_usage(cmdtp);
+		cmd_usage(cmdtp);
+		return 1;
 	}
 
 	memset (data, 0, HYMOD_EEPROM_SIZE);
@@ -328,7 +346,7 @@ U_BOOT_CMD(
 /* ------------------------------------------------------------------------- */
 
 int
-do_htest (cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
+do_htest (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 {
 #if 0
 	int rc;

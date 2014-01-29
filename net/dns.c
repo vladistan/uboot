@@ -25,7 +25,6 @@
 #include <common.h>
 #include <command.h>
 #include <net.h>
-#include <asm/unaligned.h>
 
 #include "dns.h"
 
@@ -45,7 +44,7 @@ DnsSend(void)
 	enum dns_query_type qtype = DNS_A_RECORD;
 
 	name = NetDNSResolve;
-	pkt = p = (uchar *)(NetTxPacket + NetEthHdrSize() + IP_UDP_HDR_SIZE);
+	pkt = p = (uchar *)(NetTxPacket + NetEthHdrSize() + IP_HDR_SIZE);
 
 	/* Prepare DNS packet header */
 	header           = (struct header *) pkt;
@@ -98,11 +97,11 @@ static void
 DnsTimeout(void)
 {
 	puts("Timeout\n");
-	net_set_state(NETLOOP_FAIL);
+	NetState = NETLOOP_FAIL;
 }
 
 static void
-DnsHandler(uchar *pkt, unsigned dest, IPaddr_t sip, unsigned src, unsigned len)
+DnsHandler(uchar *pkt, unsigned dest, unsigned src, unsigned len)
 {
 	struct header *header;
 	const unsigned char *p, *e, *s;
@@ -110,6 +109,7 @@ DnsHandler(uchar *pkt, unsigned dest, IPaddr_t sip, unsigned src, unsigned len)
 	int found, stop, dlen;
 	char IPStr[22];
 	IPaddr_t IPAddress;
+	short tmp;
 
 
 	debug("%s\n", __func__);
@@ -120,15 +120,15 @@ DnsHandler(uchar *pkt, unsigned dest, IPaddr_t sip, unsigned src, unsigned len)
 		debug("0x%p - 0x%.2x  0x%.2x  0x%.2x  0x%.2x\n",
 			pkt+i, pkt[i], pkt[i+1], pkt[i+2], pkt[i+3]);
 
-	/* We sent one query. We want to have a single answer: */
+	/* We sent 1 query. We want to see more that 1 answer. */
 	header = (struct header *) pkt;
 	if (ntohs(header->nqueries) != 1)
 		return;
 
 	/* Received 0 answers */
 	if (header->nanswers == 0) {
-		puts("DNS: host not found\n");
-		net_set_state(NETLOOP_SUCCESS);
+		puts("DNS server returned no answers\n");
+		NetState = NETLOOP_SUCCESS;
 		return;
 	}
 
@@ -139,9 +139,10 @@ DnsHandler(uchar *pkt, unsigned dest, IPaddr_t sip, unsigned src, unsigned len)
 		continue;
 
 	/* We sent query class 1, query type 1 */
-	if (&p[5] > e || get_unaligned_be16(p+1) != DNS_A_RECORD) {
-		puts("DNS: response was not an A record\n");
-		net_set_state(NETLOOP_SUCCESS);
+	tmp = p[1] | (p[2] << 8);
+	if (&p[5] > e || ntohs(tmp) != DNS_A_RECORD) {
+		puts("DNS response was not A record\n");
+		NetState = NETLOOP_SUCCESS;
 		return;
 	}
 
@@ -159,12 +160,14 @@ DnsHandler(uchar *pkt, unsigned dest, IPaddr_t sip, unsigned src, unsigned len)
 		}
 		debug("Name (Offset in header): %d\n", p[1]);
 
-		type = get_unaligned_be16(p+2);
+		tmp = p[2] | (p[3] << 8);
+		type = ntohs(tmp);
 		debug("type = %d\n", type);
 		if (type == DNS_CNAME_RECORD) {
 			/* CNAME answer. shift to the next section */
 			debug("Found canonical name\n");
-			dlen = get_unaligned_be16(p+10);
+			tmp = p[10] | (p[11] << 8);
+			dlen = ntohs(tmp);
 			debug("dlen = %d\n", dlen);
 			p += 12 + dlen;
 		} else if (type == DNS_A_RECORD) {
@@ -178,7 +181,8 @@ DnsHandler(uchar *pkt, unsigned dest, IPaddr_t sip, unsigned src, unsigned len)
 
 	if (found && &p[12] < e) {
 
-		dlen = get_unaligned_be16(p+10);
+		tmp = p[10] | (p[11] << 8);
+		dlen = ntohs(tmp);
 		p += 12;
 		memcpy(&IPAddress, p, 4);
 
@@ -191,7 +195,7 @@ DnsHandler(uchar *pkt, unsigned dest, IPaddr_t sip, unsigned src, unsigned len)
 			puts("server responded with invalid IP number\n");
 	}
 
-	net_set_state(NETLOOP_SUCCESS);
+	NetState = NETLOOP_SUCCESS;
 }
 
 void
@@ -200,7 +204,7 @@ DnsStart(void)
 	debug("%s\n", __func__);
 
 	NetSetTimeout(DNS_TIMEOUT, DnsTimeout);
-	net_set_udp_handler(DnsHandler);
+	NetSetHandler(DnsHandler);
 
 	DnsSend();
 }

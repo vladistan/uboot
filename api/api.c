@@ -3,7 +3,24 @@
  *
  * Written by: Rafal Jaworowski <raj@semihalf.com>
  *
- * SPDX-License-Identifier:	GPL-2.0+
+ * See file CREDITS for list of people who contributed to this
+ * project.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation; either version 2 of
+ * the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
+ * MA 02111-1307 USA
+ *
  */
 
 #include <config.h>
@@ -18,6 +35,9 @@
 
 #define DEBUG
 #undef DEBUG
+
+/* U-Boot routines needed */
+extern int do_reset (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[]);
 
 /*****************************************************************************
  *
@@ -536,50 +556,6 @@ static int API_env_enum(va_list ap)
 	return 0;
 }
 
-/*
- * pseudo signature:
- *
- * int API_display_get_info(int type, struct display_info *di)
- */
-static int API_display_get_info(va_list ap)
-{
-	int type;
-	struct display_info *di;
-
-	type = va_arg(ap, int);
-	di = va_arg(ap, struct display_info *);
-
-	return display_get_info(type, di);
-}
-
-/*
- * pseudo signature:
- *
- * int API_display_draw_bitmap(ulong bitmap, int x, int y)
- */
-static int API_display_draw_bitmap(va_list ap)
-{
-	ulong bitmap;
-	int x, y;
-
-	bitmap = va_arg(ap, ulong);
-	x = va_arg(ap, int);
-	y = va_arg(ap, int);
-
-	return display_draw_bitmap(bitmap, x, y);
-}
-
-/*
- * pseudo signature:
- *
- * void API_display_clear(void)
- */
-static int API_display_clear(va_list ap)
-{
-	display_clear();
-	return 0;
-}
-
 static cfp_t calls_table[API_MAXCALL] = { NULL, };
 
 /*
@@ -643,9 +619,6 @@ void api_init(void)
 	calls_table[API_ENV_GET] = &API_env_get;
 	calls_table[API_ENV_SET] = &API_env_set;
 	calls_table[API_ENV_ENUM] = &API_env_enum;
-	calls_table[API_DISPLAY_GET_INFO] = &API_display_get_info;
-	calls_table[API_DISPLAY_DRAW_BITMAP] = &API_display_draw_bitmap;
-	calls_table[API_DISPLAY_CLEAR] = &API_display_clear;
 	calls_no = API_MAXCALL;
 
 	debugf("API initialized with %d calls\n", calls_no);

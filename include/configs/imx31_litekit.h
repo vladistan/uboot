@@ -6,25 +6,38 @@
  *
  * Configuration settings for the LogicPD i.MX31 Litekit board.
  *
- * SPDX-License-Identifier:	GPL-2.0+ 
+ * See file CREDITS for list of people who contributed to this
+ * project.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation; either version 2 of
+ * the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	 See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
+ * MA 02111-1307 USA
  */
 
 #ifndef __CONFIG_H
 #define __CONFIG_H
 
-#include <asm/arch/imx-regs.h>
+#include <asm/arch/mx31-regs.h>
 
  /* High Level Configuration Options */
 #define CONFIG_ARM1136		1    /* This is an arm1136 CPU core */
 #define CONFIG_MX31		1    /* in a mx31 */
+#define CONFIG_MX31_HCLK_FREQ	26000000
 #define CONFIG_MX31_CLK32	32000
 
 #define CONFIG_DISPLAY_CPUINFO
 #define CONFIG_DISPLAY_BOARDINFO
-
-#define CONFIG_SYS_TEXT_BASE	0xa0000000
-
-#define CONFIG_MACH_TYPE	MACH_TYPE_MX31LITE
 
 /* Temporarily disabled */
 #if 0
@@ -41,35 +54,30 @@
  * Size of malloc() pool
  */
 #define CONFIG_SYS_MALLOC_LEN		(CONFIG_ENV_SIZE + 128 * 1024)
+#define CONFIG_SYS_GBL_DATA_SIZE	128  /* size in bytes reserved for initial data */
 
 /*
  * Hardware drivers
  */
 
-#define CONFIG_MXC_UART
-#define CONFIG_MXC_UART_BASE	UART1_BASE
-#define CONFIG_MXC_GPIO
+#define CONFIG_MXC_UART	1
+#define CONFIG_SYS_MX31_UART1		1
 
 #define CONFIG_HARD_SPI		1
 #define CONFIG_MXC_SPI		1
 #define CONFIG_DEFAULT_SPI_BUS	1
-#define CONFIG_DEFAULT_SPI_MODE	(SPI_MODE_0 | SPI_CS_HIGH)
+#define CONFIG_DEFAULT_SPI_MODE	(SPI_MODE_2 | SPI_CS_HIGH)
 
-/* PMIC Controller */
-#define CONFIG_POWER
-#define CONFIG_POWER_SPI
-#define CONFIG_POWER_FSL
-#define CONFIG_FSL_PMIC_BUS	1
-#define CONFIG_FSL_PMIC_CS	0
-#define CONFIG_FSL_PMIC_CLK	1000000
-#define CONFIG_FSL_PMIC_MODE	(SPI_MODE_0 | SPI_CS_HIGH)
-#define CONFIG_FSL_PMIC_BITLEN	32
-#define CONFIG_RTC_MC13XXX
+#define CONFIG_RTC_MC13783	1
+/* MC13783 connected to CSPI2 and SS0 */
+#define CONFIG_MC13783_SPI_BUS	1
+#define CONFIG_MC13783_SPI_CS	0
 
 /* allow to overwrite serial and ethaddr */
 #define CONFIG_ENV_OVERWRITE
 #define CONFIG_CONS_INDEX	1
 #define CONFIG_BAUDRATE		115200
+#define CONFIG_SYS_BAUDRATE_TABLE	{9600, 19200, 38400, 57600, 115200}
 
 /***********************************************************
  * Command definition
@@ -81,7 +89,6 @@
 #define CONFIG_CMD_PING
 #define CONFIG_CMD_SPI
 #define CONFIG_CMD_DATE
-#define CONFIG_CMD_NAND
 
 #define CONFIG_BOOTDELAY	3
 
@@ -97,6 +104,7 @@
 	"prg_uboot=tftpboot 0x80000000 u-boot-imx31_litekit.bin; protect off all; erase 0xa00d0000 0xa01effff; cp.b 0x80000000 0xa00d0000 $(filesize)\0"
 
 
+#define CONFIG_NET_MULTI
 #define CONFIG_SMC911X		1
 #define CONFIG_SMC911X_BASE	(CS4_BASE + 0x00020000)
 #define CONFIG_SMC911X_32_BIT	1
@@ -122,18 +130,18 @@
 #define CONFIG_CMDLINE_EDITING	1
 
 /*-----------------------------------------------------------------------
+ * Stack sizes
+ *
+ * The stack sizes are set up in start.S using the settings below
+ */
+#define CONFIG_STACKSIZE	(128 * 1024) /* regular stack */
+
+/*-----------------------------------------------------------------------
  * Physical Memory Map
  */
 #define CONFIG_NR_DRAM_BANKS	1
 #define PHYS_SDRAM_1		CSD0_BASE
 #define PHYS_SDRAM_1_SIZE	(128 * 1024 * 1024)
-#define CONFIG_BOARD_EARLY_INIT_F
-
-#define CONFIG_SYS_SDRAM_BASE		PHYS_SDRAM_1
-#define CONFIG_SYS_INIT_RAM_ADDR	IRAM_BASE_ADDR
-#define CONFIG_SYS_INIT_RAM_SIZE		IRAM_SIZE
-#define CONFIG_SYS_GBL_DATA_OFFSET	(CONFIG_SYS_INIT_RAM_SIZE - GENERATED_GBL_DATA_SIZE)
-#define CONFIG_SYS_INIT_SP_ADDR		(CONFIG_SYS_INIT_RAM_ADDR + CONFIG_SYS_GBL_DATA_OFFSET)
 
 /*-----------------------------------------------------------------------
  * FLASH and environment organization
@@ -165,14 +173,5 @@
  */
 #undef CONFIG_CMD_MTDPARTS
 #define CONFIG_JFFS2_DEV	"nor0"
-
-/*
- * NAND flash
- */
-#define CONFIG_NAND_MXC
-#define CONFIG_MXC_NAND_REGS_BASE	NFC_BASE_ADDR
-#define CONFIG_SYS_MAX_NAND_DEVICE	1
-#define CONFIG_SYS_NAND_BASE		NFC_BASE_ADDR
-#define CONFIG_MXC_NAND_HWECC
 
 #endif /* __CONFIG_H */

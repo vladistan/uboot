@@ -20,25 +20,29 @@ static void
 i2c_init(int speed, int slaveaddr)
 {
 	unsigned int n, m, freq, margin, power;
-	unsigned int actualn = 0, actualm = 0;
+	unsigned int actualFreq, actualN=0, actualM=0;
 	unsigned int control, status;
-	unsigned int minmargin = 0xffffffff;
+	unsigned int minMargin = 0xffffffff;
 	unsigned int tclk = 125000000;
 
 	DP(puts("i2c_init\n"));
 
-	for (n = 0 ; n < 8 ; n++) {
-		for (m = 0 ; m < 16 ; m++) {
-			power = 2 << n; /* power = 2^(n+1) */
-			freq = tclk / (10 * (m + 1) * power);
+	for(n = 0 ; n < 8 ; n++)
+	{
+		for(m = 0 ; m < 16 ; m++)
+		{
+			power = 2<<n; /* power = 2^(n+1) */
+			freq = tclk/(10*(m+1)*power);
 			if (speed > freq)
 				margin = speed - freq;
 			else
 				margin = freq - speed;
-			if (margin < minmargin) {
-				minmargin   = margin;
-				actualn	    = n;
-				actualm	    = m;
+			if(margin < minMargin)
+			{
+				minMargin   = margin;
+				actualFreq  = freq;
+				actualN	    = n;
+				actualM	    = m;
 			}
 		}
 	}
@@ -55,7 +59,7 @@ i2c_init(int speed, int slaveaddr)
 
 	DP(puts("set baudrate\n"));
 
-	GT_REG_WRITE(I2C_STATUS_BAUDE_RATE, (actualm << 3) | actualn);
+	GT_REG_WRITE(I2C_STATUS_BAUDE_RATE, (actualM << 3) | actualN);
 	GT_REG_WRITE(I2C_CONTROL, (0x1 << 2) | (0x1 << 6));
 
 	udelay(I2C_DELAY * 10);
@@ -87,13 +91,13 @@ i2c_start(void)
 		udelay(I2C_DELAY);
 		if (count > 20) {
 			GT_REG_WRITE(I2C_CONTROL, (0x1 << 4)); /*stop*/
-			return status;
+			return (status);
 		}
 		GT_REG_READ(I2C_STATUS_BAUDE_RATE, &status);
 		count++;
 	}
 
-	return 0;
+	return (0);
 }
 
 static uchar
@@ -106,8 +110,9 @@ i2c_select_device(uchar dev_addr, uchar read, int ten_bit)
 
 	/* Output slave address */
 
-	if (ten_bit)
+	if (ten_bit) {
 		bits = 10;
+	}
 
 	data = (dev_addr << 1);
 	/* set the read bit */
@@ -124,7 +129,7 @@ i2c_select_device(uchar dev_addr, uchar read, int ten_bit)
 		udelay(I2C_DELAY);
 		if (count > 20) {
 			GT_REG_WRITE(I2C_CONTROL, (0x1 << 4)); /*stop*/
-			return status;
+			return(status);
 		}
 		GT_REG_READ(I2C_STATUS_BAUDE_RATE, &status);
 		count++;
@@ -132,14 +137,14 @@ i2c_select_device(uchar dev_addr, uchar read, int ten_bit)
 
 	if (bits == 10) {
 		printf("10 bit I2C addressing not yet implemented\n");
-		return 0xff;
+		return (0xff);
 	}
 
-	return 0;
+	return (0);
 }
 
 static uchar
-i2c_get_data(uchar *return_data, int len) {
+i2c_get_data(uchar* return_data, int len) {
 
 	unsigned int data, status = 0;
 	int count = 0;
@@ -158,7 +163,7 @@ i2c_get_data(uchar *return_data, int len) {
 		count++;
 		while ((status & 0xff) != 0x50) {
 			udelay(I2C_DELAY);
-			if (count > 2) {
+			if(count > 2) {
 				GT_REG_WRITE(I2C_CONTROL, (0x1 << 4)); /*stop*/
 				return 0;
 			}
@@ -173,16 +178,16 @@ i2c_get_data(uchar *return_data, int len) {
 	RESET_REG_BITS(I2C_CONTROL, BIT2|BIT3);
 	while ((status & 0xff) != 0x58) {
 		udelay(I2C_DELAY);
-		if (count > 200) {
+		if(count > 200) {
 			GT_REG_WRITE(I2C_CONTROL, (0x1 << 4)); /*stop*/
-			return status;
+			return (status);
 		}
 		GT_REG_READ(I2C_STATUS_BAUDE_RATE, &status);
 		count++;
 	}
 	GT_REG_WRITE(I2C_CONTROL, (0x1 << 4)); /* stop */
 
-	return 0;
+	return (0);
 }
 
 static uchar
@@ -208,9 +213,9 @@ i2c_write_data(unsigned int data, int len)
 		count++;
 		while ((status & 0xff) != 0x28) {
 			udelay(I2C_DELAY);
-			if (count > 20) {
+			if(count > 20) {
 				GT_REG_WRITE(I2C_CONTROL, (0x1 << 4)); /*stop*/
-				return status;
+				return (status);
 			}
 			GT_REG_READ(I2C_STATUS_BAUDE_RATE, &status);
 			count++;
@@ -222,7 +227,7 @@ i2c_write_data(unsigned int data, int len)
 
 	udelay(I2C_DELAY * 10);
 
-	return 0;
+	return (0);
 }
 
 static uchar
@@ -249,19 +254,19 @@ i2c_set_dev_offset(uchar dev_addr, unsigned int offset, int ten_bit)
 		return status;
 	}
 
-	return 0;
+	return (0);
 }
 
 uchar
-i2c_read(uchar dev_addr, unsigned int offset, int len, uchar *data,
+i2c_read(uchar dev_addr, unsigned int offset, int len, uchar* data,
 	 int ten_bit)
 {
 	uchar status = 0;
-	unsigned int i2cfreq = 400000;
+	unsigned int i2cFreq = 400000;
 
 	DP(puts("i2c_read\n"));
 
-	i2c_init(i2cfreq, 0);
+	i2c_init(i2cFreq,0);
 
 	status = i2c_start();
 
@@ -280,7 +285,7 @@ i2c_read(uchar dev_addr, unsigned int offset, int len, uchar *data,
 		return status;
 	}
 
-	i2c_init(i2cfreq, 0);
+	i2c_init(i2cFreq,0);
 
 	status = i2c_start();
 	if (status) {
@@ -301,7 +306,7 @@ i2c_read(uchar dev_addr, unsigned int offset, int len, uchar *data,
 	status = i2c_get_data(data, len);
 	if (status) {
 #ifdef DEBUG_I2C
-		printf("Data not received: 0x%02x\n", status);
+		printf("Data not recieved: 0x%02x\n", status);
 #endif
 		return status;
 	}

@@ -2,7 +2,23 @@
  * (C) Copyright 2004, Psyent Corporation <www.psyent.com>
  * Scott McNutt <smcnutt@psyent.com>
  *
- * SPDX-License-Identifier:	GPL-2.0+
+ * See file CREDITS for list of people who contributed to this
+ * project.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation; either version 2 of
+ * the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
+ * MA 02111-1307 USA
  */
 
 #ifndef __CONFIG_H
@@ -44,11 +60,12 @@
  *	-The stack is placed below global data (&grows down).
  *----------------------------------------------------------------------*/
 #define CONFIG_SYS_MONITOR_LEN		(128 * 1024)	/* Reserve 128k		*/
+#define CONFIG_SYS_GBL_DATA_SIZE	128		/* Global data size rsvd*/
 #define CONFIG_SYS_MALLOC_LEN		(CONFIG_ENV_SIZE + 128*1024)
 
-#define CONFIG_SYS_MONITOR_BASE	CONFIG_SYS_TEXT_BASE
+#define CONFIG_SYS_MONITOR_BASE	TEXT_BASE
 #define CONFIG_SYS_MALLOC_BASE		(CONFIG_SYS_MONITOR_BASE - CONFIG_SYS_MALLOC_LEN)
-#define CONFIG_SYS_GBL_DATA_OFFSET	(CONFIG_SYS_MALLOC_BASE - GENERATED_GBL_DATA_SIZE)
+#define CONFIG_SYS_GBL_DATA_OFFSET	(CONFIG_SYS_MALLOC_BASE - CONFIG_SYS_GBL_DATA_SIZE)
 #define CONFIG_SYS_INIT_SP		CONFIG_SYS_GBL_DATA_OFFSET
 
 /*------------------------------------------------------------------------
@@ -75,8 +92,7 @@
 /*------------------------------------------------------------------------
  * CONSOLE
  *----------------------------------------------------------------------*/
-#define CONFIG_ALTERA_UART		1	/* Use altera uart */
-#if defined(CONFIG_ALTERA_JTAG_UART)
+#if defined(CONFIG_CONSOLE_JTAG)
 #define CONFIG_SYS_NIOS_CONSOLE	0x00920820	/* JTAG UART base addr	*/
 #else
 #define CONFIG_SYS_NIOS_CONSOLE	0x009208a0	/* UART base addr	*/
@@ -97,17 +113,14 @@
  * TIMEBASE --
  *
  * The high res timer defaults to 1 msec. Since it includes the period
- * registers, the interrupt frequency can be reduced using TMRCNT.
- * If the default period is acceptable, TMRCNT can be left undefined.
- * TMRMS represents the desired mecs per tick (msecs per interrupt).
+ * registers, we can slow it down to 10 msec using TMRCNT. If the default
+ * period is acceptable, TMRCNT can be left undefined.
  *----------------------------------------------------------------------*/
-#define CONFIG_SYS_HZ			1000	/* Always 1000 */
-#define CONFIG_SYS_LOW_RES_TIMER
 #define CONFIG_SYS_NIOS_TMRBASE	0x00920860	/* Tick timer base addr	*/
-#define CONFIG_SYS_NIOS_TMRIRQ		3	/* Timer IRQ num */
-#define CONFIG_SYS_NIOS_TMRMS		10	/* Desired period (msec)*/
-#define CONFIG_SYS_NIOS_TMRCNT \
-		(CONFIG_SYS_NIOS_TMRMS * (CONFIG_SYS_CLK_FREQ/1000))
+#define CONFIG_SYS_NIOS_TMRIRQ		3		/* Timer IRQ num	*/
+#define CONFIG_SYS_NIOS_TMRMS		10		/* 10 msec per tick	*/
+#define CONFIG_SYS_NIOS_TMRCNT	(CONFIG_SYS_NIOS_TMRMS * (CONFIG_SYS_CLK_FREQ/1000))
+#define	CONFIG_SYS_HZ		(CONFIG_SYS_CLK_FREQ/(CONFIG_SYS_NIOS_TMRCNT + 1))
 
 
 /*

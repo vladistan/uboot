@@ -6,7 +6,39 @@
  *      RedBoot stream handler for xyzModem protocol
  *
  *==========================================================================
- * SPDX-License-Identifier:	eCos-2.0
+ *####ECOSGPLCOPYRIGHTBEGIN####
+ * -------------------------------------------
+ * This file is part of eCos, the Embedded Configurable Operating System.
+ * Copyright (C) 1998, 1999, 2000, 2001, 2002 Red Hat, Inc.
+ * Copyright (C) 2002 Gary Thomas
+ *
+ * eCos is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU General Public License as published by the Free
+ * Software Foundation; either version 2 or (at your option) any later version.
+ *
+ * eCos is distributed in the hope that it will be useful, but WITHOUT ANY
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ * for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with eCos; if not, write to the Free Software Foundation, Inc.,
+ * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA.
+ *
+ * As a special exception, if other files instantiate templates or use macros
+ * or inline functions from this file, or you compile this file and link it
+ * with other works to produce a work based on this file, this file does not
+ * by itself cause the resulting work to be covered by the GNU General Public
+ * License. However the source code for this file must still be made available
+ * in accordance with section (3) of the GNU General Public License.
+ *
+ * This exception does not invalidate any other reasons why a work based on
+ * this file might be covered by the GNU General Public License.
+ *
+ * Alternative licenses for eCos may be arranged by contacting Red Hat, Inc.
+ * at http: *sources.redhat.com/ecos/ecos-license/
+ * -------------------------------------------
+ *####ECOSGPLCOPYRIGHTEND####
  *==========================================================================
  *#####DESCRIPTIONBEGIN####
  *
@@ -68,7 +100,7 @@ static struct
 
 #ifndef REDBOOT			/*SB */
 typedef int cyg_int32;
-static int
+int
 CYGACC_COMM_IF_GETC_TIMEOUT (char chan, char *c)
 {
 #define DELAY 20
@@ -86,7 +118,7 @@ CYGACC_COMM_IF_GETC_TIMEOUT (char chan, char *c)
   return 0;
 }
 
-static void
+void
 CYGACC_COMM_IF_PUTC (char x, char y)
 {
   putc (y);
@@ -133,7 +165,7 @@ _tolower (char c)
 }
 
 /* Parse (scan) a number */
-static bool
+bool
 parse_num (char *s, unsigned long *val, char **es, char *delim)
 {
   bool first = true;
@@ -754,7 +786,7 @@ xyzModem_stream_terminate (bool abort, int (*getc) (void))
       ZM_DEBUG (zm_dprintf ("Engaging cleanup mode...\n"));
       /*
        * Consume any trailing crap left in the inbuffer from
-       * previous received blocks. Since very few files are an exact multiple
+       * previous recieved blocks. Since very few files are an exact multiple
        * of the transfer block size, there will almost always be some gunk here.
        * If we don't eat it now, RedBoot will think the user typed it.
        */

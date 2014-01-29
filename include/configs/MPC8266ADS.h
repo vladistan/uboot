@@ -7,7 +7,23 @@
  * Note: my board is a PILOT rev.
  * Note: the mpc8260ads doesn't come with a proper Ethernet MAC address.
  *
- * SPDX-License-Identifier:	GPL-2.0+ 
+ * See file CREDITS for list of people who contributed to this
+ * project.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation; either version 2 of
+ * the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	 See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
+ * MA 02111-1307 USA
  */
 
 /*
@@ -17,7 +33,7 @@
 /* !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
    !!								      !!
    !!  This configuration requires JP3 to be in position 1-2 to work  !!
-   !!  To make it work for the default, the CONFIG_SYS_TEXT_BASE define in	      !!
+   !!  To make it work for the default, the TEXT_BASE define in	      !!
    !!  board/mpc8266ads/config.mk must be changed from 0xfe000000 to  !!
    !!  0xfff00000						      !!
    !!  The CONFIG_SYS_HRCW_MASTER define below must also be changed to match !!
@@ -37,10 +53,7 @@
 #define CONFIG_MPC8266ADS	1	/* ...on motorola ADS board	*/
 #define CONFIG_CPM2		1	/* Has a CPM2 */
 
-#define	CONFIG_SYS_TEXT_BASE	0xfe000000
-
 #define CONFIG_BOARD_EARLY_INIT_F 1	/* Call board_early_init_f	*/
-#define CONFIG_RESET_PHY_R	1	/* Call reset_phy()		*/
 
 /* allow serial and ethaddr to be overwritten */
 #define CONFIG_ENV_OVERWRITE
@@ -82,10 +95,6 @@
  * Port pins used for bit-banged MII communictions (if applicable).
  */
 #define MDIO_PORT	2	/* Port C */
-#define MDIO_DECLARE	volatile ioport_t *iop = ioport_addr ( \
-				(immap_t *) CONFIG_SYS_IMMR, MDIO_PORT )
-#define MDC_DECLARE	MDIO_DECLARE
-
 #define MDIO_ACTIVE	(iop->pdir |=  0x00400000)
 #define MDIO_TRISTATE	(iop->pdir &= ~0x00400000)
 #define MDIO_READ	((iop->pdat &  0x00400000) != 0)
@@ -106,8 +115,8 @@
  * - Select bus for bd/buffers (see 28-13)
  * - Half duplex
  */
-# define CONFIG_SYS_CMXFCR_MASK2	(CMXFCR_FC2 | CMXFCR_RF2CS_MSK | CMXFCR_TF2CS_MSK)
-# define CONFIG_SYS_CMXFCR_VALUE2	(CMXFCR_RF2CS_CLK13 | CMXFCR_TF2CS_CLK14)
+# define CONFIG_SYS_CMXFCR_MASK	(CMXFCR_FC2 | CMXFCR_RF2CS_MSK | CMXFCR_TF2CS_MSK)
+# define CONFIG_SYS_CMXFCR_VALUE	(CMXFCR_RF2CS_CLK13 | CMXFCR_TF2CS_CLK14)
 # define CONFIG_SYS_CPMFCR_RAMTYPE	0
 # define CONFIG_SYS_FCC_PSMR		(FCC_PSMR_FDE | FCC_PSMR_LPB)
 
@@ -121,7 +130,6 @@
 
 /* PCI */
 #define CONFIG_PCI
-#define CONFIG_PCI_INDIRECT_BRIDGE
 #define CONFIG_PCI_PNP
 #define CONFIG_PCI_BOOTDELAY 0
 #undef CONFIG_PCI_SCAN_SHOW
@@ -367,8 +375,9 @@
 #define FETH_RST		0x04000004
 
 #define CONFIG_SYS_INIT_RAM_ADDR	CONFIG_SYS_IMMR
-#define CONFIG_SYS_INIT_RAM_SIZE	0x4000	/* Size of used area in DPRAM	*/
-#define CONFIG_SYS_GBL_DATA_OFFSET	(CONFIG_SYS_INIT_RAM_SIZE - GENERATED_GBL_DATA_SIZE)
+#define CONFIG_SYS_INIT_RAM_END	0x4000	/* End of used area in DPRAM	*/
+#define CONFIG_SYS_GBL_DATA_SIZE	128	/* size in bytes reserved for initial data */
+#define CONFIG_SYS_GBL_DATA_OFFSET	(CONFIG_SYS_INIT_RAM_END - CONFIG_SYS_GBL_DATA_SIZE)
 #define CONFIG_SYS_INIT_SP_OFFSET	CONFIG_SYS_GBL_DATA_OFFSET
 
 /* Use this HRCW for booting from address 0xfe00000 (JP3 in setting 1-2)  */
@@ -405,8 +414,10 @@
 #define CONFIG_SYS_HRCW_SLAVE6 0
 #define CONFIG_SYS_HRCW_SLAVE7 0
 
-#define CONFIG_SYS_MONITOR_BASE    CONFIG_SYS_TEXT_BASE
+#define BOOTFLAG_COLD	0x01	/* Normal Power-On: Boot from FLASH  */
+#define BOOTFLAG_WARM	0x02	/* Software reboot	     */
 
+#define CONFIG_SYS_MONITOR_BASE    TEXT_BASE
 #if (CONFIG_SYS_MONITOR_BASE < CONFIG_SYS_FLASH_BASE)
 #   define CONFIG_SYS_RAMBOOT
 #endif

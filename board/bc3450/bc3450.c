@@ -11,7 +11,23 @@
  * (C) Copyright 2006
  * Stefan Strobl, GERSYS GmbH, stefan.strobl@gersys.de
  *
- * SPDX-License-Identifier:	GPL-2.0+ 
+ * See file CREDITS for list of people who contributed to this
+ * project.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation; either version 2 of
+ * the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	 See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
+ * MA 02111-1307 USA
  */
 
 #include <common.h>
@@ -88,6 +104,7 @@ static void sdram_start (int hi_addr)
  *	      is something else than 0x00000000.
  */
 
+#if defined(CONFIG_MPC5200)
 phys_size_t initdram (int board_type)
 {
 	ulong dramsize = 0;
@@ -187,6 +204,57 @@ phys_size_t initdram (int board_type)
 	return dramsize;
 }
 
+#elif defined(CONFIG_MGT5100)
+
+phys_size_t initdram (int board_type)
+{
+	ulong dramsize = 0;
+#ifndef CONFIG_SYS_RAMBOOT
+	ulong test1, test2;
+
+	/* setup and enable SDRAM chip selects */
+	*(vu_long *)MPC5XXX_SDRAM_START = 0x00000000;
+	*(vu_long *)MPC5XXX_SDRAM_STOP = 0x0000ffff;	/* 2G		*/
+	*(vu_long *)MPC5XXX_ADDECR |= (1 << 22);	/* Enable SDRAM */
+	__asm__ volatile ("sync");
+
+	/* setup config registers */
+	*(vu_long *)MPC5XXX_SDRAM_CONFIG1 = SDRAM_CONFIG1;
+	*(vu_long *)MPC5XXX_SDRAM_CONFIG2 = SDRAM_CONFIG2;
+
+	/* address select register */
+	*(vu_long *)MPC5XXX_SDRAM_XLBSEL = SDRAM_ADDRSEL;
+	__asm__ volatile ("sync");
+
+	/* find RAM size */
+	sdram_start(0);
+	test1 = get_ram_size((ulong *)CONFIG_SYS_SDRAM_BASE, 0x80000000);
+	sdram_start(1);
+	test2 = get_ram_size((ulong *)CONFIG_SYS_SDRAM_BASE, 0x80000000);
+	if (test1 > test2) {
+		sdram_start(0);
+		dramsize = test1;
+	} else {
+		dramsize = test2;
+	}
+
+	/* set SDRAM end address according to size */
+	*(vu_long *)MPC5XXX_SDRAM_STOP = ((dramsize - 1) >> 15);
+
+#else /* CONFIG_SYS_RAMBOOT */
+
+	/* Retrieve amount of SDRAM available */
+	dramsize = ((*(vu_long *)MPC5XXX_SDRAM_STOP + 1) << 15);
+
+#endif /* CONFIG_SYS_RAMBOOT */
+
+	return dramsize;
+}
+
+#else
+#error Neither CONFIG_MPC5200 or CONFIG_MGT5100 defined
+#endif
+
 int checkboard (void)
 {
 #if defined (CONFIG_TQM5200)
@@ -208,6 +276,10 @@ void flash_preinit(void)
 	 * Note that CS_BOOT cannot be cleared when
 	 * executing in flash.
 	 */
+#if defined(CONFIG_MGT5100)
+	*(vu_long *)MPC5XXX_ADDECR &= ~(1 << 25);	/* disable CS_BOOT */
+	*(vu_long *)MPC5XXX_ADDECR |= (1 << 16);	/* enable CS0	   */
+#endif
 	*(vu_long *)MPC5XXX_BOOTCS_CFG &= ~0x1;		/* clear RO	   */
 }
 
@@ -273,6 +345,26 @@ int post_hotkeys_pressed(void)
 	return ((gpio->simple_ival & 0x20000000) ? 0 : 1);
 }
 #endif
+
+#if defined(CONFIG_POST) || defined(CONFIG_LOGBUFFER)
+
+void post_word_store (ulong a)
+{
+	volatile ulong *save_addr =
+		(volatile ulong *)(MPC5XXX_SRAM + MPC5XXX_SRAM_POST_SIZE);
+
+	*save_addr = a;
+}
+
+ulong post_word_load (void)
+{
+	volatile ulong *save_addr =
+		(volatile ulong *)(MPC5XXX_SRAM + MPC5XXX_SRAM_POST_SIZE);
+
+	return *save_addr;
+}
+#endif	/* CONFIG_POST || CONFIG_LOGBUFFER*/
+
 
 #ifdef CONFIG_BOARD_EARLY_INIT_R
 int board_early_init_r (void)

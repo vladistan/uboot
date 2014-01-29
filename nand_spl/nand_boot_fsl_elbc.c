@@ -7,11 +7,25 @@
  * Copyright (c) 2008 Freescale Semiconductor, Inc.
  * Author: Scott Wood <scottwood@freescale.com>
  *
- * SPDX-License-Identifier:	GPL-2.0+
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation; either version 2 of
+ * the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
+ * MA 02111-1307 USA
  */
 
 #include <common.h>
 #include <asm/io.h>
+#include <asm/immap_83xx.h>
 #include <asm/fsl_lbc.h>
 #include <linux/mtd/nand.h>
 
@@ -19,7 +33,7 @@
 
 static void nand_wait(void)
 {
-	fsl_lbc_t *regs = LBC_BASE_ADDR;
+	fsl_lbus_t *regs = (fsl_lbus_t *)(CONFIG_SYS_IMMR + 0x5000);
 
 	for (;;) {
 		uint32_t status = in_be32(&regs->ltesr);
@@ -36,13 +50,13 @@ static void nand_wait(void)
 
 static void nand_load(unsigned int offs, int uboot_size, uchar *dst)
 {
-	fsl_lbc_t *regs = LBC_BASE_ADDR;
+	fsl_lbus_t *regs = (fsl_lbus_t *)(CONFIG_SYS_IMMR + 0x5000);
 	uchar *buf = (uchar *)CONFIG_SYS_NAND_BASE;
-	const int large = CONFIG_SYS_NAND_OR_PRELIM & OR_FCM_PGS;
-	const int block_shift = large ? 17 : 14;
-	const int block_size = 1 << block_shift;
-	const int page_size = large ? 2048 : 512;
-	const int bad_marker = large ? page_size + 0 : page_size + 5;
+	int large = in_be32(&regs->bank[0].or) & OR_FCM_PGS;
+	int block_shift = large ? 17 : 14;
+	int block_size = 1 << block_shift;
+	int page_size = large ? 2048 : 512;
+	int bad_marker = large ? page_size + 0 : page_size + 5;
 	int fmr = (15 << FMR_CWTO_SHIFT) | (2 << FMR_AL_SHIFT) | 2;
 	int pos = 0;
 
@@ -53,42 +67,39 @@ static void nand_load(unsigned int offs, int uboot_size, uchar *dst)
 
 	if (large) {
 		fmr |= FMR_ECCM;
-		__raw_writel((NAND_CMD_READ0 << FCR_CMD0_SHIFT) |
-			(NAND_CMD_READSTART << FCR_CMD1_SHIFT),
-			&regs->fcr);
-		__raw_writel(
-			(FIR_OP_CW0 << FIR_OP0_SHIFT) |
-			(FIR_OP_CA  << FIR_OP1_SHIFT) |
-			(FIR_OP_PA  << FIR_OP2_SHIFT) |
-			(FIR_OP_CW1 << FIR_OP3_SHIFT) |
-			(FIR_OP_RBW << FIR_OP4_SHIFT),
-			&regs->fir);
+		out_be32(&regs->fcr, (NAND_CMD_READ0 << FCR_CMD0_SHIFT) |
+		                     (NAND_CMD_READSTART << FCR_CMD1_SHIFT));
+		out_be32(&regs->fir,
+		         (FIR_OP_CW0 << FIR_OP0_SHIFT) |
+		         (FIR_OP_CA  << FIR_OP1_SHIFT) |
+		         (FIR_OP_PA  << FIR_OP2_SHIFT) |
+		         (FIR_OP_CW1 << FIR_OP3_SHIFT) |
+		         (FIR_OP_RBW << FIR_OP4_SHIFT));
 	} else {
-		__raw_writel(NAND_CMD_READ0 << FCR_CMD0_SHIFT, &regs->fcr);
-		__raw_writel(
-			(FIR_OP_CW0 << FIR_OP0_SHIFT) |
-			(FIR_OP_CA  << FIR_OP1_SHIFT) |
-			(FIR_OP_PA  << FIR_OP2_SHIFT) |
-			(FIR_OP_RBW << FIR_OP3_SHIFT),
-			&regs->fir);
+		out_be32(&regs->fcr, NAND_CMD_READ0 << FCR_CMD0_SHIFT);
+		out_be32(&regs->fir,
+		         (FIR_OP_CW0 << FIR_OP0_SHIFT) |
+		         (FIR_OP_CA  << FIR_OP1_SHIFT) |
+		         (FIR_OP_PA  << FIR_OP2_SHIFT) |
+		         (FIR_OP_RBW << FIR_OP3_SHIFT));
 	}
 
-	__raw_writel(0, &regs->fbcr);
+	out_be32(&regs->fbcr, 0);
+	clrsetbits_be32(&regs->bank[0].br, BR_DECC, BR_DECC_CHK_GEN);
 
 	while (pos < uboot_size) {
 		int i = 0;
-		__raw_writel(offs >> block_shift, &regs->fbar);
+		out_be32(&regs->fbar, offs >> block_shift);
 
 		do {
 			int j;
 			unsigned int page_offs = (offs & (block_size - 1)) << 1;
 
-			__raw_writel(~0, &regs->ltesr);
-			__raw_writel(0, &regs->lteatr);
-			__raw_writel(page_offs, &regs->fpar);
-			__raw_writel(fmr, &regs->fmr);
-			sync();
-			__raw_writel(0, &regs->lsor);
+			out_be32(&regs->ltesr, ~0);
+			out_be32(&regs->lteatr, 0);
+			out_be32(&regs->fpar, page_offs);
+			out_be32(&regs->fmr, fmr);
+			out_be32(&regs->lsor, 0);
 			nand_wait();
 
 			page_offs %= WINDOW_SIZE;

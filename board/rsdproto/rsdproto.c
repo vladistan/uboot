@@ -3,14 +3,29 @@
  * Sysgo Real-Time Solutions, GmbH <www.elinos.com>
  * Marius Groeger <mgroeger@sysgo.de>
  *
- * SPDX-License-Identifier:	GPL-2.0+
+ * See file CREDITS for list of people who contributed to this
+ * project.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation; either version 2 of
+ * the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
+ * MA 02111-1307 USA
  */
 
 #include <common.h>
 #include <ioports.h>
 #include <mpc8260.h>
 #include <i2c.h>
-#include <bcd.h>
 
 /* define to initialise the SDRAM on the local bus */
 #undef INIT_LOCAL_BUS_SDRAM
@@ -193,14 +208,16 @@ void read_RS5C372_time (struct tm *timedate)
 {
 	unsigned char buffer[8];
 
+#define BCD_TO_BIN(val) ((val)=((val)&15) + ((val)>>4)*10)
+
 	if (! i2c_read (RS5C372_PPC_I2C_ADR, 0, 1, buffer, sizeof (buffer))) {
-		timedate->tm_sec = bcd2bin (buffer[0]);
-		timedate->tm_min = bcd2bin (buffer[1]);
-		timedate->tm_hour = bcd2bin (buffer[2]);
-		timedate->tm_wday = bcd2bin (buffer[3]);
-		timedate->tm_mday = bcd2bin (buffer[4]);
-		timedate->tm_mon = bcd2bin (buffer[5]);
-		timedate->tm_year = bcd2bin (buffer[6]) + 2000;
+		timedate->tm_sec = BCD_TO_BIN (buffer[0]);
+		timedate->tm_min = BCD_TO_BIN (buffer[1]);
+		timedate->tm_hour = BCD_TO_BIN (buffer[2]);
+		timedate->tm_wday = BCD_TO_BIN (buffer[3]);
+		timedate->tm_mday = BCD_TO_BIN (buffer[4]);
+		timedate->tm_mon = BCD_TO_BIN (buffer[5]);
+		timedate->tm_year = BCD_TO_BIN (buffer[6]) + 2000;
 	} else {
 		/*printf("i2c error %02x\n", rc); */
 		memset (timedate, 0, sizeof (struct tm));

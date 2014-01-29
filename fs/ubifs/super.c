@@ -824,7 +824,7 @@ out_free:
  * through mounting (error path cleanup function). So it has to make sure the
  * resource was actually allocated before freeing it.
  */
-void ubifs_umount(struct ubifs_info *c)
+static void ubifs_umount(struct ubifs_info *c)
 {
 	dbg_gen("un-mounting UBI device %d, volume %d", c->vi.ubi_num,
 		c->vi.vol_id);
@@ -848,10 +848,8 @@ void ubifs_umount(struct ubifs_info *c)
 	ubifs_debugging_exit(c);
 
 	/* Finally free U-Boot's global copy of superblock */
-	if (ubifs_sb != NULL) {
-		free(ubifs_sb->s_fs_info);
-		free(ubifs_sb);
-	}
+	free(ubifs_sb->s_fs_info);
+	free(ubifs_sb);
 }
 
 /**
@@ -1164,9 +1162,10 @@ static struct file_system_type ubifs_fs_type = {
 	.get_sb  = ubifs_get_sb,
 };
 
-int ubifs_mount(char *name)
+int ubifs_mount(char *vol_name)
 {
 	int flags;
+	char name[80] = "ubi:";
 	void *data;
 	struct vfsmount *mnt;
 	int ret;
@@ -1179,17 +1178,17 @@ int ubifs_mount(char *name)
 		ubifs_umount(ubifs_sb->s_fs_info);
 
 	INIT_LIST_HEAD(&ubifs_infos);
-	INIT_LIST_HEAD(&ubifs_fs_type.fs_supers);
 
 	/*
 	 * Mount in read-only mode
 	 */
 	flags = MS_RDONLY;
+	strcat(name, vol_name);
 	data = NULL;
 	mnt = NULL;
 	ret = ubifs_get_sb(&ubifs_fs_type, flags, name, data, mnt);
 	if (ret) {
-		ubifs_err("Error reading superblock on volume '%s' errno=%d!\n", name, ret);
+		printf("Error reading superblock on volume '%s'!\n", name);
 		return -1;
 	}
 

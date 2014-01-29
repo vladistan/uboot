@@ -6,7 +6,23 @@
  * (C) Copyright 2000-2004
  * Wolfgang Denk, DENX Software Engineering, wd@denx.de.
  *
- * SPDX-License-Identifier:	GPL-2.0+
+ * See file CREDITS for list of people who contributed to this
+ * project.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation; either version 2 of
+ * the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston,
+ * MA 02110-1301 USA
  */
 
 #include <common.h>
@@ -25,6 +41,23 @@ int checkboard(void)
 	printf("Board: ADI BF537 stamp board\n");
 	printf("       Support: http://blackfin.uclinux.org/\n");
 	return 0;
+}
+
+phys_size_t initdram(int board_type)
+{
+	gd->bd->bi_memstart = CONFIG_SYS_SDRAM_BASE;
+	gd->bd->bi_memsize = CONFIG_SYS_MAX_RAM_SIZE;
+	return gd->bd->bi_memsize;
+}
+
+void board_reset(void)
+{
+	/* workaround for weak pull ups on ssel */
+	if (CONFIG_BFIN_BOOT_MODE == BFIN_BOOT_SPI_MASTER) {
+		bfin_write_PORTF_FER(bfin_read_PORTF_FER() & ~PF10);
+		bfin_write_PORTFIO_SET(PF10);
+		udelay(1);
+	}
 }
 
 #ifdef CONFIG_BFIN_MAC

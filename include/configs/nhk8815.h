@@ -4,7 +4,23 @@
  * Configuration settings for the "Nomadik Hardware Kit" NHK-8815,
  * the evaluation board for the Nomadik 8815 System on Chip.
  *
- * SPDX-License-Identifier:	GPL-2.0+ 
+ * See file CREDITS for list of people who contributed to this
+ * project.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation; either version 2 of
+ * the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	 See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
+ * MA 02111-1307 USA
  */
 
 #ifndef __CONFIG_H
@@ -38,6 +54,7 @@
 #define CONFIG_SYS_LONGHELP
 #define CONFIG_SYS_HUSH_PARSER
 #define CONFIG_SYS_PROMPT		"Nomadik> "
+#define CONFIG_SYS_PROMPT_HUSH_PS2	"> "
 #define CONFIG_CMDLINE_EDITING
 #define CONFIG_SYS_CBSIZE		256	/* Console I/O Buffer Size */
 #define CONFIG_SYS_PBSIZE		(CONFIG_SYS_CBSIZE \
@@ -63,17 +80,20 @@
 #define PHYS_SDRAM_1_SIZE	0x04000000	/* 64 MB */
 #define PHYS_SDRAM_2		0x08000000	/* SDR-SDRAM BANK #2*/
 #define PHYS_SDRAM_2_SIZE	0x04000000	/* 64 MB */
-#define CONFIG_SYS_SDRAM_BASE	PHYS_SDRAM_1
-#define CONFIG_SYS_SDRAM_SIZE	(PHYS_SDRAM_1_SIZE + PHYS_SDRAM_2_SIZE)
-/* The IPL loads us at 0, tell so to u-boot. Put stack pointer 1M into RAM */
-#define CONFIG_SYS_TEXT_BASE    0x00000000
-#define CONFIG_SYS_INIT_SP_ADDR (CONFIG_SYS_TEXT_BASE + (1<<20))
+
+#define CONFIG_STACKSIZE	(128 * 1024)	/* regular stack */
+#ifdef CONFIG_USE_IRQ
+#  define CONFIG_STACKSIZE_IRQ	(4 * 1024)	/* IRQ stack */
+#  define CONFIG_STACKSIZE_FIQ	(4 * 1024)	/* FIQ stack */
+#endif
 
 #define CONFIG_SYS_MEMTEST_START	0x00000000
 #define CONFIG_SYS_MEMTEST_END		0x0FFFFFFF
 #define CONFIG_SYS_MALLOC_LEN		(CONFIG_ENV_SIZE + 256 * 1024)
+#define CONFIG_SYS_GBL_DATA_SIZE	128	/* for initial data */
+#define CONFIG_SYS_64BIT_VSPRINTF	/* mtd desires this */
 
-#define CONFIG_BOARD_LATE_INIT	/* call board_late_init during start up */
+#define BOARD_LATE_INIT		/* call board_late_init during start up */
 
 /* timing informazion */
 #define CONFIG_SYS_HZ		1000 /* Mandatory... */
@@ -83,6 +103,7 @@
 #define CONFIG_PL011_SERIAL
 #define CONFIG_CONS_INDEX	1
 #define CONFIG_BAUDRATE		115200
+#define CONFIG_SYS_BAUDRATE_TABLE	{ 9600, 19200, 38400, 57600, 115200 }
 #define CFG_SERIAL0		0x101FD000
 #define CFG_SERIAL1		0x101FB000
 
@@ -93,11 +114,8 @@
 #ifndef __ASSEMBLY__
 #include <asm/arch/gpio.h>
 #define CONFIG_CMD_I2C
-#define CONFIG_SYS_I2C
-#define	CONFIG_SYS_I2C_SOFT	1	/* I2C bit-banged	*/
-#define I2C_SOFT_DEFS
-#define CONFIG_SYS_I2C_SOFT_SPEED	400000
-#define CONFIG_SYS_I2C_SOFT_SLAVE	0x7F
+#define CONFIG_SOFT_I2C
+#define CONFIG_SYS_I2C_SPEED	400000
 #define __SDA			63
 #define __SCL			62
 #define I2C_SDA(x)		nmk_gpio_set(__SDA, x)
@@ -114,15 +132,11 @@
 #define __io(a)			((void __iomem *)(PCI_IO_VADDR + (a)))
 #define __mem_isa(a)		((a) + PCI_MEMORY_VADDR)
 
-#define CONFIG_SMC91111	/* Using SMC91c111*/
+#define CONFIG_DRIVER_SMC91111	/* Using SMC91c111*/
 #define CONFIG_SMC91111_BASE	0x34000300
 #undef  CONFIG_SMC91111_EXT_PHY	/* Internal PHY */
 #define CONFIG_SMC_USE_32_BIT
 #define CONFIG_BOOTFILE		"uImage"
-
-#define CONFIG_IP_DEFRAG	/* Allows faster download, TFTP and NFS */
-#define CONFIG_TFTP_BLOCKSIZE	4096
-#define CONFIG_NFS_READ_SIZE	4096
 
 /* Storage information: onenand and nand */
 #define CONFIG_CMD_ONENAND

@@ -4,7 +4,23 @@
  *
  * U-Boot configuration for Embedded Planet EP8248 boards.
  *
- * SPDX-License-Identifier:	GPL-2.0+ 
+ * See file CREDITS for list of people who contributed to this
+ * project.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation; either version 2 of
+ * the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	 See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
+ * MA 02111-1307 USA
  */
 
 #ifndef __CONFIG_H
@@ -14,8 +30,6 @@
 #define CPU_ID_STR		"MPC8248"
 
 #define CONFIG_EP8248			/* Embedded Planet EP8248 board */
-
-#define	CONFIG_SYS_TEXT_BASE	0xFFF00000
 
 #define CONFIG_BOARD_EARLY_INIT_F 1	/* Call board_early_init_f	*/
 
@@ -36,40 +50,50 @@
 
 #define CONFIG_SYS_BCSR		0xFA000000
 
-/* Pass open firmware flat device tree */
-#define CONFIG_OF_LIBFDT	1
-#define CONFIG_OF_BOARD_SETUP	1
-
-#define OF_TBCLK        (bd->bi_busfreq / 4)
-#define OF_STDOUT_PATH  "/soc/cpm/serial <at> 11a80"
-
-/* Select ethernet configuration */
+/*
+ * Select ethernet configuration
+ *
+ * If either CONFIG_ETHER_ON_SCC or CONFIG_ETHER_ON_FCC is selected,
+ * then CONFIG_ETHER_INDEX must be set to the channel number (1-4 for
+ * SCC, 1-3 for FCC)
+ *
+ * If CONFIG_ETHER_NONE is defined, then either the ethernet routines
+ * must be defined elsewhere (as for the console), or CONFIG_CMD_NET
+ * must be unset.
+ */
 #undef	CONFIG_ETHER_ON_SCC		/* Ethernet is not on SCC */
 #define CONFIG_ETHER_ON_FCC		/* Ethernet is on FCC     */
 #undef	CONFIG_ETHER_NONE		/* No external Ethernet   */
 
-#define CONFIG_SYS_CPMFCR_RAMTYPE	0
-#define CONFIG_SYS_FCC_PSMR		(FCC_PSMR_FDE | FCC_PSMR_LPB)
+#ifdef CONFIG_ETHER_ON_FCC
 
-#define CONFIG_HAS_ETH0
-#define CONFIG_ETHER_ON_FCC1		1
+#define CONFIG_ETHER_INDEX	1	/* FCC1 is used for Ethernet */
+
+#if   (CONFIG_ETHER_INDEX == 1)
+
 /* - Rx clock is CLK10
  * - Tx clock is CLK11
  * - BDs/buffers on 60x bus
  * - Full duplex
  */
-#define CONFIG_SYS_CMXFCR_MASK1	(CMXFCR_FC1 | CMXFCR_RF1CS_MSK | CMXFCR_TF1CS_MSK)
-#define CONFIG_SYS_CMXFCR_VALUE1	(CMXFCR_RF1CS_CLK10 | CMXFCR_TF1CS_CLK11)
+#define CONFIG_SYS_CMXFCR_MASK	(CMXFCR_FC1 | CMXFCR_RF1CS_MSK | CMXFCR_TF1CS_MSK)
+#define CONFIG_SYS_CMXFCR_VALUE	(CMXFCR_RF1CS_CLK10 | CMXFCR_TF1CS_CLK11)
+#define CONFIG_SYS_CPMFCR_RAMTYPE	0
+#define CONFIG_SYS_FCC_PSMR		(FCC_PSMR_FDE | FCC_PSMR_LPB)
 
-#define CONFIG_HAS_ETH1
-#define CONFIG_ETHER_ON_FCC2		1
+#elif (CONFIG_ETHER_INDEX == 2)
+
 /* - Rx clock is CLK13
  * - Tx clock is CLK14
  * - BDs/buffers on 60x bus
  * - Full duplex
  */
-#define CONFIG_SYS_CMXFCR_MASK2	(CMXFCR_FC2 | CMXFCR_RF2CS_MSK | CMXFCR_TF2CS_MSK)
-#define CONFIG_SYS_CMXFCR_VALUE2	(CMXFCR_RF2CS_CLK13 | CMXFCR_TF2CS_CLK14)
+#define CONFIG_SYS_CMXFCR_MASK	(CMXFCR_FC2 | CMXFCR_RF2CS_MSK | CMXFCR_TF2CS_MSK)
+#define CONFIG_SYS_CMXFCR_VALUE	(CMXFCR_RF2CS_CLK13 | CMXFCR_TF2CS_CLK14)
+#define CONFIG_SYS_CPMFCR_RAMTYPE	0
+#define CONFIG_SYS_FCC_PSMR		(FCC_PSMR_FDE | FCC_PSMR_LPB)
+
+#endif /* CONFIG_ETHER_INDEX */
 
 #define CONFIG_MII			/* MII PHY management        */
 #define CONFIG_BITBANGMII		/* Bit-banged MDIO interface */
@@ -77,7 +101,6 @@
  * GPIO pins used for bit-banged MII communications
  */
 #define MDIO_PORT		0	/* Not used - implemented in BCSR */
-
 #define MDIO_ACTIVE		(*(vu_char *)(CONFIG_SYS_BCSR + 8) &= 0xFB)
 #define MDIO_TRISTATE		(*(vu_char *)(CONFIG_SYS_BCSR + 8) |= 0x04)
 #define MDIO_READ		(*(vu_char *)(CONFIG_SYS_BCSR + 8) & 1)
@@ -89,6 +112,8 @@
 				else	*(vu_char *)(CONFIG_SYS_BCSR + 8) &= 0xFD
 
 #define MIIDELAY		udelay(1)
+
+#endif /* CONFIG_ETHER_ON_FCC */
 
 #ifndef CONFIG_8260_CLKIN
 #define CONFIG_8260_CLKIN	66000000	/* in Hz */
@@ -138,6 +163,7 @@
  * Miscellaneous configurable options
  */
 #define CONFIG_SYS_HUSH_PARSER
+#define CONFIG_SYS_PROMPT_HUSH_PS2	"> "
 #define CONFIG_SYS_LONGHELP			/* undef to save memory	    */
 #define CONFIG_SYS_PROMPT		"=> "	/* Monitor Command Prompt   */
 #if defined(CONFIG_CMD_KGDB)
@@ -181,7 +207,7 @@
 #define CONFIG_SYS_I2C_SLAVE		0x7F	/* I2C slave address		*/
 #endif
 
-#define CONFIG_SYS_MONITOR_BASE	CONFIG_SYS_TEXT_BASE
+#define CONFIG_SYS_MONITOR_BASE	TEXT_BASE
 #if (CONFIG_SYS_MONITOR_BASE < CONFIG_SYS_FLASH_BASE)
 #define CONFIG_SYS_RAMBOOT
 #endif
@@ -200,8 +226,9 @@
 #define CONFIG_SYS_IMMR		0xF0000000
 
 #define CONFIG_SYS_INIT_RAM_ADDR	CONFIG_SYS_IMMR
-#define CONFIG_SYS_INIT_RAM_SIZE	0x2000	/* Size of used area in DPRAM	*/
-#define CONFIG_SYS_GBL_DATA_OFFSET	(CONFIG_SYS_INIT_RAM_SIZE - GENERATED_GBL_DATA_SIZE)
+#define CONFIG_SYS_INIT_RAM_END	0x2000	/* End of used area in DPRAM	*/
+#define CONFIG_SYS_GBL_DATA_SIZE	128	/* size in bytes reserved for initial data */
+#define CONFIG_SYS_GBL_DATA_OFFSET	(CONFIG_SYS_INIT_RAM_END - CONFIG_SYS_GBL_DATA_SIZE)
 #define CONFIG_SYS_INIT_SP_OFFSET	CONFIG_SYS_GBL_DATA_OFFSET
 
 /* Hard reset configuration word */
@@ -214,6 +241,9 @@
 #define CONFIG_SYS_HRCW_SLAVE5		0
 #define CONFIG_SYS_HRCW_SLAVE6		0
 #define CONFIG_SYS_HRCW_SLAVE7		0
+
+#define BOOTFLAG_COLD		0x01	/* Normal Power-On: Boot from FLASH */
+#define BOOTFLAG_WARM		0x02	/* Software reboot                  */
 
 #define CONFIG_SYS_MALLOC_LEN		(4096 << 10)	/* Reserve 4 MB for malloc()	*/
 #define CONFIG_SYS_BOOTMAPSZ		(8 << 20)	/* Initial Memory map for Linux */

@@ -3,7 +3,24 @@
  * Rich Ireland, Enterasys Networks, rireland@enterasys.com.
  * Keith Outwater, keith_outwater@mvis.com.
  *
- * SPDX-License-Identifier:	GPL-2.0+
+ * See file CREDITS for list of people who contributed to this
+ * project.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation; either version 2 of
+ * the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
+ * MA 02111-1307 USA
+ *
  */
 
 /*
@@ -165,7 +182,7 @@ void fpga_selectmap_init (void)
 {
 	PRINTF ("%s:%d: Initialize SelectMap interface\n", __FUNCTION__,
 		__LINE__);
-	fpga_pgm_fn(false, false, 0);	/* make sure program pin is inactive */
+	fpga_pgm_fn (FALSE, FALSE, 0);	/* make sure program pin is inactive */
 }
 
 
@@ -176,9 +193,8 @@ int gen860t_init_fpga (void)
 {
 	int i;
 
-	PRINTF ("%s:%d: Initialize FPGA interface\n",
-		__FUNCTION__, __LINE__);
-	fpga_init ();
+	PRINTF ("%s:%d: Initialize FPGA interface (relocation offset = 0x%.8lx)\n", __FUNCTION__, __LINE__, gd->reloc_off);
+	fpga_init (gd->reloc_off);
 	fpga_selectmap_init ();
 
 	for (i = 0; i < CONFIG_FPGA_COUNT; i++) {
@@ -297,7 +313,7 @@ int fpga_abort_fn (int cookie)
 int fpga_pre_config_fn (int cookie)
 {
 	PRINTF ("%s:%d: FPGA pre-configuration\n", __FUNCTION__, __LINE__);
-	fpga_reset(true);
+	fpga_reset (TRUE);
 	return 0;
 }
 
@@ -311,9 +327,9 @@ int fpga_post_config_fn (int cookie)
 	int rc;
 
 	PRINTF ("%s:%d: FPGA post configuration\n", __FUNCTION__, __LINE__);
-	fpga_reset(true);
+	fpga_reset (TRUE);
 	udelay (1000);
-	fpga_reset(false);
+	fpga_reset (FALSE);
 	udelay (1000);
 
 	/*

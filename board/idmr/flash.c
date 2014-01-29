@@ -2,7 +2,23 @@
  * (C) Copyright 2000-2006
  * Wolfgang Denk, DENX Software Engineering, wd@denx.de.
  *
- * SPDX-License-Identifier:	GPL-2.0+
+ * See file CREDITS for list of people who contributed to this
+ * project.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation; either version 2 of
+ * the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
+ * MA 02111-1307 USA
  */
 
 #include <common.h>
@@ -114,7 +130,6 @@ int flash_erase (flash_info_t * info, int s_first, int s_last)
 	int iflag, prot, sect;
 	int rc = ERR_OK;
 	int chip1;
-	ulong start;
 
 	/* first look for protection bits */
 
@@ -155,7 +170,7 @@ int flash_erase (flash_info_t * info, int s_first, int s_last)
 		printf ("Erasing sector %2d ... ", sect);
 
 		/* arm simple, non interrupt dependent timer */
-		start = get_timer(0);
+		set_timer (0);
 
 		if (info->protect[sect] == 0) {	/* not protected */
 			volatile u16 *addr =
@@ -176,7 +191,7 @@ int flash_erase (flash_info_t * info, int s_first, int s_last)
 				result = *addr;
 
 				/* check timeout */
-				if (get_timer(start) > CONFIG_SYS_FLASH_ERASE_TOUT * CONFIG_SYS_HZ / 1000) {
+				if (get_timer (0) > CONFIG_SYS_FLASH_ERASE_TOUT * CONFIG_SYS_HZ / 1000) {
 					MEM_FLASH_ADDR1 = CMD_READ_ARRAY;
 					chip1 = TMO;
 					break;
@@ -233,7 +248,6 @@ static int write_word (flash_info_t * info, ulong dest, ulong data)
 	int rc = ERR_OK;
 	int iflag;
 	int chip1;
-	ulong start;
 
 	/*
 	 * Check if Flash is (sufficiently) erased
@@ -258,7 +272,7 @@ static int write_word (flash_info_t * info, ulong dest, ulong data)
 	*addr = data;
 
 	/* arm simple, non interrupt dependent timer */
-	start = get_timer(0);
+	set_timer (0);
 
 	/* wait until flash is ready */
 	chip1 = 0;
@@ -266,7 +280,7 @@ static int write_word (flash_info_t * info, ulong dest, ulong data)
 		result = *addr;
 
 		/* check timeout */
-		if (get_timer(start) > CONFIG_SYS_FLASH_ERASE_TOUT * CONFIG_SYS_HZ / 1000) {
+		if (get_timer (0) > CONFIG_SYS_FLASH_ERASE_TOUT * CONFIG_SYS_HZ / 1000) {
 			chip1 = ERR | TMO;
 			break;
 		}

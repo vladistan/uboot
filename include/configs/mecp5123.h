@@ -2,7 +2,24 @@
  * (C) Copyright 2009 Wolfgang Denk <wd@denx.de>
  * (C) Copyright 2009, DAVE Srl <www.dave.eu>
  *
- * SPDX-License-Identifier:	GPL-2.0+
+ * See file CREDITS for list of people who contributed to this
+ * project.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation; either version 2 of
+ * the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	 See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
+ * MA 02111-1307 USA
+ *
  * modifications for the MECP5123 by reinhard.arlt@esd-electronics.com
  *
  */
@@ -31,8 +48,6 @@
 #define CONFIG_E300		1	/* E300 Family */
 #define CONFIG_MPC512X		1	/* MPC512X family */
 
-#define	CONFIG_SYS_TEXT_BASE	0xFFF00000
-
 #define CONFIG_SYS_MPC512X_CLKIN	33333333	/* in Hz */
 
 #define CONFIG_BOARD_EARLY_INIT_F		/* call board_early_init_f() */
@@ -51,9 +66,6 @@
 
 #define CONFIG_SYS_DDR_BASE		0x00000000	/* DDR is sys memory*/
 #define CONFIG_SYS_SDRAM_BASE		CONFIG_SYS_DDR_BASE
-#define CONFIG_SYS_MAX_RAM_SIZE		0x20000000
-
-#define CONFIG_SYS_IOCTRL_MUX_DDR	0x00000036
 
 /* DDR Controller Configuration
  *
@@ -99,19 +111,22 @@
  *	[09:05]	DRAM tRP:
  *	[04:00] DRAM tRPA
  */
-#define CONFIG_SYS_MDDRC_SYS_CFG	 0xEA804A00
-#define CONFIG_SYS_MDDRC_TIME_CFG0	 0x06183D2E
+#define CONFIG_SYS_MDDRC_SYS_CFG	 0xFA804A00
+#define CONFIG_SYS_MDDRC_SYS_CFG_RUN	 0xEA804A00
 #define CONFIG_SYS_MDDRC_TIME_CFG1	 0x68EC1168
 #define CONFIG_SYS_MDDRC_TIME_CFG2	 0x34310864
+#define CONFIG_SYS_MDDRC_SYS_CFG_EN	0xF0000000
+#define CONFIG_SYS_MDDRC_TIME_CFG0	0x00003D2E
+#define CONFIG_SYS_MDDRC_TIME_CFG0_RUN	0x06183D2E
 
-#define CONFIG_SYS_DDRCMD_NOP		0x01380000
-#define CONFIG_SYS_DDRCMD_PCHG_ALL	0x01100400
-#define CONFIG_SYS_DDRCMD_EM2		0x01020000
-#define CONFIG_SYS_DDRCMD_EM3		0x01030000
-#define CONFIG_SYS_DDRCMD_EN_DLL	0x01010000
-#define CONFIG_SYS_DDRCMD_RFSH		0x01080000
+#define CONFIG_SYS_MICRON_NOP		0x01380000
+#define CONFIG_SYS_MICRON_PCHG_ALL	0x01100400
+#define CONFIG_SYS_MICRON_EM2		0x01020000
+#define CONFIG_SYS_MICRON_EM3		0x01030000
+#define CONFIG_SYS_MICRON_EN_DLL	0x01010000
+#define CONFIG_SYS_MICRON_RFSH		0x01080000
 #define CONFIG_SYS_MICRON_INIT_DEV_OP	0x01000432
-#define CONFIG_SYS_DDRCMD_OCD_DEFAULT	0x01010780
+#define CONFIG_SYS_MICRON_OCD_DEFAULT	0x01010780
 
 /* DDR Priority Manager Configuration */
 #define CONFIG_SYS_MDDRCGRP_PM_CFG1	0x00077777
@@ -161,7 +176,11 @@
 #define CONFIG_CMD_NAND
 #define CONFIG_NAND_MPC5121_NFC
 #define CONFIG_SYS_NAND_BASE            0x40000000
+
 #define CONFIG_SYS_MAX_NAND_DEVICE      1
+#define NAND_MAX_CHIPS                  CONFIG_SYS_MAX_NAND_DEVICE
+
+#define	CONFIG_SYS_64BIT_VSPRINTF	/* needed for nand_util.c */
 
 /*
  * Configuration parameters for MPC5121 NAND driver
@@ -174,10 +193,6 @@
 #define CONFIG_SYS_SRAM_BASE		0x30000000
 #define CONFIG_SYS_SRAM_SIZE		0x00020000	/* 128 KB */
 
-/* Initialize Local Window for NOR FLASH access */
-#define CONFIG_SYS_CS0_START		CONFIG_SYS_FLASH_BASE
-#define CONFIG_SYS_CS0_SIZE		CONFIG_SYS_FLASH_SIZE
-
 /* ALE active low, data size 4bytes */
 #define CONFIG_SYS_CS0_CFG		0x05051150
 
@@ -188,18 +203,16 @@
 #define CONFIG_SYS_CS1_CFG		0x1f1f3090
 #define CONFIG_SYS_VPC3_BASE		0x82000000	/* start of VPC3 space */
 #define CONFIG_SYS_VPC3_SIZE		0x00010000	/* max VPC3 size */
-/* Initialize Local Window for VPC3 access */
-#define CONFIG_SYS_CS1_START		CONFIG_SYS_VPC3_BASE
-#define CONFIG_SYS_CS1_SIZE		CONFIG_SYS_VPC3_SIZE
 
 /* Use SRAM for initial stack */
 #define CONFIG_SYS_INIT_RAM_ADDR	CONFIG_SYS_SRAM_BASE /* Init RAM addr */
-#define CONFIG_SYS_INIT_RAM_SIZE		CONFIG_SYS_SRAM_SIZE
+#define CONFIG_SYS_INIT_RAM_END		CONFIG_SYS_SRAM_SIZE
 
-#define CONFIG_SYS_GBL_DATA_OFFSET	(CONFIG_SYS_INIT_RAM_SIZE - GENERATED_GBL_DATA_SIZE)
+#define CONFIG_SYS_GBL_DATA_SIZE	0x100		/* num bytes initial data */
+#define CONFIG_SYS_GBL_DATA_OFFSET	(CONFIG_SYS_INIT_RAM_END - CONFIG_SYS_GBL_DATA_SIZE)
 #define CONFIG_SYS_INIT_SP_OFFSET	CONFIG_SYS_GBL_DATA_OFFSET
 
-#define CONFIG_SYS_MONITOR_BASE		CONFIG_SYS_TEXT_BASE	/* Start of monitor */
+#define CONFIG_SYS_MONITOR_BASE		TEXT_BASE	/* Start of monitor */
 #define CONFIG_SYS_MONITOR_LEN		(256 * 1024)	/* Monitor length */
 #define CONFIG_SYS_MALLOC_LEN		(6 * 1024 * 1024) /* Malloc size */
 
@@ -207,12 +220,12 @@
  * Serial Port
  */
 #define CONFIG_CONS_INDEX     1
+#undef CONFIG_SERIAL_SOFTWARE_FIFO
 
 /*
  * Serial console configuration
  */
 #define CONFIG_PSC_CONSOLE	3	/* console is on PSC3 */
-#define CONFIG_SYS_PSC3
 #if CONFIG_PSC_CONSOLE != 3
 #error CONFIG_PSC_CONSOLE must be 3
 #endif
@@ -225,31 +238,16 @@
 #define CONSOLE_FIFO_RX_SIZE	FIFOC_PSC3_RX_SIZE
 #define CONSOLE_FIFO_RX_ADDR	FIFOC_PSC3_RX_ADDR
 
-/*
- * Clocks in use
- */
-#define SCCR1_CLOCKS_EN	(CLOCK_SCCR1_CFG_EN |				\
-			 CLOCK_SCCR1_LPC_EN |				\
-			 CLOCK_SCCR1_PSC_EN(CONFIG_PSC_CONSOLE) |	\
-			 CLOCK_SCCR1_PSCFIFO_EN |			\
-			 CLOCK_SCCR1_DDR_EN |				\
-			 CLOCK_SCCR1_FEC_EN |				\
-			 CLOCK_SCCR1_NFC_EN |				\
-			 CLOCK_SCCR1_PCI_EN |				\
-			 CLOCK_SCCR1_TPR_EN)
-
-#define SCCR2_CLOCKS_EN	(CLOCK_SCCR2_MEM_EN |	\
-			 CLOCK_SCCR2_I2C_EN)
-
-
 #define CONFIG_CMDLINE_EDITING	1	/* add command line history	*/
 /* Use the HUSH parser */
 #define CONFIG_SYS_HUSH_PARSER
 #ifdef  CONFIG_SYS_HUSH_PARSER
+#define CONFIG_SYS_PROMPT_HUSH_PS2 "> "
 #endif
 
 /* I2C */
 #define CONFIG_HARD_I2C			/* I2C with hardware support */
+#undef CONFIG_SOFT_I2C			/* so disable bit-banged I2C */
 #define CONFIG_I2C_MULTI_BUS
 #define CONFIG_SYS_I2C_SPEED		400000	/* I2C speed */
 #define CONFIG_SYS_I2C_SLAVE		0x7F	/* slave address */
@@ -257,7 +255,7 @@
 /*
  * IIM - IC Identification Module
  */
-#undef CONFIG_FSL_IIM
+#undef CONFIG_IIM
 
 /*
  * EEPROM configuration
@@ -272,6 +270,7 @@
  * Ethernet configuration
  */
 #define CONFIG_MPC512x_FEC	1
+#define CONFIG_NET_MULTI
 #define CONFIG_PHY_ADDR		0x1
 #define CONFIG_MII		1	/* MII PHY management		*/
 #define CONFIG_FEC_AN_TIMEOUT	1
@@ -347,10 +346,10 @@
 
 /*
  * For booting Linux, the board info and command line data
- * have to be in the first 256 MB of memory, since this is
+ * have to be in the first 8 MB of memory, since this is
  * the maximum mapped by the Linux kernel during initialization.
  */
-#define CONFIG_SYS_BOOTMAPSZ	(256 << 20)	/* Linux initial memory map */
+#define CONFIG_SYS_BOOTMAPSZ	(8 << 20)	/* Linux initial memory map */
 
 /* Cache Configuration */
 #define CONFIG_SYS_DCACHE_SIZE		32768
@@ -365,6 +364,14 @@
 
 #define CONFIG_HIGH_BATS	1	/* High BATs supported */
 
+/*
+ * Internal Definitions
+ *
+ * Boot Flags
+ */
+#define BOOTFLAG_COLD		0x01	/* Normal Power-On: Boot from FLASH */
+#define BOOTFLAG_WARM		0x02	/* Software reboot */
+
 #ifdef CONFIG_CMD_KGDB
 #define CONFIG_KGDB_BAUDRATE	230400	/* speed of kgdb serial port */
 #define CONFIG_KGDB_SER_INDEX	2	/* which serial port to use */
@@ -376,8 +383,8 @@
 #define CONFIG_TIMESTAMP
 
 #define CONFIG_HOSTNAME		mecp512x
-#define CONFIG_BOOTFILE		"/tftpboot/mecp512x/uImage"
-#define CONFIG_ROOTPATH		"/tftpboot/mecp512x/target_root"
+#define CONFIG_BOOTFILE		/tftpboot/mecp512x/uImage
+#define CONFIG_ROOTPATH		/tftpboot/mecp512x/target_root
 
 #define CONFIG_LOADADDR		400000	/* def. location for tftp and bootm */
 

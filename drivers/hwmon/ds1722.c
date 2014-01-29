@@ -1,7 +1,6 @@
 
 #include <common.h>
-#include <asm/ic/ssi.h>
-#include <ds1722.h>
+#include <ssi.h>
 
 static void ds1722_select(int dev)
 {

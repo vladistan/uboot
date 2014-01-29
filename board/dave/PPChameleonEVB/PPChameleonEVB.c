@@ -5,7 +5,23 @@
  * http://www.wawnet.biz
  * mailto:info@wawnet.biz
  *
- * SPDX-License-Identifier:	GPL-2.0+
+ * See file CREDITS for list of people who contributed to this
+ * project.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation; either version 2 of
+ * the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
+ * MA 02111-1307 USA
  */
 
 #include <common.h>
@@ -16,6 +32,9 @@
 DECLARE_GLOBAL_DATA_PTR;
 
 /* ------------------------------------------------------------------------- */
+
+/* Prototypes */
+int gunzip(void *, int, unsigned char *, unsigned long *);
 
 int board_early_init_f (void)
 {
@@ -34,21 +53,21 @@ int board_early_init_f (void)
 	 * IRQ 30 (EXT IRQ 5)
 	 * IRQ 31 (EXT IRQ 6)
 	 */
-	mtdcr(UIC0SR, 0xFFFFFFFF);       /* clear all ints */
-	mtdcr(UIC0ER, 0x00000000);       /* disable all ints */
-	mtdcr(UIC0CR, 0x00000000);       /* set all to be non-critical*/
-	mtdcr(UIC0PR, 0xFFFFFF80);       /* set int polarities */
-	mtdcr(UIC0TR, 0x10000000);       /* set int trigger levels */
-	mtdcr(UIC0VCR, 0x00000001);      /* set vect base=0,INT0 highest priority*/
-	mtdcr(UIC0SR, 0xFFFFFFFF);       /* clear all ints */
+	mtdcr(uicsr, 0xFFFFFFFF);       /* clear all ints */
+	mtdcr(uicer, 0x00000000);       /* disable all ints */
+	mtdcr(uiccr, 0x00000000);       /* set all to be non-critical*/
+	mtdcr(uicpr, 0xFFFFFF80);       /* set int polarities */
+	mtdcr(uictr, 0x10000000);       /* set int trigger levels */
+	mtdcr(uicvcr, 0x00000001);      /* set vect base=0,INT0 highest priority*/
+	mtdcr(uicsr, 0xFFFFFFFF);       /* clear all ints */
 
 	/*
 	 * EBC Configuration Register: set ready timeout to 512 ebc-clks -> ca. 15 us
 	 */
 #if 1 /* test-only */
-	mtebc (EBC0_CFG, 0xa8400000); /* ebc always driven */
+	mtebc (epcr, 0xa8400000); /* ebc always driven */
 #else
-	mtebc (EBC0_CFG, 0x28400000); /* ebc in high-z */
+	mtebc (epcr, 0x28400000); /* ebc in high-z */
 #endif
 	return 0;
 }
@@ -82,7 +101,7 @@ int misc_init_r (void)
 	int status;
 	int index;
 	int i;
-	unsigned long CPC0_CR0Reg;
+	unsigned long cntrl0Reg;
 
 	dst = malloc(CONFIG_SYS_FPGA_MAX_SIZE);
 	if (gunzip (dst, CONFIG_SYS_FPGA_MAX_SIZE, (uchar *)fpgadata, &len) != 0) {
@@ -167,7 +186,7 @@ int misc_init_r (void)
 int checkboard (void)
 {
 	char str[64];
-	int i = getenv_f("serial#", str, sizeof(str));
+	int i = getenv_r ("serial#", str, sizeof(str));
 
 	puts ("Board: ");
 

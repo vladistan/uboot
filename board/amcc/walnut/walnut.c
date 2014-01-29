@@ -2,7 +2,23 @@
  * (C) Copyright 2000-2005
  * Wolfgang Denk, DENX Software Engineering, wd@denx.de.
  *
- * SPDX-License-Identifier:	GPL-2.0+
+ * See file CREDITS for list of people who contributed to this
+ * project.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation; either version 2 of
+ * the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
+ * MA 02111-1307 USA
  */
 
 #include <common.h>
@@ -31,13 +47,13 @@ int board_early_init_f(void)
 	  |
 	  +-------------------------------------------------------------------------*/
 
-	mtdcr(UIC0SR, 0xFFFFFFFF);	/* clear all ints */
-	mtdcr(UIC0ER, 0x00000000);	/* disable all ints */
-	mtdcr(UIC0CR, 0x00000020);	/* set all but FPGA SMI to be non-critical */
-	mtdcr(UIC0PR, 0xFFFFFFE0);	/* set int polarities */
-	mtdcr(UIC0TR, 0x10000000);	/* set int trigger levels */
-	mtdcr(UIC0VCR, 0x00000001);	/* set vect base=0,INT0 highest priority */
-	mtdcr(UIC0SR, 0xFFFFFFFF);	/* clear all ints */
+	mtdcr(uicsr, 0xFFFFFFFF);	/* clear all ints */
+	mtdcr(uicer, 0x00000000);	/* disable all ints */
+	mtdcr(uiccr, 0x00000020);	/* set all but FPGA SMI to be non-critical */
+	mtdcr(uicpr, 0xFFFFFFE0);	/* set int polarities */
+	mtdcr(uictr, 0x10000000);	/* set int trigger levels */
+	mtdcr(uicvcr, 0x00000001);	/* set vect base=0,INT0 highest priority */
+	mtdcr(uicsr, 0xFFFFFFFF);	/* clear all ints */
 
 	/* set UART1 control to select CTS/RTS */
 #define FPGA_BRDC       0xF0300004
@@ -51,8 +67,7 @@ int board_early_init_f(void)
  */
 int checkboard(void)
 {
-	char buf[64];
-	int i = getenv_f("serial#", buf, sizeof(buf));
+	char *s = getenv("serial#");
 	uint pvr = get_pvr();
 
 	if (pvr == PVR_405GPR_RB) {
@@ -61,9 +76,9 @@ int checkboard(void)
 		puts("Board: Walnut - AMCC PPC405GP Evaluation Board");
 	}
 
-	if (i > 0) {
+	if (s != NULL) {
 		puts(", serial# ");
-		puts(buf);
+		puts(s);
 	}
 	putc('\n');
 

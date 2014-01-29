@@ -49,11 +49,6 @@
 #undef	CONFIG_ALTIVEC
 #define CONFIG_BUS_CLK	66000000
 
-#define	CONFIG_SYS_TEXT_BASE	0xFFF00000
-
-#ifndef __ASSEMBLY__
-#include <galileo/core.h>
-#endif
 
 /*
  * Monitor configuration
@@ -118,7 +113,6 @@
  */
 
 #define	CONFIG_PCI
-#define	CONFIG_PCI_INDIRECT_BRIDGE
 #define	CONFIG_PCI_PNP
 #undef	CONFIG_PCI_SCAN_SHOW
 
@@ -126,10 +120,12 @@
 /*
  * Network config
  *
+ * CONFIG_NET_MULTI		- Support for multiple network interfaces
  * CONFIG_EEPRO100		- Intel 8255x Ethernet Controller
  * CONFIG_EEPRO100_SROM_WRITE	- Enable writing to network card ROM
  */
 
+#define	CONFIG_NET_MULTI
 #define	CONFIG_EEPRO100
 #define	CONFIG_EEPRO100_SROM_WRITE
 
@@ -234,7 +230,7 @@
 #define CONFIG_SYS_FLASH_ERASE_TOUT	250000
 #define CONFIG_SYS_FLASH_WRITE_TOUT	5000
 #define CONFIG_SYS_MAX_FLASH_BANKS	1
-#define CONFIG_SYS_MAX_FLASH_SECT	128
+#define CONFIG_SYS_MAX_FLASH_SECT	19
 
 
 /*
@@ -244,7 +240,7 @@
  * CONFIG_SYS_MALLOC_LEN		- Size of malloc pool (128KB)
  */
 
-#define CONFIG_SYS_MONITOR_BASE	CONFIG_SYS_TEXT_BASE
+#define CONFIG_SYS_MONITOR_BASE	TEXT_BASE
 #define CONFIG_SYS_MALLOC_LEN		0x20000
 
 
@@ -300,14 +296,15 @@
  * copied to top of RAM by the init code.
  *
  * CONFIG_SYS_INIT_RAM_ADDR		- Address of Init RAM, above exception vect
- * CONFIG_SYS_INIT_RAM_SIZE		- Size of Init RAM
- * GENERATED_GBL_DATA_SIZE		- Ammount of RAM to reserve for global data
+ * CONFIG_SYS_INIT_RAM_END		- Size of Init RAM
+ * CONFIG_SYS_GBL_DATA_SIZE		- Ammount of RAM to reserve for global data
  * CONFIG_SYS_GBL_DATA_OFFSET		- Start of global data, top of stack
  */
 
 #define CONFIG_SYS_INIT_RAM_ADDR	(CONFIG_SYS_SDRAM_BASE + 0x4000)
-#define CONFIG_SYS_INIT_RAM_SIZE	0x4000
-#define CONFIG_SYS_GBL_DATA_OFFSET	(CONFIG_SYS_INIT_RAM_SIZE - GENERATED_GBL_DATA_SIZE)
+#define CONFIG_SYS_INIT_RAM_END	0x4000
+#define CONFIG_SYS_GBL_DATA_SIZE	128
+#define CONFIG_SYS_GBL_DATA_OFFSET	(CONFIG_SYS_INIT_RAM_END - CONFIG_SYS_GBL_DATA_SIZE)
 
 
 /*
@@ -358,10 +355,12 @@
 /*
  * Clocks config
  *
- * CONFIG_SYS_BUS_CLK			- Bus clock frequency in Hz
+ * CONFIG_SYS_BUS_HZ			- Bus clock frequency in Hz
+ * CONFIG_SYS_BUS_CLK			- As above (?)
  * CONFIG_SYS_HZ			- Decrementer freq in Hz
  */
 
+#define CONFIG_SYS_BUS_HZ		CONFIG_BUS_CLK
 #define CONFIG_SYS_BUS_CLK		CONFIG_BUS_CLK
 #define CONFIG_SYS_HZ			1000
 
@@ -369,6 +368,7 @@
 /*
  * Serial port config
  *
+ * CONFIG_SYS_BAUDRATE_TABLE		- List of valid baud rates
  * CONFIG_SYS_NS16550			- Include the NS16550 driver
  * CONFIG_SYS_NS16550_SERIAL		- Include the serial (wrapper) driver
  * CONFIG_SYS_NS16550_CLK		- Frequency of reference clock
@@ -376,6 +376,7 @@
  * CONFIG_SYS_NS16550_COM1		- Base address of 1st serial port
  */
 
+#define CONFIG_SYS_BAUDRATE_TABLE	{ 9600, 19200, 38400, 57600, 115200 }
 #define CONFIG_SYS_NS16550
 #define CONFIG_SYS_NS16550_SERIAL
 #define CONFIG_SYS_NS16550_CLK		3686400
@@ -414,5 +415,17 @@
  */
 
 #define CONFIG_SYS_BOARD_ASM_INIT
+
+
+/*
+ * Boot flags
+ *
+ * BOOTFLAG_COLD		- Indicates a power-on boot
+ * BOOTFLAG_WARM		- Indicates a software reset
+ */
+
+#define BOOTFLAG_COLD		0x01
+#define BOOTFLAG_WARM		0x02
+
 
 #endif /* __CONFIG_H */

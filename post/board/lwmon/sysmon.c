@@ -2,7 +2,23 @@
  * (C) Copyright 2003
  * Wolfgang Denk, DENX Software Engineering, wd@denx.de.
  *
- * SPDX-License-Identifier:	GPL-2.0+
+ * See file CREDITS for list of people who contributed to this
+ * project.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation; either version 2 of
+ * the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
+ * MA 02111-1307 USA
  */
 
 #include <post.h>
@@ -39,6 +55,8 @@ DECLARE_GLOBAL_DATA_PTR;
 static int sysmon_temp_invalid = 0;
 
 /* #define DEBUG */
+
+#define	RELOC(x) if (x != NULL) x = (void *) ((ulong) (x) + gd->reloc_off)
 
 typedef struct sysmon_s sysmon_t;
 typedef struct sysmon_table_s sysmon_table_t;
@@ -117,7 +135,7 @@ static sysmon_table_t sysmon_table[] =
     {"+ 5 V standby", "V", &sysmon_pic, NULL, NULL,
      100, 1000, 0, 6040, 0xFF, 0xC8, 0xDE, 0, 0xC8, 0xDE, 0, 0x7C},
 };
-static int sysmon_table_size = ARRAY_SIZE(sysmon_table);
+static int sysmon_table_size = sizeof(sysmon_table) / sizeof(sysmon_table[0]);
 
 static int conversion_done = 0;
 
@@ -141,7 +159,20 @@ int sysmon_init_f (void)
 
 void sysmon_reloc (void)
 {
-	/* Do nothing for now, sysmon_reloc() is required by the sysmon post */
+	sysmon_t ** l;
+	sysmon_table_t * t;
+
+	for (l = sysmon_list; *l; l++) {
+		RELOC(*l);
+		RELOC((*l)->init);
+		RELOC((*l)->read);
+	}
+
+	for (t = sysmon_table; t < sysmon_table + sysmon_table_size; t ++) {
+		RELOC(t->exec_before);
+		RELOC(t->exec_after);
+		RELOC(t->sysmon);
+	}
 }
 
 static char *sysmon_unit_value (sysmon_table_t *s, uint val)

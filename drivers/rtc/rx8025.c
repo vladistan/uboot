@@ -2,7 +2,23 @@
  * (C) Copyright 2007
  * Matthias Fuchs, esd gmbh, matthias.fuchs@esd-electronics.com.
  *
- * SPDX-License-Identifier:	GPL-2.0+
+ * See file CREDITS for list of people who contributed to this
+ * project.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation; either version 2 of
+ * the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
+ * MA 02111-1307 USA
  */
 
 /*
@@ -74,6 +90,8 @@
 #define rtc_read(reg) buf[((reg) + 1) & 0xf]
 
 static void rtc_write (uchar reg, uchar val);
+static uchar bin2bcd (unsigned int n);
+static unsigned bcd2bin (uchar c);
 
 /*
  * Get the current time from the RTC
@@ -206,6 +224,16 @@ static void rtc_write (uchar reg, uchar val)
 	if (i2c_write(CONFIG_SYS_I2C_RTC_ADDR, 0, 0, buf, 2) != 0)
 		printf("Error writing to RTC\n");
 
+}
+
+static unsigned bcd2bin (uchar n)
+{
+	return ((((n >> 4) & 0x0F) * 10) + (n & 0x0F));
+}
+
+static unsigned char bin2bcd (unsigned int n)
+{
+	return (((n / 10) << 4) | (n % 10));
 }
 
 #endif /* CONFIG_RTC_RX8025 && CONFIG_CMD_DATE */

@@ -3,7 +3,20 @@
  *
  * Copyright (c) 2008 Texas Instruments
  *
- * SPDX-License-Identifier:	GPL-2.0+
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation; either version 2 of
+ * the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
+ * MA 02111-1307 USA
  *
  * Author: Thomas Abraham t-abraham@ti.com, Texas Instruments
  */
@@ -11,17 +24,12 @@
 #include <common.h>
 #include <asm/io.h>
 #include "davinci.h"
-#include <asm/arch/hardware.h>
-
-#if !defined(CONFIG_DV_USBPHY_CTL)
-#define CONFIG_DV_USBPHY_CTL (USBPHY_SESNDEN | USBPHY_VBDTCTEN)
-#endif
 
 /* MUSB platform configuration */
 struct musb_config musb_cfg = {
-	.regs		= (struct musb_regs *)MENTOR_USB0_BASE,
-	.timeout	= DAVINCI_USB_TIMEOUT,
-	.musb_speed	= 0,
+	(struct	musb_regs *)MENTOR_USB0_BASE,
+	DAVINCI_USB_TIMEOUT,
+	0
 };
 
 /* MUSB module register overlay */
@@ -33,25 +41,10 @@ struct davinci_usb_regs *dregs;
 static u8 phy_on(void)
 {
 	u32 timeout;
-#ifdef DAVINCI_DM365EVM
-	u32 val;
-#endif
-	/* Wait until the USB phy is turned on */
-#ifdef DAVINCI_DM365EVM
-	writel(USBPHY_PHY24MHZ | USBPHY_SESNDEN |
-			USBPHY_VBDTCTEN, USBPHY_CTL_PADDR);
-#else
-	writel(CONFIG_DV_USBPHY_CTL, USBPHY_CTL_PADDR);
-#endif
-	timeout = musb_cfg.timeout;
 
-#ifdef DAVINCI_DM365EVM
-	/* Set the ownership of GIO33 to USB */
-	val = readl(PINMUX4);
-	val &= ~(PINMUX4_USBDRVBUS_BITCLEAR);
-	val |= PINMUX4_USBDRVBUS_BITSET;
-	writel(val, PINMUX4);
-#endif
+	/* Wait until the USB phy is turned on */
+	writel(USBPHY_SESNDEN | USBPHY_VBDTCTEN, USBPHY_CTL_PADDR);
+	timeout = musb_cfg.timeout;
 	while (timeout--)
 		if (readl(USBPHY_CTL_PADDR) & USBPHY_PHYCLKGD)
 			return 1;
@@ -68,17 +61,6 @@ static void phy_off(void)
 	/* powerdown the on-chip PHY and its oscillator */
 	writel(USBPHY_OSCPDWN | USBPHY_PHYPDWN, USBPHY_CTL_PADDR);
 }
-
-void __enable_vbus(void)
-{
-	/*
-	 *  nothing to do, vbus is handled through the cpu.
-	 *  Define this function in board code, if it is
-	 *  different on your board.
-	 */
-}
-void  enable_vbus(void)
-	__attribute__((weak, alias("__enable_vbus")));
 
 /*
  * This function performs Davinci platform specific initialization for usb0.

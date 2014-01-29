@@ -5,7 +5,23 @@
  * (C) Copyright 2007 Freescale Semiconductor, Inc.
  * TsiChung Liew (Tsi-Chung.Liew@freescale.com)
  *
- * SPDX-License-Identifier:	GPL-2.0+
+ * See file CREDITS for list of people who contributed to this
+ * project.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation; either version 2 of
+ * the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
+ * MA 02111-1307 USA
  */
 
 #include <common.h>
@@ -100,7 +116,7 @@ struct fec_info_dma fec_info[] = {
 #endif
 };
 
-static int fec_send(struct eth_device *dev, void *packet, int length);
+static int fec_send(struct eth_device *dev, volatile void *packet, int length);
 static int fec_recv(struct eth_device *dev);
 static int fec_init(struct eth_device *dev, bd_t * bd);
 static void fec_halt(struct eth_device *dev);
@@ -178,13 +194,13 @@ static void set_fec_duplex_speed(volatile fecdma_t * fecp, bd_t * bd,
 	}
 }
 
-static int fec_send(struct eth_device *dev, void *packet, int length)
+static int fec_send(struct eth_device *dev, volatile void *packet, int length)
 {
 	struct fec_info_dma *info = dev->priv;
 	cbd_t *pTbd, *pUsedTbd;
 	u16 phyStatus;
 
-	miiphy_read(dev->name, info->phy_addr, MII_BMSR, &phyStatus);
+	miiphy_read(dev->name, info->phy_addr, PHY_BMSR, &phyStatus);
 
 	/* process all the consumed TBDs */
 	while (info->cleanTbdNum < CONFIG_SYS_TX_ETH_BUFFER) {
@@ -285,7 +301,8 @@ static int fec_recv(struct eth_device *dev)
 			frame_length = pRbd->cbd_datlen - 4;
 
 			/* Fill the buffer and pass it to upper layers */
-			NetReceive((uchar *)pRbd->cbd_bufaddr, frame_length);
+			NetReceive((volatile uchar *)pRbd->cbd_bufaddr,
+				   frame_length);
 			len = frame_length;
 		}
 
@@ -504,7 +521,7 @@ int mcdmafec_initialize(bd_t * bis)
 	u32 tmp = CONFIG_SYS_INTSRAM + 0x2000;
 #endif
 
-	for (i = 0; i < ARRAY_SIZE(fec_info); i++) {
+	for (i = 0; i < sizeof(fec_info) / sizeof(fec_info[0]); i++) {
 
 		dev =
 		    (struct eth_device *)memalign(CONFIG_SYS_CACHELINE_SIZE,

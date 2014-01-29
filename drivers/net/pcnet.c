@@ -4,7 +4,23 @@
  * This driver for AMD PCnet network controllers is derived from the
  * Linux driver pcnet32.c written 1996-1999 by Thomas Bogendoerfer.
  *
- * SPDX-License-Identifier:	GPL-2.0+
+ * See file CREDITS for list of people who contributed to this
+ * project.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation; either version 2 of
+ * the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	 See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
+ * MA 02111-1307 USA
  */
 
 #include <common.h>
@@ -14,12 +30,21 @@
 #include <asm/io.h>
 #include <pci.h>
 
+#if 0
 #define	PCNET_DEBUG_LEVEL	0	/* 0=off, 1=init, 2=rx/tx */
+#endif
 
-#define PCNET_DEBUG1(fmt,args...)	\
-	debug_cond(PCNET_DEBUG_LEVEL > 0, fmt ,##args)
-#define PCNET_DEBUG2(fmt,args...)	\
-	debug_cond(PCNET_DEBUG_LEVEL > 1, fmt ,##args)
+#if PCNET_DEBUG_LEVEL > 0
+#define	PCNET_DEBUG1(fmt,args...)	printf (fmt ,##args)
+#if PCNET_DEBUG_LEVEL > 1
+#define	PCNET_DEBUG2(fmt,args...)	printf (fmt ,##args)
+#else
+#define PCNET_DEBUG2(fmt,args...)
+#endif
+#else
+#define PCNET_DEBUG1(fmt,args...)
+#define PCNET_DEBUG2(fmt,args...)
+#endif
 
 #if !defined(CONF_PCNET_79C973) && defined(CONF_PCNET_79C975)
 #error "Macro for PCnet chip version is not defined!"
@@ -125,12 +150,13 @@ static int pcnet_check (struct eth_device *dev)
 }
 
 static int pcnet_init (struct eth_device *dev, bd_t * bis);
-static int pcnet_send(struct eth_device *dev, void *packet, int length);
+static int pcnet_send (struct eth_device *dev, volatile void *packet,
+		       int length);
 static int pcnet_recv (struct eth_device *dev);
 static void pcnet_halt (struct eth_device *dev);
 static int pcnet_probe (struct eth_device *dev, bd_t * bis, int dev_num);
 
-#define PCI_TO_MEM(d, a) pci_virt_to_mem((pci_dev_t)d->priv, (a))
+#define PCI_TO_MEM(d,a) pci_phys_to_mem((pci_dev_t)d->priv, (u_long)(a))
 #define PCI_TO_MEM_LE(d,a) (u32)(cpu_to_le32(PCI_TO_MEM(d,a)))
 
 static struct pci_device_id supported[] = {
@@ -161,11 +187,6 @@ int pcnet_initialize (bd_t * bis)
 		 * Allocate and pre-fill the device structure.
 		 */
 		dev = (struct eth_device *) malloc (sizeof *dev);
-		if (!dev) {
-			printf("pcnet: Can not allocate memory\n");
-			break;
-		}
-		memset(dev, 0, sizeof(*dev));
 		dev->priv = (void *) devbusfn;
 		sprintf (dev->name, "pcnet#%d", dev_nr);
 
@@ -398,7 +419,8 @@ static int pcnet_init (struct eth_device *dev, bd_t * bis)
 	return 0;
 }
 
-static int pcnet_send(struct eth_device *dev, void *packet, int pkt_len)
+static int pcnet_send (struct eth_device *dev, volatile void *packet,
+		       int pkt_len)
 {
 	int i, status;
 	struct pcnet_tx_head *entry = &lp->tx_ring[lp->cur_tx];

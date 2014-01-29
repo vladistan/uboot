@@ -2,7 +2,20 @@
  * (C) Copyright 2003
  * Masami Komiya <mkomiya@sonare.it>
  *
- * SPDX-License-Identifier:	GPL-2.0+ 
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation; either version 2 of
+ * the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	 See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
+ * MA 02111-1307 USA
  */
 
 /*
@@ -24,6 +37,8 @@
 #define CONFIG_BOOTDELAY	5	/* autoboot after 5 seconds	*/
 
 #define CONFIG_BAUDRATE		115200
+
+#define CONFIG_SYS_BAUDRATE_TABLE	{ 9600, 19200, 38400, 57600, 115200 }
 
 #define CONFIG_TIMESTAMP		/* Print image info with timestamp */
 
@@ -127,7 +142,7 @@
 #define PHYS_FLASH_1		0xbfc00000 /* Flash Bank #1 */
 
 /* The following #defines are needed to get flash environment right */
-#define CONFIG_SYS_MONITOR_BASE	CONFIG_SYS_TEXT_BASE
+#define CONFIG_SYS_MONITOR_BASE	TEXT_BASE
 #define CONFIG_SYS_MONITOR_LEN		(192 << 10)
 
 #define CONFIG_SYS_INIT_SP_OFFSET	0x400000
@@ -169,6 +184,7 @@
  */
 #define CONFIG_PCI
 #define CONFIG_PCI_PNP
+#define CONFIG_NET_MULTI
 #define CONFIG_EEPRO100
 #define CONFIG_SYS_RX_ETH_BUFFER	8		/* use 8 rx buffer on eepro100	*/
 

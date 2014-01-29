@@ -2,7 +2,23 @@
  * (C) Copyright 2002
  * Wolfgang Grandegger, DENX Software Engineering, wg@denx.de.
  *
- * SPDX-License-Identifier:	GPL-2.0+
+ * See file CREDITS for list of people who contributed to this
+ * project.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation; either version 2 of
+ * the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
+ * MA 02111-1307 USA
  */
 
 #include <common.h>
@@ -15,23 +31,25 @@
 
 #if defined(CONFIG_CMD_BSP)
 
+extern int do_bootm (cmd_tbl_t *, int, int, char *[]);
+
 /*
  * Command led: controls the various LEDs 0..11 on the PN62 card.
  */
-int do_led(cmd_tbl_t * cmdtp, int flag, int argc, char *const argv[])
+int do_led (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 {
-	unsigned int number, function;
+    unsigned int number, function;
 
-	if (argc != 3)
-		return cmd_usage(cmdtp);
-
-	number = simple_strtoul(argv[1], NULL, 10);
-	if (number > PN62_LED_MAX)
-		return 1;
-
-	function = simple_strtoul(argv[2], NULL, 16);
-	set_led(number, function);
-	return 0;
+    if (argc != 3) {
+	cmd_usage(cmdtp);
+	return 1;
+    }
+    number = simple_strtoul(argv[1], NULL, 10);
+    if (number > PN62_LED_MAX)
+	return 1;
+    function = simple_strtoul(argv[2], NULL, 16);
+    set_led (number, function);
+    return 0;
 }
 U_BOOT_CMD(
 	led    ,	3,	1,	do_led,
@@ -46,7 +64,7 @@ U_BOOT_CMD(
 #define CMD_MOVE_WINDOW 0x1
 #define CMD_BOOT_IMAGE  0x2
 
-int do_loadpci (cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
+int do_loadpci (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 {
     char *s;
     ulong addr = 0, count = 0;
@@ -65,7 +83,8 @@ int do_loadpci (cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 	addr = simple_strtoul(argv[1], NULL, 16);
 	break;
     default:
-	return cmd_usage(cmdtp);
+       cmd_usage(cmdtp);
+	return 1;
     }
 
     printf ("## Ready for image download ...\n");
@@ -133,6 +152,24 @@ int do_loadpci (cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 	rcode = do_bootm (cmdtp, 0, 1, local_args);
     }
 
+#ifdef CONFIG_SOURCE
+    if (load_addr) {
+	char *s;
+
+	if (((s = getenv("autoscript")) != NULL) && (strcmp(s,"yes") == 0)) {
+		printf ("Running \"source\" command at addr 0x%08lX",
+			load_addr);
+
+		s = getenv ("autoscript_uname");
+		if (s)
+			printf (":%s ...\n", s);
+		else
+			puts (" ...\n");
+
+		rcode = source (load_addr, s);
+	}
+    }
+#endif
     return rcode;
 }
 

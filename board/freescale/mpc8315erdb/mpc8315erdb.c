@@ -4,7 +4,23 @@
  * Author: Scott Wood <scottwood@freescale.com>
  *         Dave Liu <daveliu@freescale.com>
  *
- * SPDX-License-Identifier:	GPL-2.0+
+ * See file CREDITS for list of people who contributed to this
+ * project.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation; either version 2 of
+ * the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS for A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
+ * MA 02111-1307 USA
  */
 
 #include <common.h>
@@ -16,8 +32,6 @@
 #include <mpc83xx.h>
 #include <netdev.h>
 #include <asm/io.h>
-#include <ns16550.h>
-#include <nand.h>
 
 DECLARE_GLOBAL_DATA_PTR;
 
@@ -30,8 +44,6 @@ int board_early_init_f(void)
 
 	return 0;
 }
-
-#ifndef CONFIG_NAND_SPL
 
 static u8 read_board_info(void)
 {
@@ -124,6 +136,7 @@ void pci_init_board(void)
 	volatile law83xx_t *pcie_law = sysconf->pcielaw;
 	struct pci_region *reg[] = { pci_regions };
 	struct pci_region *pcie_reg[] = { pcie_regions_0, pcie_regions_1, };
+	int warmboot;
 
 	/* Enable all 3 PCI_CLK_OUTPUTs. */
 	clk->occr |= 0xe0000000;
@@ -137,7 +150,10 @@ void pci_init_board(void)
 	pci_law[1].bar = CONFIG_SYS_PCI_IO_PHYS & LAWBAR_BAR;
 	pci_law[1].ar = LBLAWAR_EN | LBLAWAR_1MB;
 
-	mpc83xx_pci_init(1, reg);
+	warmboot = gd->bd->bi_bootflags & BOOTFLAG_WARM;
+	warmboot |= immr->pmc.pmccr1 & PMCCR1_POWER_OFF;
+
+	mpc83xx_pci_init(1, reg, warmboot);
 
 	/* Configure the clock for PCIE controller */
 	clrsetbits_be32(&clk->sccr, SCCR_PCIEXP1CM | SCCR_PCIEXP2CM,
@@ -155,7 +171,7 @@ void pci_init_board(void)
 	out_be32(&pcie_law[1].bar, CONFIG_SYS_PCIE2_BASE & LAWBAR_BAR);
 	out_be32(&pcie_law[1].ar, LBLAWAR_EN | LBLAWAR_512MB);
 
-	mpc83xx_pcie_init(2, pcie_reg);
+	mpc83xx_pcie_init(2, pcie_reg, warmboot);
 }
 
 #if defined(CONFIG_OF_BOARD_SETUP)
@@ -204,41 +220,3 @@ int board_eth_init(bd_t *bis)
 	cpu_eth_init(bis);	/* Initialize TSECs first */
 	return pci_eth_init(bis);
 }
-
-#else /* CONFIG_NAND_SPL */
-
-int checkboard(void)
-{
-	puts("Board: Freescale MPC8315ERDB\n");
-	return 0;
-}
-
-void board_init_f(ulong bootflag)
-{
-	board_early_init_f();
-	NS16550_init((NS16550_t)(CONFIG_SYS_IMMR + 0x4500),
-		     CONFIG_SYS_NS16550_CLK / 16 / CONFIG_BAUDRATE);
-	puts("NAND boot... ");
-	init_timebase();
-	initdram(0);
-	relocate_code(CONFIG_SYS_NAND_U_BOOT_RELOC + 0x10000, (gd_t *)gd,
-		      CONFIG_SYS_NAND_U_BOOT_RELOC);
-}
-
-void board_init_r(gd_t *gd, ulong dest_addr)
-{
-	nand_boot();
-}
-
-void putc(char c)
-{
-	if (gd->flags & GD_FLG_SILENT)
-		return;
-
-	if (c == '\n')
-		NS16550_putc((NS16550_t)(CONFIG_SYS_IMMR + 0x4500), '\r');
-
-	NS16550_putc((NS16550_t)(CONFIG_SYS_IMMR + 0x4500), c);
-}
-
-#endif /* CONFIG_NAND_SPL */

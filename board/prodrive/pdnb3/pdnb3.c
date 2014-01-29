@@ -2,7 +2,23 @@
  * (C) Copyright 2006
  * Stefan Roese, DENX Software Engineering, sr@denx.de.
  *
- * SPDX-License-Identifier:	GPL-2.0+
+ * See file CREDITS for list of people who contributed to this
+ * project.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation; either version 2 of
+ * the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
+ * MA 02111-1307 USA
  */
 
 #include <common.h>
@@ -11,6 +27,10 @@
 #include <asm/arch/ixp425.h>
 
 DECLARE_GLOBAL_DATA_PTR;
+
+/* Prototypes */
+int gunzip(void *, int, unsigned char *, unsigned long *);
+int do_reset(cmd_tbl_t *cmdtp, int flag, int argc, char *argv[]);
 
 /* predefine these here for FPGA programming (before including fpga.c) */
 #define SET_FPGA(data)	*IXP425_GPIO_GPOUTR = (data)
@@ -30,6 +50,9 @@ static unsigned long old_val = 0;
  */
 int board_init(void)
 {
+	/* arch number of PDNB3 */
+	gd->bd->bi_arch_number = MACH_TYPE_PDNB3;
+
 	/* adress of boot parameters */
 	gd->bd->bi_boot_params = 0x00000100;
 
@@ -82,14 +105,13 @@ int board_init(void)
  */
 int checkboard(void)
 {
-	char buf[64];
-	int i = getenv_f("serial#", buf, sizeof(buf));
+	char *s = getenv("serial#");
 
 	puts("Board: PDNB3");
 
-	if (i > 0) {
+	if (s != NULL) {
 		puts(", serial# ");
-		puts(buf);
+		puts(s);
 	}
 	putc('\n');
 
@@ -189,12 +211,14 @@ int do_fpga_boot(unsigned char *fpgadata)
 	return (0);
 }
 
-int do_fpga(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
+int do_fpga(cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 {
 	ulong addr;
 
-	if (argc < 2)
-		return cmd_usage(cmdtp);
+	if (argc < 2) {
+		cmd_usage(cmdtp);
+		return 1;
+	}
 
 	addr = simple_strtoul(argv[1], NULL, 16);
 

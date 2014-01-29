@@ -1,7 +1,23 @@
 /*
  * Copyright - Galileo technology.
  *
- * SPDX-License-Identifier:	GPL-2.0+
+ * See file CREDITS for list of people who contributed to this
+ * project.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation; either version 2 of
+ * the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
+ * MA 02111-1307 USA
  */
 
 /*
@@ -19,7 +35,7 @@
 /*******************************************************************************
 * memoryGetBankBaseAddress - Returns the base address of a memory bank.
 * DESCRIPTION:
-*       This function returns the base address of one of the SDRAM's memory
+*       This function returns the base address of one of the SDRAM’s memory
 *       banks. There are 4 memory banks and each one represents one DIMM side.
 * INPUT:
 *       MEMORY_BANK bank - Selects one of the four banks as defined in Memory.h.
@@ -350,8 +366,8 @@ unsigned int memoryGetDeviceWidth (DEVICE device)
 *       This function sets new base and size for one the memory banks
 *       (CS0 - CS3). It is the programmer`s responsibility to make sure that
 *       there are no conflicts with other memory spaces. When two memory spaces
-*       overlap, the MV's behavior is not defined .If a bank needs to be closed,
-*       set the 'bankLength' parameter size to 0x0.
+*       overlap, the MV’s behavior is not defined .If a bank needs to be closed,
+*       set the ’bankLength’ parameter size to 0x0.
 *
 * INPUT:
 *       bank      - One of the memory banks (CS0-CS3) as defined in gtMemory.h.
@@ -359,7 +375,7 @@ unsigned int memoryGetDeviceWidth (DEVICE device)
 *       bankLength  - The memory bank size. This function will decrement the
 *                   'bankLength' parameter by one and then check if the size is
 *                   valid. A valid size must be programed from LSB to MSB as
-*                   sequence of '1's followed by sequence of '0's.
+*                   sequence of ‘1’s followed by sequence of ‘0’s.
 *                   To close a memory window simply set the size to 0.
 *      NOTE!!!
 *       The size must be in 64Kbyte granularity.
@@ -367,7 +383,7 @@ unsigned int memoryGetDeviceWidth (DEVICE device)
 * OUTPUT:
 *       None.
 * RETURN:
-*       false for invalid size, true otherwise.
+*       False for invalid size, true otherwise.
 *
 * CAUTION: PCI_functions must be implemented later To_do !!!!!!!!!!!!!!!!!
 *
@@ -471,7 +487,7 @@ bool memoryMapBank (MEMORY_BANK bank, unsigned int bankBase,
 *       This function sets new base and size for one the device windows
 *       (DEV_CS0 - DEV_CS3). It is the programmer`s responsibility to make sure
 *       that there are no conflicts with other memory spaces. When two memory
-*       spaces overlap, the MV's behavior is not defined .If a device window
+*       spaces overlap, the MV’s behavior is not defined .If a device window
 *       needs to be closed, set the 'deviceLength' parameter size to 0x0.
 *
 * INPUT:
@@ -481,8 +497,8 @@ bool memoryMapBank (MEMORY_BANK bank, unsigned int bankBase,
 *       deviceLength - The device window size. This function will decrement
 *                          the 'deviceLength' parameter by one and then
 *                          check if the size is valid. A valid size must be
-*                          programed from LSB to MSB as sequence of '1's
-*                          followed by sequence of '0's.
+*                          programed from LSB to MSB as sequence of ‘1’s
+*                          followed by sequence of ‘0’s.
 *                          To close a memory window simply set the size to 0.
 *
 *      NOTE!!!
@@ -493,7 +509,7 @@ bool memoryMapBank (MEMORY_BANK bank, unsigned int bankBase,
 *       None.
 *
 * RETURN:
-*       false for invalid size, true otherwise.
+*       False for invalid size, true otherwise.
 *
 * CAUTION: PCI_functions must be implemented later To_do !!!!!!!!!!!!!!!!!
 *
@@ -588,7 +604,7 @@ bool memoryMapDeviceSpace (DEVICE device, unsigned int deviceBase,
 *       This function sets new base and size for one the PCI windows
 *       (PCI memory0/1/2..). It is the programmer`s responsibility to make sure
 *       that there are no conflicts with other memory spaces. When two memory
-*       spaces overlap, the MV's behavior is not defined. If a PCI window
+*       spaces overlap, the MV’s behavior is not defined .If a PCI window
 *       needs to be closed, set the 'pciWindowSize' parameter size to 0x0.
 *
 * INPUT:
@@ -597,7 +613,7 @@ bool memoryMapDeviceSpace (DEVICE device, unsigned int deviceBase,
 *       pciWindowSize - The PCI window size. This function will decrement the
 *                       'pciWindowSize' parameter by one and then check if the
 *                       size is valid. A valid size must be programed from LSB
-*                       to MSB as sequence of '1's followed by sequence of '0's.
+*                       to MSB as sequence of ‘1’s followed by sequence of ‘0’s.
 *                       To close a memory window simply set the size to 0.
 *
 *      NOTE!!!
@@ -608,7 +624,7 @@ bool memoryMapDeviceSpace (DEVICE device, unsigned int deviceBase,
 *       None.
 *
 * RETURN:
-*       false for invalid size, true otherwise.
+*       False for invalid size, true otherwise.
 *
 *******************************************************************************/
 bool memorySetPciWindow (PCI_MEM_WINDOW pciWindow, unsigned int pciWindowBase,
@@ -702,14 +718,14 @@ bool memorySetPciWindow (PCI_MEM_WINDOW pciWindow, unsigned int pciWindowBase,
 *                                  registers memory space.
 *
 * DESCRIPTION:
-*       This function set new base address for the internal registers memory
+*       This function set new base address for the internal register’s memory
 *       space (the size is fixed and cannot be modified). The function does not
 *       handle overlapping with other memory spaces, it is the programer's
 *       responsibility to ensure that overlapping does not occur.
-*       When two memory spaces overlap, the MV's behavior is not defined.
+*       When two memory spaces overlap, the MV’s behavior is not defined.
 *
 * INPUT:
-*       internalRegBase - new base address for the internal registers memory
+*       internalRegBase - new base address for the internal register’s memory
 *                         space.
 *
 * OUTPUT:
@@ -746,7 +762,7 @@ bool memoryMapInternalRegistersSpace (unsigned int internalRegBase)
 *                                     address.
 *
 * DESCRIPTION:
-*       This function returns the base address of  the internal registers
+*       This function returns the base address of  the internal register’s
 *       memory space .
 *
 * INPUT:
@@ -756,7 +772,7 @@ bool memoryMapInternalRegistersSpace (unsigned int internalRegBase)
 *       None.
 *
 * RETURN:
-*       32 bit base address of the internal registers memory space.
+*       32 bit base address of the internal register’s memory space.
 *
 *******************************************************************************/
 unsigned int memoryGetInternalRegistersSpace (void)
@@ -858,7 +874,7 @@ void gtMemorySetInternalSramBaseAddr (unsigned int sramBaseAddress)
 *       regionSize  - The region's size. This function will decrement the
 *                     'regionSize' parameter by one and then check if the size
 *                     is valid. A valid size must be programed from LSB to MSB
-*                     as sequence of '1's followed by sequence of '0's.
+*                     as sequence of ‘1’s followed by sequence of ‘0’s.
 *                     To close a memory window simply set the size to 0.
 *
 *      NOTE!!!
@@ -869,7 +885,7 @@ void gtMemorySetInternalSramBaseAddr (unsigned int sramBaseAddress)
 *       None.
 *
 * RETURN:
-*       false for invalid size, true otherwise.
+*       False for invalid size, true otherwise.
 *
 *******************************************************************************/
 bool memorySetProtectRegion (MEMORY_PROTECT_WINDOW window,
@@ -1364,7 +1380,7 @@ void MemoryEnableWindow (MEMORY_WINDOW window)
 * OUTPUT:
 *       None.
 * RETURN:
-*       true for a closed window, false otherwise .
+*       True for a closed window, false otherwise .
 *******************************************************************************/
 MEMORY_WINDOW_STATUS MemoryGetMemWindowStatus (MEMORY_WINDOW window)
 {

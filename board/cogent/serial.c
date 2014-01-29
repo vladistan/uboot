@@ -5,8 +5,6 @@
 
 #include <common.h>
 #include <board/cogent/serial.h>
-#include <serial.h>
-#include <linux/compiler.h>
 
 DECLARE_GLOBAL_DATA_PTR;
 
@@ -27,7 +25,7 @@ DECLARE_GLOBAL_DATA_PTR;
 #error CONFIG_CONS_INDEX must be configured for Cogent motherboard serial
 #endif
 
-static int cogent_serial_init(void)
+int serial_init (void)
 {
 	cma_mb_serial *mbsp = (cma_mb_serial *) CMA_MB_SERIAL_BASE;
 
@@ -40,7 +38,7 @@ static int cogent_serial_init(void)
 	return (0);
 }
 
-static void cogent_serial_setbrg(void)
+void serial_setbrg (void)
 {
 	cma_mb_serial *mbsp = (cma_mb_serial *) CMA_MB_SERIAL_BASE;
 	unsigned int divisor;
@@ -56,7 +54,7 @@ static void cogent_serial_setbrg(void)
 	cma_mb_reg_write (&mbsp->ser_lcr, lcr);	/* unset DLAB */
 }
 
-static void cogent_serial_putc(const char c)
+void serial_putc (const char c)
 {
 	cma_mb_serial *mbsp = (cma_mb_serial *) CMA_MB_SERIAL_BASE;
 
@@ -68,7 +66,13 @@ static void cogent_serial_putc(const char c)
 	cma_mb_reg_write (&mbsp->ser_thr, c);
 }
 
-static int cogent_serial_getc(void)
+void serial_puts (const char *s)
+{
+	while (*s != '\0')
+		serial_putc (*s++);
+}
+
+int serial_getc (void)
 {
 	cma_mb_serial *mbsp = (cma_mb_serial *) CMA_MB_SERIAL_BASE;
 
@@ -77,33 +81,13 @@ static int cogent_serial_getc(void)
 	return ((int) cma_mb_reg_read (&mbsp->ser_rhr) & 0x7f);
 }
 
-static int cogent_serial_tstc(void)
+int serial_tstc (void)
 {
 	cma_mb_serial *mbsp = (cma_mb_serial *) CMA_MB_SERIAL_BASE;
 
 	return ((cma_mb_reg_read (&mbsp->ser_lsr) & LSR_DR) != 0);
 }
 
-static struct serial_device cogent_serial_drv = {
-	.name	= "cogent_serial",
-	.start	= cogent_serial_init,
-	.stop	= NULL,
-	.setbrg	= cogent_serial_setbrg,
-	.putc	= cogent_serial_putc,
-	.puts	= default_serial_puts,
-	.getc	= cogent_serial_getc,
-	.tstc	= cogent_serial_tstc,
-};
-
-void cogent_serial_initialize(void)
-{
-	serial_register(&cogent_serial_drv);
-}
-
-__weak struct serial_device *default_serial_console(void)
-{
-	return &cogent_serial_drv;
-}
 #endif /* CONS_NONE */
 
 #if defined(CONFIG_CMD_KGDB) && \

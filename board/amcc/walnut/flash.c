@@ -2,7 +2,23 @@
  * (C) Copyright 2000-2005
  * Wolfgang Denk, DENX Software Engineering, wd@denx.de.
  *
- * SPDX-License-Identifier:	GPL-2.0+
+ * See file CREDITS for list of people who contributed to this
+ * project.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation; either version 2 of
+ * the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
+ * MA 02111-1307 USA
  */
 
 /*
@@ -13,7 +29,7 @@
  */
 
 #include <common.h>
-#include <asm/ppc4xx.h>
+#include <ppc4xx.h>
 #include <asm/processor.h>
 
 #undef DEBUG
@@ -86,27 +102,27 @@ unsigned long flash_init(void)
 		/* Re-do sizing to get full correct info */
 
 		if (size_b1) {
-			mtdcr(EBC0_CFGADDR, PB0CR);
-			pbcr = mfdcr(EBC0_CFGDATA);
-			mtdcr(EBC0_CFGADDR, PB0CR);
+			mtdcr(ebccfga, pb0cr);
+			pbcr = mfdcr(ebccfgd);
+			mtdcr(ebccfga, pb0cr);
 			base_b1 = -size_b1;
 			pbcr =
 			    (pbcr & 0x0001ffff) | base_b1 |
 			    (((size_b1 / 1024 / 1024) - 1) << 17);
-			mtdcr(EBC0_CFGDATA, pbcr);
-			/*          printf("PB1CR = %x\n", pbcr); */
+			mtdcr(ebccfgd, pbcr);
+			/*          printf("pb1cr = %x\n", pbcr); */
 		}
 
 		if (size_b0) {
-			mtdcr(EBC0_CFGADDR, PB1CR);
-			pbcr = mfdcr(EBC0_CFGDATA);
-			mtdcr(EBC0_CFGADDR, PB1CR);
+			mtdcr(ebccfga, pb1cr);
+			pbcr = mfdcr(ebccfgd);
+			mtdcr(ebccfga, pb1cr);
 			base_b0 = base_b1 - size_b0;
 			pbcr =
 			    (pbcr & 0x0001ffff) | base_b0 |
 			    (((size_b0 / 1024 / 1024) - 1) << 17);
-			mtdcr(EBC0_CFGDATA, pbcr);
-			/*            printf("PB0CR = %x\n", pbcr); */
+			mtdcr(ebccfgd, pbcr);
+			/*            printf("pb0cr = %x\n", pbcr); */
 		}
 
 		size_b0 = flash_get_size((vu_long *) base_b0, &flash_info[0]);

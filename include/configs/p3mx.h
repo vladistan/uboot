@@ -5,7 +5,23 @@
  * Based on original work by
  *      Roel Loeffen, (C) Copyright 2006 Prodrive B.V.
  *
- * SPDX-License-Identifier:	GPL-2.0+ 
+ * See file CREDITS for list of people who contributed to this
+ * project.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation; either version 2 of
+ * the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	 See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
+ * MA 02111-1307 USA
  */
 
 /************************************************************************
@@ -24,18 +40,18 @@
  *----------------------------------------------------------------------*/
 #define CONFIG_P3Mx			/* used for both board versions	*/
 
-#define	CONFIG_SYS_TEXT_BASE	0xfff00000
-
 #if defined (CONFIG_P3M750)
 #define CONFIG_750FX			/* 750GL/GX/FX			*/
 #define CONFIG_HIGH_BATS		/* High BATs supported		*/
 #define CONFIG_SYS_BOARD_NAME		"P3M750"
-#define CONFIG_SYS_BUS_CLK		100000000
+#define CONFIG_SYS_BUS_HZ		100000000
+#define CONFIG_SYS_BUS_CLK		CONFIG_SYS_BUS_HZ
 #define CONFIG_SYS_TCLK		100000000
 #elif defined (CONFIG_P3M7448)
 #define CONFIG_74xx
 #define CONFIG_SYS_BOARD_NAME		"P3M7448"
-#define CONFIG_SYS_BUS_CLK		133333333
+#define CONFIG_SYS_BUS_HZ		133333333
+#define CONFIG_SYS_BUS_CLK		CONFIG_SYS_BUS_HZ
 #define CONFIG_SYS_TCLK		133333333
 #endif
 #define CONFIG_SYS_GT_DUAL_CPU			/* also for JTAG even with one cpu */
@@ -43,6 +59,7 @@
 /* which initialization functions to call for this board */
 #define CONFIG_SYS_BOARD_ASM_INIT	1
 #define CONFIG_BOARD_EARLY_INIT_F 1     /* Call board_early_init_f	*/
+#define CONFIG_BOARD_EARLY_INIT_R 1     /* Call board_early_init_f	*/
 #define CONFIG_MISC_INIT_R      1	/* Call misc_init_r()		*/
 
 /*-----------------------------------------------------------------------
@@ -82,8 +99,9 @@
 */
 #undef	CONFIG_SYS_INIT_RAM_LOCK
 #define CONFIG_SYS_INIT_RAM_ADDR	0x42000000
-#define CONFIG_SYS_INIT_RAM_SIZE	0x1000
-#define CONFIG_SYS_GBL_DATA_OFFSET	(CONFIG_SYS_INIT_RAM_SIZE - GENERATED_GBL_DATA_SIZE)
+#define CONFIG_SYS_INIT_RAM_END	0x1000
+#define CONFIG_SYS_GBL_DATA_SIZE	128  /* size in bytes reserved for init data */
+#define CONFIG_SYS_GBL_DATA_OFFSET	(CONFIG_SYS_INIT_RAM_END - CONFIG_SYS_GBL_DATA_SIZE)
 
 
 /*-----------------------------------------------------------------------
@@ -101,6 +119,7 @@
  *----------------------------------------------------------------------*/
 /* Change the default ethernet port, use this define (options: 0, 1, 2) */
 #define CONFIG_SYS_ETH_PORT		ETH_0
+#define CONFIG_NET_MULTI
 #define MV_ETH_DEVS		2
 #define CONFIG_PHY_RESET        1	/* reset phy upon startup         */
 #define CONFIG_PHY_GIGE		1	/* Include GbE speed/duplex detection */
@@ -267,6 +286,7 @@
  * Miscellaneous configurable options
  *----------------------------------------------------------------------*/
 #define CONFIG_SYS_HUSH_PARSER
+#define CONFIG_SYS_PROMPT_HUSH_PS2	"> "
 
 #define CONFIG_SYS_LONGHELP			/* undef to save memory		*/
 #define CONFIG_SYS_PROMPT	        "=> "	/* Monitor Command Prompt	*/
@@ -430,8 +450,12 @@
 
 #define L2_ENABLE	(L2_INIT | L2CR_L2E)
 
-#ifndef __ASSEMBLY__
-#include <../board/Marvell/include/core.h>
-#endif
+/*
+ * Internal Definitions
+ *
+ * Boot Flags
+ */
+#define BOOTFLAG_COLD	0x01		/* Normal Power-On: Boot from FLASH */
+#define BOOTFLAG_WARM	0x02		/* Software reboot		    */
 
 #endif	/* __CONFIG_H */

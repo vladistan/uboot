@@ -2,7 +2,6 @@
  * Atmel SPI DataFlash support
  *
  * Copyright (C) 2008 Atmel Corporation
- * Licensed under the GPL-2 or later.
  */
 
 #include <common.h>
@@ -109,14 +108,6 @@ static const struct atmel_spi_flash_params atmel_spi_flash_table[] = {
 		.nr_sectors		= 32,
 		.name			= "AT45DB642D",
 	},
-	{
-		.idcode1		= 0x47,
-		.l2_page_size		= 8,
-		.pages_per_block	= 16,
-		.blocks_per_sector	= 16,
-		.nr_sectors		= 64,
-		.name			= "AT25DF321",
-	},
 };
 
 static int at45_wait_ready(struct spi_flash *flash, unsigned long timeout)
@@ -176,6 +167,20 @@ static void at45_build_address(struct atmel_spi_flash *asf, u8 *cmd, u32 offset)
 	cmd[0] = page_addr >> (16 - page_shift);
 	cmd[1] = page_addr << (page_shift - 8) | (byte_addr >> 8);
 	cmd[2] = byte_addr;
+}
+
+static int dataflash_read_fast_p2(struct spi_flash *flash,
+		u32 offset, size_t len, void *buf)
+{
+	u8 cmd[5];
+
+	cmd[0] = CMD_READ_ARRAY_FAST;
+	cmd[1] = offset >> 16;
+	cmd[2] = offset >> 8;
+	cmd[3] = offset;
+	cmd[4] = 0x00;
+
+	return spi_flash_read_common(flash, cmd, sizeof(cmd), buf, len);
 }
 
 static int dataflash_read_fast_at45(struct spi_flash *flash,
@@ -252,7 +257,7 @@ static int dataflash_write_p2(struct spi_flash *flash,
 	}
 
 	debug("SF: AT45: Successfully programmed %zu bytes @ 0x%x\n",
-	      len, offset);
+			len, offset);
 	ret = 0;
 
 out:
@@ -325,7 +330,7 @@ static int dataflash_write_at45(struct spi_flash *flash,
 	}
 
 	debug("SF: AT45: Successfully programmed %zu bytes @ 0x%x\n",
-	      len, offset);
+			len, offset);
 	ret = 0;
 
 out:
@@ -336,7 +341,7 @@ out:
 /*
  * TODO: the two erase funcs (_p2/_at45) should get unified ...
  */
-static int dataflash_erase_p2(struct spi_flash *flash, u32 offset, size_t len)
+int dataflash_erase_p2(struct spi_flash *flash, u32 offset, size_t len)
 {
 	struct atmel_spi_flash *asf = to_atmel_spi_flash(flash);
 	unsigned long page_size;
@@ -387,7 +392,7 @@ static int dataflash_erase_p2(struct spi_flash *flash, u32 offset, size_t len)
 	}
 
 	debug("SF: AT45: Successfully erased %zu bytes @ 0x%x\n",
-	      len, offset);
+			len, offset);
 	ret = 0;
 
 out:
@@ -395,7 +400,7 @@ out:
 	return ret;
 }
 
-static int dataflash_erase_at45(struct spi_flash *flash, u32 offset, size_t len)
+int dataflash_erase_at45(struct spi_flash *flash, u32 offset, size_t len)
 {
 	struct atmel_spi_flash *asf = to_atmel_spi_flash(flash);
 	unsigned long page_addr;
@@ -450,7 +455,7 @@ static int dataflash_erase_at45(struct spi_flash *flash, u32 offset, size_t len)
 	}
 
 	debug("SF: AT45: Successfully erased %zu bytes @ 0x%x\n",
-	      len, offset);
+			len, offset);
 	ret = 0;
 
 out:
@@ -461,7 +466,7 @@ out:
 struct spi_flash *spi_flash_probe_atmel(struct spi_slave *spi, u8 *idcode)
 {
 	const struct atmel_spi_flash_params *params;
-	unsigned page_size;
+	unsigned long page_size;
 	unsigned int family;
 	struct atmel_spi_flash *asf;
 	unsigned int i;
@@ -476,17 +481,19 @@ struct spi_flash *spi_flash_probe_atmel(struct spi_slave *spi, u8 *idcode)
 
 	if (i == ARRAY_SIZE(atmel_spi_flash_table)) {
 		debug("SF: Unsupported DataFlash ID %02x\n",
-		      idcode[1]);
+				idcode[1]);
 		return NULL;
 	}
 
-	asf = spi_flash_alloc(struct atmel_spi_flash, spi, params->name);
+	asf = malloc(sizeof(struct atmel_spi_flash));
 	if (!asf) {
 		debug("SF: Failed to allocate memory\n");
 		return NULL;
 	}
 
 	asf->params = params;
+	asf->flash.spi = spi;
+	asf->flash.name = params->name;
 
 	/* Assuming power-of-two page size initially. */
 	page_size = 1 << params->l2_page_size;
@@ -511,20 +518,16 @@ struct spi_flash *spi_flash_probe_atmel(struct spi_slave *spi, u8 *idcode)
 			asf->flash.erase = dataflash_erase_at45;
 			page_size += 1 << (params->l2_page_size - 5);
 		} else {
+			asf->flash.read = dataflash_read_fast_p2;
 			asf->flash.write = dataflash_write_p2;
 			asf->flash.erase = dataflash_erase_p2;
 		}
 
-		asf->flash.page_size = page_size;
-		asf->flash.sector_size = page_size;
 		break;
 
 	case DF_FAMILY_AT26F:
 	case DF_FAMILY_AT26DF:
-		asf->flash.page_size = page_size;
-		asf->flash.sector_size = 4096;
-		/* clear SPRL# bit for locked flash */
-		spi_flash_cmd_write_status(&asf->flash, 0);
+		asf->flash.read = dataflash_read_fast_p2;
 		break;
 
 	default:
@@ -535,6 +538,9 @@ struct spi_flash *spi_flash_probe_atmel(struct spi_slave *spi, u8 *idcode)
 	asf->flash.size = page_size * params->pages_per_block
 				* params->blocks_per_sector
 				* params->nr_sectors;
+
+	debug("SF: Detected %s with page size %lu, total %u bytes\n",
+			params->name, page_size, asf->flash.size);
 
 	return &asf->flash;
 

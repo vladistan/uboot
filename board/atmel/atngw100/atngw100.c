@@ -1,7 +1,23 @@
 /*
  * Copyright (C) 2006 Atmel Corporation
  *
- * SPDX-License-Identifier:	GPL-2.0+
+ * See file CREDITS for list of people who contributed to this
+ * project.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation; either version 2 of
+ * the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
+ * MA 02111-1307 USA
  */
 #include <common.h>
 
@@ -10,25 +26,10 @@
 #include <asm/arch/clk.h>
 #include <asm/arch/gpio.h>
 #include <asm/arch/hmatrix.h>
-#include <asm/arch/mmu.h>
 #include <asm/arch/portmux.h>
 #include <netdev.h>
 
 DECLARE_GLOBAL_DATA_PTR;
-
-struct mmu_vm_range mmu_vmr_table[CONFIG_SYS_NR_VM_REGIONS] = {
-	{
-		.virt_pgno	= CONFIG_SYS_FLASH_BASE >> PAGE_SHIFT,
-		.nr_pages	= CONFIG_SYS_FLASH_SIZE >> PAGE_SHIFT,
-		.phys		= (CONFIG_SYS_FLASH_BASE >> PAGE_SHIFT)
-					| MMU_VMR_CACHE_NONE,
-	}, {
-		.virt_pgno	= CONFIG_SYS_SDRAM_BASE >> PAGE_SHIFT,
-		.nr_pages	= EBI_SDRAM_SIZE >> PAGE_SHIFT,
-		.phys		= (CONFIG_SYS_SDRAM_BASE >> PAGE_SHIFT)
-					| MMU_VMR_CACHE_WRBACK,
-	},
-};
 
 static const struct sdram_config sdram_config = {
 	.data_bits	= SDRAM_DATA_16BIT,
@@ -74,10 +75,12 @@ phys_size_t initdram(int board_type)
 	unsigned long actual_size;
 	void *sdram_base;
 
-	sdram_base = uncached(EBI_SDRAM_BASE);
+	sdram_base = map_physmem(EBI_SDRAM_BASE, EBI_SDRAM_SIZE, MAP_NOCACHE);
 
 	expected_size = sdram_init(sdram_base, &sdram_config);
 	actual_size = get_ram_size(sdram_base, expected_size);
+
+	unmap_physmem(sdram_base, EBI_SDRAM_SIZE);
 
 	if (expected_size != actual_size)
 		printf("Warning: Only %lu of %lu MiB SDRAM is working\n",
@@ -96,8 +99,8 @@ int board_early_init_r(void)
 #ifdef CONFIG_CMD_NET
 int board_eth_init(bd_t *bi)
 {
-	macb_eth_initialize(0, (void *)ATMEL_BASE_MACB0, bi->bi_phy_id[0]);
-	macb_eth_initialize(1, (void *)ATMEL_BASE_MACB1, bi->bi_phy_id[1]);
+	macb_eth_initialize(0, (void *)MACB0_BASE, bi->bi_phy_id[0]);
+	macb_eth_initialize(1, (void *)MACB1_BASE, bi->bi_phy_id[1]);
 	return 0;
 }
 #endif

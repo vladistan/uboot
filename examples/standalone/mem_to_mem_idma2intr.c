@@ -1,5 +1,5 @@
 /* The dpalloc function used and implemented in this file was derieved
- * from PPCBoot/U-Boot file "arch/powerpc/cpu/mpc8260/commproc.c".
+ * from PPCBoot/U-Boot file "cpu/mpc8260/commproc.c".
  */
 
 /* Author: Arun Dharankar <ADharankar@ATTBI.Com>
@@ -7,7 +7,7 @@
  */
 
 /*
- * This file is based on "arch/powerpc/8260_io/commproc.c" - here is it's
+ * This file is based on "arch/ppc/8260_io/commproc.c" - here is it's
  * copyright notice:
  *
  * General Purpose functions for the global management of the
@@ -204,9 +204,9 @@ int memcmp(const void * cs,const void * ct,size_t count)
 #endif	/* STANDALONE */
 
 #ifdef STANDALONE
-int mem_to_mem_idma2intr (int argc, char * const argv[])
+int mem_to_mem_idma2intr (int argc, char *argv[])
 #else
-int do_idma (bd_t * bd, int argc, char * const argv[])
+int do_idma (bd_t * bd, int argc, char *argv[])
 #endif	/* STANDALONE */
 {
 	int i;
@@ -309,8 +309,7 @@ int idma_init (void)
 
 	memaddr = dpalloc (sizeof (pram_idma_t), 64);
 
-	*(volatile u16 *)&immap->im_dprambase16
-		[PROFF_IDMA2_BASE / sizeof(u16)] = memaddr;
+	*(volatile ushort *) &immap->im_dprambase[PROFF_IDMA2_BASE] = memaddr;
 	piptr = (volatile pram_idma_t *) ((uint) (immap) + memaddr);
 
 	piptr->pi_resv1 = 0;		/* manual says: clear it */
@@ -357,7 +356,7 @@ uint dpalloc (uint size, uint align)
 	/* Pointer to initial global data area */
 
 	if (dpinit_done == 0) {
-		dpbase = gd->arch.dp_alloc_base;
+		dpbase = gd->dp_alloc_base;
 		dpinit_done = 1;
 	}
 
@@ -370,7 +369,7 @@ uint dpalloc (uint size, uint align)
 	if ((off = size & align_mask) != 0)
 		size += align - off;
 
-	if ((dpbase + size) >= gd->arch.dp_alloc_top) {
+	if ((dpbase + size) >= gd->dp_alloc_top) {
 		dpbase = savebase;
 		printf ("dpalloc: ran out of dual port ram!");
 		return 0;

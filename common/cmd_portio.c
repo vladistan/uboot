@@ -2,7 +2,23 @@
  * (C) Copyright 2003
  * Marc Singer, elf@buici.com
  *
- * SPDX-License-Identifier:	GPL-2.0+
+ * See file CREDITS for list of people who contributed to this
+ * project.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation; either version 2 of
+ * the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
+ * MA 02111-1307 USA
  */
 
 /*
@@ -21,18 +37,19 @@ static uint in_last_addr, in_last_size;
 static uint out_last_addr, out_last_size, out_last_value;
 
 
-int do_portio_out (cmd_tbl_t * cmdtp, int flag, int argc, char * const argv[])
+int do_portio_out (cmd_tbl_t * cmdtp, int flag, int argc, char *argv[])
 {
 	uint addr = out_last_addr;
 	uint size = out_last_size;
 	uint value = out_last_value;
 
-	if (argc != 3)
-		return CMD_RET_USAGE;
+	if (argc != 3) {
+		cmd_usage(cmdtp);
+		return 1;
+	}
 
 	if ((flag & CMD_FLAG_REPEAT) == 0) {
-		/*
-		 * New command specified.  Check for a size specification.
+		/* New command specified.  Check for a size specification.
 		 * Defaults to long if no or incorrect specification.
 		 */
 		size = cmd_get_data_size (argv[0], 1);
@@ -80,17 +97,18 @@ U_BOOT_CMD(
 	"[.b, .w, .l] port value\n    - output to IO port"
 );
 
-int do_portio_in (cmd_tbl_t * cmdtp, int flag, int argc, char * const argv[])
+int do_portio_in (cmd_tbl_t * cmdtp, int flag, int argc, char *argv[])
 {
 	uint addr = in_last_addr;
 	uint size = in_last_size;
 
-	if (argc != 2)
-		return CMD_RET_USAGE;
+	if (argc != 2) {
+		cmd_usage(cmdtp);
+		return 1;
+	}
 
 	if ((flag & CMD_FLAG_REPEAT) == 0) {
-		/*
-		 * New command specified.  Check for a size specification.
+		/* New command specified.  Check for a size specification.
 		 * Defaults to long if no or incorrect specification.
 		 */
 		size = cmd_get_data_size (argv[0], 1);

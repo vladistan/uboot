@@ -4,7 +4,23 @@
  * Copyright (C) 2004-2008 Freescale Semiconductor, Inc.
  * TsiChung Liew (Tsi-Chung.Liew@freescale.com)
  *
- * SPDX-License-Identifier:	GPL-2.0+ 
+ * See file CREDITS for list of people who contributed to this
+ * project.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation; either version 2 of
+ * the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	 See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
+ * MA 02111-1307 USA
  */
 
 /*
@@ -25,6 +41,7 @@
 #define CONFIG_MCFUART
 #define CONFIG_SYS_UART_PORT		(0)
 #define CONFIG_BAUDRATE		115200
+#define CONFIG_SYS_BAUDRATE_TABLE	{ 9600 , 19200 , 38400 , 57600, 115200 }
 
 #define CONFIG_HW_WATCHDOG
 #define CONFIG_WATCHDOG_TIMEOUT	5000	/* timeout in milliseconds, max timeout is 6.71sec */
@@ -50,6 +67,7 @@
 
 #define CONFIG_FSLDMAFEC
 #ifdef CONFIG_FSLDMAFEC
+#	define CONFIG_NET_MULTI		1
 #	define CONFIG_MII		1
 #	define CONFIG_MII_INIT		1
 #	define CONFIG_HAS_ETH1
@@ -104,11 +122,12 @@
 #endif
 
 /* I2C */
-#define CONFIG_SYS_I2C
-#define CONFIG_SYS_I2C_FSL
-#define CONFIG_SYS_FSL_I2C_SPEED	80000
-#define CONFIG_SYS_FSL_I2C_SLAVE	0x7F
-#define CONFIG_SYS_FSL_I2C_OFFSET	0x00008F00
+#define CONFIG_FSL_I2C
+#define CONFIG_HARD_I2C		/* I2C with hw support */
+#undef CONFIG_SOFT_I2C		/* I2C bit-banged */
+#define CONFIG_SYS_I2C_SPEED		80000
+#define CONFIG_SYS_I2C_SLAVE		0x7F
+#define CONFIG_SYS_I2C_OFFSET		0x00008F00
 #define CONFIG_SYS_IMMR		CONFIG_SYS_MBAR
 
 /* PCI */
@@ -152,7 +171,7 @@
 	"load=tftp ${loadaddr) ${u-boot}\0"	\
 	"upd=run load; run prog\0"		\
 	"prog=prot off bank 1;"			\
-	"era ff800000 ff83ffff;"		\
+	"era ff800000 ff82ffff;"		\
 	"cp.b ${loadaddr} ff800000 ${filesize};"\
 	"save\0"				\
 	""
@@ -191,12 +210,13 @@
  * Definitions for initial stack pointer and data area (in DPRAM)
  */
 #define CONFIG_SYS_INIT_RAM_ADDR	0xF2000000
-#define CONFIG_SYS_INIT_RAM_SIZE	0x1000	/* Size of used area in internal SRAM */
+#define CONFIG_SYS_INIT_RAM_END	0x1000	/* End of used area in internal SRAM */
 #define CONFIG_SYS_INIT_RAM_CTRL	0x21
-#define CONFIG_SYS_INIT_RAM1_ADDR	(CONFIG_SYS_INIT_RAM_ADDR + CONFIG_SYS_INIT_RAM_SIZE)
+#define CONFIG_SYS_INIT_RAM1_ADDR	(CONFIG_SYS_INIT_RAM_ADDR + CONFIG_SYS_INIT_RAM_END)
 #define CONFIG_SYS_INIT_RAM1_END	0x1000	/* End of used area in internal SRAM */
 #define CONFIG_SYS_INIT_RAM1_CTRL	0x21
-#define CONFIG_SYS_GBL_DATA_OFFSET	((CONFIG_SYS_INIT_RAM_SIZE - GENERATED_GBL_DATA_SIZE) - 0x10)
+#define CONFIG_SYS_GBL_DATA_SIZE	128	/* size in bytes reserved for initial data */
+#define CONFIG_SYS_GBL_DATA_OFFSET	((CONFIG_SYS_INIT_RAM_END - CONFIG_SYS_GBL_DATA_SIZE) - 0x10)
 #define CONFIG_SYS_INIT_SP_OFFSET	CONFIG_SYS_GBL_DATA_OFFSET
 
 /*-----------------------------------------------------------------------
@@ -224,9 +244,8 @@
 #define CONFIG_SYS_MONITOR_LEN		(256 << 10)	/* Reserve 256 kB for Monitor */
 
 #define CONFIG_SYS_BOOTPARAMS_LEN	64*1024
+#define CONFIG_SYS_MALLOC_LEN		(128 << 10)	/* Reserve 128 kB for malloc() */
 
-/* Reserve 256 kB for malloc() */
-#define CONFIG_SYS_MALLOC_LEN		(256 << 10)
 /*
  * For booting Linux, the board info and command line data
  * have to be in the first 8 MB of memory, since this is
@@ -256,34 +275,17 @@
 #endif
 
 /* Configuration for environment
- * Environment is not embedded in u-boot but at offset 0x40000 on the flash.
- * First time runing may have env crc error warning if there is
- * no correct environment on the flash.
+ * Environment is embedded in u-boot in the second sector of the flash
  */
-#define CONFIG_ENV_OFFSET		0x40000
-#define CONFIG_ENV_SECT_SIZE	0x10000
+#define CONFIG_ENV_OFFSET		0x2000
+#define CONFIG_ENV_SECT_SIZE	0x2000
 #define CONFIG_ENV_IS_IN_FLASH	1
+#define CONFIG_ENV_IS_EMBEDDED	1
 
 /*-----------------------------------------------------------------------
  * Cache Configuration
  */
 #define CONFIG_SYS_CACHELINE_SIZE	16
-
-#define ICACHE_STATUS			(CONFIG_SYS_INIT_RAM_ADDR + \
-					 CONFIG_SYS_INIT_RAM_SIZE - 8)
-#define DCACHE_STATUS			(CONFIG_SYS_INIT_RAM_ADDR + \
-					 CONFIG_SYS_INIT_RAM_SIZE - 4)
-#define CONFIG_SYS_ICACHE_INV		(CF_CACR_BCINVA + CF_CACR_ICINVA + \
-					 CF_CACR_IDCM)
-#define CONFIG_SYS_DCACHE_INV		(CF_CACR_DCINVA)
-#define CONFIG_SYS_CACHE_ACR2		(CONFIG_SYS_SDRAM_BASE | \
-					 CF_ADDRMASK(CONFIG_SYS_SDRAM_SIZE) | \
-					 CF_ACR_EN | CF_ACR_SM_ALL)
-#define CONFIG_SYS_CACHE_ICACR		(CF_CACR_BEC | CF_CACR_BCINVA | \
-					 CF_CACR_IEC | CF_CACR_ICINVA)
-#define CONFIG_SYS_CACHE_DCACR		((CONFIG_SYS_CACHE_ICACR | \
-					 CF_CACR_DEC | CF_CACR_DDCM_P | \
-					 CF_CACR_DCINVA) & ~CF_CACR_ICINVA)
 
 /*-----------------------------------------------------------------------
  * Chipselect bank definitions

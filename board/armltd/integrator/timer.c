@@ -14,7 +14,23 @@
  * ARM Ltd.
  * Philippe Robin, <philippe.robin@arm.com>
  *
- * SPDX-License-Identifier:	GPL-2.0+ 
+ * See file CREDITS for list of people who contributed to this
+ * project.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation; either version 2 of
+ * the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	 See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
+ * MA 02111-1307 USA
  */
 
 #include <common.h>
@@ -79,10 +95,7 @@ int timer_init (void)
 
 	/* init the timestamp */
 	total_count = 0ULL;
-	/* capure current decrementer value    */
-	lastdec	  = READ_TIMER;
-	/* start "advancing" time stamp from 0 */
-	timestamp = 0L;
+	reset_timer_masked();
 
 	div_timer = CONFIG_SYS_HZ_CLOCK;
 	do_div(div_timer, CONFIG_SYS_HZ);
@@ -94,13 +107,24 @@ int timer_init (void)
 /*
  * timer without interrupts
  */
+void reset_timer (void)
+{
+	reset_timer_masked ();
+}
+
 ulong get_timer (ulong base_ticks)
 {
 	return get_timer_masked () - base_ticks;
 }
 
+void set_timer (ulong ticks)
+{
+	timestamp   = ticks;
+	total_count = ticks * div_timer;
+}
+
 /* delay usec useconds */
-void __udelay (unsigned long usec)
+void udelay (unsigned long usec)
 {
 	ulong tmo, tmp;
 
@@ -114,6 +138,14 @@ void __udelay (unsigned long usec)
 	while (get_timer_masked () < tmo) {/* loop till event */
 		/*NOP*/;
 	}
+}
+
+void reset_timer_masked (void)
+{
+	/* capure current decrementer value    */
+	lastdec	  = READ_TIMER;
+	/* start "advancing" time stamp from 0 */
+	timestamp = 0L;
 }
 
 /* converts the timer reading to U-Boot ticks	       */

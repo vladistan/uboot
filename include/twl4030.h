@@ -2,7 +2,20 @@
  * Copyright (c) 2009 Wind River Systems, Inc.
  * Tom Rix <Tom.Rix at windriver.com>
  *
- * SPDX-License-Identifier:	GPL-2.0+
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation; either version 2 of
+ * the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
+ * MA 02111-1307 USA
  *
  * Derived from code on omapzoom, git://git.omapzoom.com/repo/u-boot.git
  *
@@ -137,103 +150,6 @@
 #define TWL4030_PM_MASTER_SW_EVENTS_DEVACT		(1 << 2)
 #define TWL4030_PM_MASTER_SW_EVENTS_DEVSLP		(1 << 1)
 #define TWL4030_PM_MASTER_SW_EVENTS_DEVOFF		(1 << 0)
-
-/* Power bus message definitions */
-
-/* The TWL4030/5030 splits its power-management resources (the various
- * regulators, clock and reset lines) into 3 processor groups - P1, P2 and
- * P3. These groups can then be configured to transition between sleep, wait-on
- * and active states by sending messages to the power bus.  See Section 5.4.2
- * Power Resources of TWL4030 TRM
- */
-
-/* Processor groups */
-#define DEV_GRP_NULL		0x0
-#define DEV_GRP_P1		0x1	/* P1: all OMAP devices */
-#define DEV_GRP_P2		0x2	/* P2: all Modem devices */
-#define DEV_GRP_P3		0x4	/* P3: all peripheral devices */
-
-/* Resource groups */
-#define RES_GRP_RES		0x0	/* Reserved */
-#define RES_GRP_PP		0x1	/* Power providers */
-#define RES_GRP_RC		0x2	/* Reset and control */
-#define RES_GRP_PP_RC		0x3
-#define RES_GRP_PR		0x4	/* Power references */
-#define RES_GRP_PP_PR		0x5
-#define RES_GRP_RC_PR		0x6
-#define RES_GRP_ALL		0x7	/* All resource groups */
-
-#define RES_TYPE2_R0		0x0
-
-#define RES_TYPE_ALL		0x7
-
-/* Resource states */
-#define RES_STATE_WRST		0xF
-#define RES_STATE_ACTIVE	0xE
-#define RES_STATE_SLEEP		0x8
-#define RES_STATE_OFF		0x0
-
-/* Power resources */
-
-/* Power providers */
-#define RES_VAUX1               1
-#define RES_VAUX2               2
-#define RES_VAUX3               3
-#define RES_VAUX4               4
-#define RES_VMMC1               5
-#define RES_VMMC2               6
-#define RES_VPLL1               7
-#define RES_VPLL2               8
-#define RES_VSIM                9
-#define RES_VDAC                10
-#define RES_VINTANA1            11
-#define RES_VINTANA2            12
-#define RES_VINTDIG             13
-#define RES_VIO                 14
-#define RES_VDD1                15
-#define RES_VDD2                16
-#define RES_VUSB_1V5            17
-#define RES_VUSB_1V8            18
-#define RES_VUSB_3V1            19
-#define RES_VUSBCP              20
-#define RES_REGEN               21
-/* Reset and control */
-#define RES_NRES_PWRON          22
-#define RES_CLKEN               23
-#define RES_SYSEN               24
-#define RES_HFCLKOUT            25
-#define RES_32KCLKOUT           26
-#define RES_RESET               27
-/* Power Reference */
-#define RES_Main_Ref            28
-
-#define TOTAL_RESOURCES		28
-/*
- * Power Bus Message Format ... these can be sent individually by Linux,
- * but are usually part of downloaded scripts that are run when various
- * power events are triggered.
- *
- *  Broadcast Message (16 Bits):
- *    DEV_GRP[15:13] MT[12]  RES_GRP[11:9]  RES_TYPE2[8:7] RES_TYPE[6:4]
- *    RES_STATE[3:0]
- *
- *  Singular Message (16 Bits):
- *    DEV_GRP[15:13] MT[12]  RES_ID[11:4]  RES_STATE[3:0]
- */
-
-#define MSG_BROADCAST(devgrp, grp, type, type2, state) \
-	((devgrp) << 13 | 1 << 12 | (grp) << 9 | (type2) << 7 \
-	| (type) << 4 | (state))
-
-#define MSG_SINGULAR(devgrp, id, state) \
-	((devgrp) << 13 | 0 << 12 | (id) << 4 | (state))
-
-#define MSG_BROADCAST_ALL(devgrp, state) \
-	((devgrp) << 5 | (state))
-
-#define MSG_BROADCAST_REF MSG_BROADCAST_ALL
-#define MSG_BROADCAST_PROV MSG_BROADCAST_ALL
-#define MSG_BROADCAST__CLK_RST MSG_BROADCAST_ALL
 
 /* Power Managment Receiver */
 #define TWL4030_PM_RECEIVER_SC_CONFIG			0x5B
@@ -388,25 +304,8 @@
 #define TWL4030_PM_RECEIVER_MAINREF_TYPE		0xF0
 #define TWL4030_PM_RECEIVER_MAINREF_REMAP		0xF1
 
-/* Voltage Selection in PM Receiver Module */
-#define TWL4030_PM_RECEIVER_VAUX2_VSEL_18		0x05
-#define TWL4030_PM_RECEIVER_VAUX3_VSEL_28		0x03
-#define TWL4030_PM_RECEIVER_VPLL2_VSEL_18		0x05
-#define TWL4030_PM_RECEIVER_VDAC_VSEL_18		0x03
-#define TWL4030_PM_RECEIVER_VMMC1_VSEL_30		0x02
-#define TWL4030_PM_RECEIVER_VMMC1_VSEL_32		0x03
-#define TWL4030_PM_RECEIVER_VSIM_VSEL_18		0x03
-
-/* Device Selection in PM Receiver Module */
-#define TWL4030_PM_RECEIVER_DEV_GRP_P1			0x20
-#define TWL4030_PM_RECEIVER_DEV_GRP_ALL			0xE0
-
 /* LED */
 #define TWL4030_LED_LEDEN				0xEE
-#define TWL4030_LED_LEDEN_LEDAON			(1 << 0)
-#define TWL4030_LED_LEDEN_LEDBON			(1 << 1)
-#define TWL4030_LED_LEDEN_LEDAPWM			(1 << 4)
-#define TWL4030_LED_LEDEN_LEDBPWM			(1 << 5)
 
 /* Keypad */
 #define TWL4030_KEYPAD_KEYP_CTRL_REG			0xD2
@@ -443,173 +342,21 @@
 #define TWL4030_KEYPAD_CTRL_SOFT_NRST			(1 << 0)
 
 /* USB */
-#define TWL4030_USB_VENDOR_ID_LO			0x00
-#define TWL4030_USB_VENDOR_ID_HI			0x01
-#define TWL4030_USB_PRODUCT_ID_LO			0x02
-#define TWL4030_USB_PRODUCT_ID_HI			0x03
-#define TWL4030_USB_FUNC_CTRL				0x04
-#define TWL4030_USB_FUNC_CTRL_SET			0x05
-#define TWL4030_USB_FUNC_CTRL_CLR			0x06
-#define TWL4030_USB_IFC_CTRL				0x07
-#define TWL4030_USB_IFC_CTRL_SET			0x08
-#define TWL4030_USB_IFC_CTRL_CLR			0x09
-#define TWL4030_USB_OTG_CTRL				0x0A
-#define TWL4030_USB_OTG_CTRL_SET			0x0B
-#define TWL4030_USB_OTG_CTRL_CLR			0x0C
-#define TWL4030_USB_USB_INT_EN_RISE			0x0D
-#define TWL4030_USB_USB_INT_EN_RISE_SET			0x0E
-#define TWL4030_USB_USB_INT_EN_RISE_CLR			0x0F
-#define TWL4030_USB_USB_INT_EN_FALL			0x10
-#define TWL4030_USB_USB_INT_EN_FALL_SET			0x11
-#define TWL4030_USB_USB_INT_EN_FALL_CLR			0x12
-#define TWL4030_USB_USB_INT_STS				0x13
-#define TWL4030_USB_USB_INT_LATCH			0x14
-#define TWL4030_USB_DEBUG				0x15
-#define TWL4030_USB_SCRATCH_REG				0x16
-#define TWL4030_USB_SCRATCH_REG_SET			0x17
-#define TWL4030_USB_SCRATCH_REG_CLR			0x18
-#define TWL4030_USB_CARKIT_CTRL				0x19
-#define TWL4030_USB_CARKIT_CTRL_SET			0x1A
-#define TWL4030_USB_CARKIT_CTRL_CLR			0x1B
-#define TWL4030_USB_CARKIT_INT_DELAY			0x1C
-#define TWL4030_USB_CARKIT_INT_EN			0x1D
-#define TWL4030_USB_CARKIT_INT_EN_SET			0x1E
-#define TWL4030_USB_CARKIT_INT_EN_CLR			0x1F
-#define TWL4030_USB_CARKIT_INT_STS			0x20
-#define TWL4030_USB_CARKIT_INT_LATCH			0x21
-#define TWL4030_USB_CARKIT_PLS_CTRL			0x22
-#define TWL4030_USB_CARKIT_PLS_CTRL_SET			0x23
-#define TWL4030_USB_CARKIT_PLS_CTRL_CLR			0x24
-#define TWL4030_USB_TRANS_POS_WIDTH			0x25
-#define TWL4030_USB_TRANS_NEG_WIDTH			0x26
-#define TWL4030_USB_RCV_PLTY_RECOVERY			0x27
-#define TWL4030_USB_MCPC_CTRL				0x30
-#define TWL4030_USB_MCPC_CTRL_SET			0x31
-#define TWL4030_USB_MCPC_CTRL_CLR			0x32
-#define TWL4030_USB_MCPC_IO_CTRL			0x33
-#define TWL4030_USB_MCPC_IO_CTRL_SET			0x34
-#define TWL4030_USB_MCPC_IO_CTRL_CLR			0x35
-#define TWL4030_USB_MCPC_CTRL2				0x36
-#define TWL4030_USB_MCPC_CTRL2_SET			0x37
-#define TWL4030_USB_MCPC_CTRL2_CLR			0x38
-#define TWL4030_USB_OTHER_FUNC_CTRL			0x80
-#define TWL4030_USB_OTHER_FUNC_CTRL_SET			0x81
-#define TWL4030_USB_OTHER_FUNC_CTRL_CLR			0x82
-#define TWL4030_USB_OTHER_IFC_CTRL			0x83
-#define TWL4030_USB_OTHER_IFC_CTRL_SET			0x84
-#define TWL4030_USB_OTHER_IFC_CTRL_CLR			0x85
-#define TWL4030_USB_OTHER_INT_EN_RISE_SET		0x87
-#define TWL4030_USB_OTHER_INT_EN_RISE_CLR		0x88
-#define TWL4030_USB_OTHER_INT_EN_FALL			0x89
-#define TWL4030_USB_OTHER_INT_EN_FALL_SET		0x8A
-#define TWL4030_USB_OTHER_INT_EN_FALL_CLR		0x8B
-#define TWL4030_USB_OTHER_INT_STS			0x8C
-#define TWL4030_USB_OTHER_INT_LATCH			0x8D
-#define TWL4030_USB_ID_STATUS				0x96
-#define TWL4030_USB_CARKIT_SM_1_INT_EN			0x97
-#define TWL4030_USB_CARKIT_SM_1_INT_EN_SET		0x98
-#define TWL4030_USB_CARKIT_SM_1_INT_EN_CLR		0x99
-#define TWL4030_USB_CARKIT_SM_1_INT_STS			0x9A
-#define TWL4030_USB_CARKIT_SM_1_INT_LATCH		0x9B
-#define TWL4030_USB_CARKIT_SM_2_INT_EN			0x9C
-#define TWL4030_USB_CARKIT_SM_2_INT_EN_SET		0x9D
-#define TWL4030_USB_CARKIT_SM_2_INT_EN_CLR		0x9E
-#define TWL4030_USB_CARKIT_SM_2_INT_STS			0x9F
-#define TWL4030_USB_CARKIT_SM_2_INT_LATCH		0xA0
-#define TWL4030_USB_CARKIT_SM_CTRL			0xA1
-#define TWL4030_USB_CARKIT_SM_CTRL_SET			0xA2
-#define TWL4030_USB_CARKIT_SM_CTRL_CLR			0xA3
-#define TWL4030_USB_CARKIT_SM_CMD			0xA4
-#define TWL4030_USB_CARKIT_SM_CMD_SET			0xA5
-#define TWL4030_USB_CARKIT_SM_CMD_CLR			0xA6
-#define TWL4030_USB_CARKIT_SM_CMD_STS			0xA7
-#define TWL4030_USB_CARKIT_SM_STATUS			0xA8
-#define TWL4030_USB_CARKIT_SM_ERR_STATUS		0xAA
-#define TWL4030_USB_CARKIT_SM_CTRL_STATE		0xAB
-#define TWL4030_USB_POWER_CTRL				0xAC
-#define TWL4030_USB_POWER_CTRL_SET			0xAD
-#define TWL4030_USB_POWER_CTRL_CLR			0xAE
-#define TWL4030_USB_OTHER_IFC_CTRL2			0xAF
-#define TWL4030_USB_OTHER_IFC_CTRL2_SET			0xB0
-#define TWL4030_USB_OTHER_IFC_CTRL2_CLR			0xB1
-#define TWL4030_USB_REG_CTRL_EN				0xB2
-#define TWL4030_USB_REG_CTRL_EN_SET			0xB3
-#define TWL4030_USB_REG_CTRL_EN_CLR			0xB4
-#define TWL4030_USB_REG_CTRL_ERROR			0xB5
-#define TWL4030_USB_OTHER_FUNC_CTRL2			0xB8
-#define TWL4030_USB_OTHER_FUNC_CTRL2_SET		0xB9
-#define TWL4030_USB_OTHER_FUNC_CTRL2_CLR		0xBA
-#define TWL4030_USB_CARKIT_ANA_CTRL			0xBB
-#define TWL4030_USB_CARKIT_ANA_CTRL_SET			0xBC
-#define TWL4030_USB_CARKIT_ANA_CTRL_CLR			0xBD
-#define TWL4030_USB_VBUS_DEBOUNCE			0xC0
-#define TWL4030_USB_ID_DEBOUNCE				0xC1
-#define TWL4030_USB_TPH_DP_CON_MIN			0xC2
-#define TWL4030_USB_TPH_DP_CON_MAX			0xC3
-#define TWL4030_USB_TCR_DP_CON_MIN			0xC4
-#define TWL4030_USB_TCR_DP_CON_MAX			0xC5
-#define TWL4030_USB_TPH_DP_PD_SHORT			0xC6
-#define TWL4030_USB_TPH_CMD_DLY				0xC7
-#define TWL4030_USB_TPH_DET_RST				0xC8
-#define TWL4030_USB_TPH_AUD_BIAS			0xC9
-#define TWL4030_USB_TCR_UART_DET_MIN			0xCA
-#define TWL4030_USB_TCR_UART_DET_MAX			0xCB
-#define TWL4030_USB_TPH_ID_INT_PW			0xCD
-#define TWL4030_USB_TACC_ID_INT_WAIT			0xCE
-#define TWL4030_USB_TACC_ID_INT_PW			0xCF
-#define TWL4030_USB_TPH_CMD_WAIT			0xD0
-#define TWL4030_USB_TPH_ACK_WAIT			0xD1
-#define TWL4030_USB_TPH_DP_DISC_DET			0xD2
-#define TWL4030_USB_VBAT_TIMER				0xD3
-#define TWL4030_USB_CARKIT_4W_DEBUG			0xE0
-#define TWL4030_USB_CARKIT_5W_DEBUG			0xE1
-#define TWL4030_USB_PHY_PWR_CTRL			0xFD
-#define TWL4030_USB_PHY_CLK_CTRL			0xFE
-#define TWL4030_USB_PHY_CLK_CTRL_STS			0xFF
-
-/* GPIO */
-#define TWL4030_GPIO_GPIODATAIN1			0x00
-#define TWL4030_GPIO_GPIODATAIN2			0x01
-#define TWL4030_GPIO_GPIODATAIN3			0x02
-#define TWL4030_GPIO_GPIODATADIR1			0x03
-#define TWL4030_GPIO_GPIODATADIR2			0x04
-#define TWL4030_GPIO_GPIODATADIR3			0x05
-#define TWL4030_GPIO_GPIODATAOUT1			0x06
-#define TWL4030_GPIO_GPIODATAOUT2			0x07
-#define TWL4030_GPIO_GPIODATAOUT3			0x08
-#define TWL4030_GPIO_CLEARGPIODATAOUT1			0x09
-#define TWL4030_GPIO_CLEARGPIODATAOUT2			0x0A
-#define TWL4030_GPIO_CLEARGPIODATAOUT3			0x0B
-#define TWL4030_GPIO_SETGPIODATAOUT1			0x0C
-#define TWL4030_GPIO_SETGPIODATAOUT2			0x0D
-#define TWL4030_GPIO_SETGPIODATAOUT3			0x0E
-#define TWL4030_GPIO_GPIO_DEBEN1			0x0F
-#define TWL4030_GPIO_GPIO_DEBEN2			0x10
-#define TWL4030_GPIO_GPIO_DEBEN3			0x11
-#define TWL4030_GPIO_GPIO_CTRL				0x12
-#define TWL4030_GPIO_GPIOPUPDCTR1			0x13
-#define TWL4030_GPIO_GPIOPUPDCTR2			0x14
-#define TWL4030_GPIO_GPIOPUPDCTR3			0x15
-#define TWL4030_GPIO_GPIOPUPDCTR4			0x16
-#define TWL4030_GPIO_GPIOPUPDCTR5			0x17
-#define TWL4030_GPIO_GPIO_ISR1A				0x19
-#define TWL4030_GPIO_GPIO_ISR2A				0x1A
-#define TWL4030_GPIO_GPIO_ISR3A				0x1B
-#define TWL4030_GPIO_GPIO_IMR1A				0x1C
-#define TWL4030_GPIO_GPIO_IMR2A				0x1D
-#define TWL4030_GPIO_GPIO_IMR3A				0x1E
-#define TWL4030_GPIO_GPIO_ISR1B				0x1F
-#define TWL4030_GPIO_GPIO_ISR2B				0x20
-#define TWL4030_GPIO_GPIO_ISR3B				0x21
-#define TWL4030_GPIO_GPIO_IMR1B				0x22
-#define TWL4030_GPIO_GPIO_IMR2B				0x23
-#define TWL4030_GPIO_GPIO_IMR3B				0x24
-#define TWL4030_GPIO_GPIO_EDR1				0x28
-#define TWL4030_GPIO_GPIO_EDR2				0x29
-#define TWL4030_GPIO_GPIO_EDR3				0x2A
-#define TWL4030_GPIO_GPIO_EDR4				0x2B
-#define TWL4030_GPIO_GPIO_EDR5				0x2C
-#define TWL4030_GPIO_GPIO_SIH_CTRL			0x2D
+#define TWL4030_USB_FUNC_CTRL				(0x04)
+#define TWL4030_USB_OPMODE_MASK				(3 << 3)
+#define TWL4030_USB_XCVRSELECT_MASK			(3 << 0)
+#define TWL4030_USB_IFC_CTRL				(0x07)
+#define TWL4030_USB_CARKITMODE				(1 << 2)
+#define TWL4030_USB_POWER_CTRL				(0xAC)
+#define TWL4030_USB_OTG_ENAB				(1 << 5)
+#define TWL4030_USB_PHY_PWR_CTRL			(0xFD)
+#define TWL4030_USB_PHYPWD				(1 << 0)
+#define TWL4030_USB_PHY_CLK_CTRL			(0xFE)
+#define TWL4030_USB_CLOCKGATING_EN			(1 << 2)
+#define TWL4030_USB_CLK32K_EN				(1 << 1)
+#define TWL4030_USB_REQ_PHY_DPLL_CLK			(1 << 0)
+#define TWL4030_USB_PHY_CLK_CTRL_STS			(0xFF)
+#define TWL4030_USB_PHY_DPLL_CLK			(1 << 0)
 
 /*
  * Convience functions to read and write from TWL4030
@@ -625,12 +372,12 @@
  *   examples are TWL4030_PM_RECEIVER_VMMC1_DEV_GRP and
  *   TWL4030_LED_LEDEN.
  */
-static inline int twl4030_i2c_write_u8(u8 chip_no, u8 reg, u8 val)
+static inline int twl4030_i2c_write_u8(u8 chip_no, u8 val, u8 reg)
 {
 	return i2c_write(chip_no, reg, 1, &val, 1);
 }
 
-static inline int twl4030_i2c_read_u8(u8 chip_no, u8 reg, u8 *val)
+static inline int twl4030_i2c_read_u8(u8 chip_no, u8 *val, u8 reg)
 {
 	return i2c_read(chip_no, reg, 1, val, 1);
 }
@@ -641,9 +388,6 @@ static inline int twl4030_i2c_read_u8(u8 chip_no, u8 reg, u8 *val)
 
 /* For hardware resetting */
 void twl4030_power_reset_init(void);
-/* For setting device group and voltage */
-void twl4030_pmrecv_vsel_cfg(u8 vsel_reg, u8 vsel_val,
-			     u8 dev_grp, u8 dev_grp_sel);
 /* For initializing power device */
 void twl4030_power_init(void);
 /* For initializing mmc power */
@@ -652,11 +396,6 @@ void twl4030_power_mmc_init(void);
 /*
  * LED
  */
-void twl4030_led_init(unsigned char ledon_mask);
-
-/*
- * USB
- */
-int twl4030_usb_ulpi_init(void);
+void twl4030_led_init(void);
 
 #endif /* TWL4030_H */

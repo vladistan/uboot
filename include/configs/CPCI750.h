@@ -2,7 +2,23 @@
  * (C) Copyright 2001
  * Josh Huber <huber@mclx.com>, Mission Critical Linux, Inc.
  *
- * SPDX-License-Identifier:	GPL-2.0+ 
+ * See file CREDITS for list of people who contributed to this
+ * project.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation; either version 2 of
+ * the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	 See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
+ * MA 02111-1307 USA
  */
 
 /*
@@ -41,11 +57,9 @@
 
 #define CONFIG_CPCI750		1	/* this is an CPCI750 board	*/
 
-#define	CONFIG_SYS_TEXT_BASE	0xfff00000
-
 #define CONFIG_BAUDRATE		9600	/* console baudrate = 9600	*/
 
-#define CONFIG_MV64360_ECC		/* enable ECC support */
+#undef	CONFIG_ECC			/* enable ECC support */
 
 #define CONFIG_HIGH_BATS	1	/* High BATs supported */
 
@@ -60,6 +74,7 @@
 /*#define CONFIG_SYS_HUSH_PARSER*/
 #define CONFIG_SYS_HUSH_PARSER
 
+#define CONFIG_SYS_PROMPT_HUSH_PS2	"> "
 
 #define CONFIG_CMDLINE_EDITING		/* add command line history	*/
 #define CONFIG_AUTO_COMPLETE		/* add autocompletion support	*/
@@ -83,6 +98,7 @@
 #define CONFIG_MPSC_PORT	0
 
 /* to change the default ethernet port, use this define (options: 0, 1, 2) */
+#define CONFIG_NET_MULTI
 #define MV_ETH_DEVS		1
 #define CONFIG_ETHER_PORT	0
 
@@ -170,8 +186,6 @@
 #define CONFIG_SYS_I2C_MULTI_EEPROMS
 #define CONFIG_SYS_I2C_SPEED	80000		/* I2C speed default */
 
-#define CONFIG_PRAM 0
-
 #define CONFIG_SYS_GT_DUAL_CPU			/* also for JTAG even with one cpu */
 #define CONFIG_SYS_LONGHELP			/* undef to save memory		*/
 #define CONFIG_SYS_PROMPT	"=> "		/* Monitor Command Prompt	*/
@@ -220,11 +234,17 @@
 #define CONFIG_SYS_LOAD_ADDR		0x00300000	/* default load address */
 
 #define CONFIG_SYS_HZ			1000		/* decr freq: 1ms ticks */
-#define CONFIG_SYS_BUS_CLK		133000000	/* 133 MHz (CPU = 5*Bus = 666MHz)		*/
+#define CONFIG_SYS_BUS_HZ		133000000	/* 133 MHz (CPU = 5*Bus = 666MHz)		*/
+#define CONFIG_SYS_BUS_CLK		CONFIG_SYS_BUS_HZ
 
 #define CONFIG_SYS_BAUDRATE_TABLE	{ 9600, 19200, 38400, 57600, 115200, 230400 }
 
 #define CONFIG_SYS_TCLK		133000000
+
+/*#define CONFIG_SYS_750FX_HID0		0x8000c084*/
+#define CONFIG_SYS_750FX_HID0		0x80008484
+#define CONFIG_SYS_750FX_HID1		0x54800000
+#define CONFIG_SYS_750FX_HID2		0x00000000
 
 /*
  * Low Level Configuration Settings
@@ -245,8 +265,9 @@
 /* #define CONFIG_SYS_INIT_RAM_ADDR	0x40000000*/ /* unused memory region */
 /* #define CONFIG_SYS_INIT_RAM_ADDR	0xfba00000*/ /* unused memory region */
 #define CONFIG_SYS_INIT_RAM_ADDR	0xf1080000 /* unused memory region */
-#define CONFIG_SYS_INIT_RAM_SIZE	0x1000
-#define CONFIG_SYS_GBL_DATA_OFFSET	(CONFIG_SYS_INIT_RAM_SIZE - GENERATED_GBL_DATA_SIZE)
+#define CONFIG_SYS_INIT_RAM_END	0x1000
+#define CONFIG_SYS_GBL_DATA_SIZE	128  /* size in bytes reserved for init data */
+#define CONFIG_SYS_GBL_DATA_OFFSET	(CONFIG_SYS_INIT_RAM_END - CONFIG_SYS_GBL_DATA_SIZE)
 
 #define RELOCATE_INTERNAL_RAM_ADDR
 #ifdef RELOCATE_INTERNAL_RAM_ADDR
@@ -437,11 +458,7 @@
 #define CONFIG_SYS_ATA_DATA_OFFSET	0x0000	/* Offset for data I/O			*/
 #define CONFIG_SYS_ATA_REG_OFFSET	0x0000	/* Offset for normal register accesses	*/
 #define CONFIG_SYS_ATA_ALT_OFFSET	0x0000	/* Offset for alternate registers	*/
-#ifndef __ASSEMBLY__
-int ata_device(int dev);
-#endif
-#define ATA_DEVICE(dev)                 ata_device(dev)
-#define CONFIG_ATAPI                    1
+
 
 /*----------------------------------------------------------------------
  * Initial BAT mappings
@@ -481,8 +498,8 @@ int ata_device(int dev);
  * IBAT4 and DBAT4
  * FIXME: ingo disable BATs for Linux Kernel
  */
-/* #undef SETUP_HIGH_BATS_FX750	*/	/* don't initialize BATS 4-7 */
-#define SETUP_HIGH_BATS_FX750		/* initialize BATS 4-7 */
+#undef SETUP_HIGH_BATS_FX750		/* don't initialize BATS 4-7 */
+/*#define SETUP_HIGH_BATS_FX750*/		/* initialize BATS 4-7 */
 
 #ifdef SETUP_HIGH_BATS_FX750
 #define CONFIG_SYS_IBAT4L (CONFIG_SYS_SDRAM1_BASE | BATL_PP_RW | BATL_CACHEINHIBIT)
@@ -600,12 +617,16 @@ int ata_device(int dev);
 
 #define L2_ENABLE	(L2_INIT | L2CR_L2E)
 
+/*
+ * Internal Definitions
+ *
+ * Boot Flags
+ */
+#define BOOTFLAG_COLD	0x01		/* Normal Power-On: Boot from FLASH */
+#define BOOTFLAG_WARM	0x02		/* Software reboot		    */
+
 #define CONFIG_SYS_BOARD_ASM_INIT	1
 
 #define CPCI750_SLAVE_TEST	(((in8(0xf0300000) & 0x80) == 0) ? 0 : 1)
-#define CPCI750_ECC_TEST	(((in8(0xf0300000) & 0x02) == 0) ? 1 : 0)
-#define CONFIG_SYS_PLD_VER	0xf0e00000
-
-#define CONFIG_OF_LIBFDT 1
 
 #endif	/* __CONFIG_H */

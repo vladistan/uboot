@@ -6,7 +6,20 @@
  * DENX Software Engineering
  * Wolfgang Denk, wd@denx.de
  *
- * SPDX-License-Identifier:	GPL-2.0+
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation; either version 2 of
+ * the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
+ * MA 02111-1307 USA
  */
 
 /* define DEBUG for debugging output (obviously ;-)) */
@@ -32,10 +45,6 @@ static int compare_magic (uchar *kbd_data, uchar *str);
 /*--------------------- Local macros and constants --------------------*/
 #define	_NOT_USED_	0xFFFFFFFF
 
-/*------------------------- dspic io expander -----------------------*/
-#define DSPIC_PON_STATUS_REG	0x80A
-#define DSPIC_PON_INV_STATUS_REG 0x80C
-#define DSPIC_PON_KEY_REG	0x810
 /*------------------------- Keyboard controller -----------------------*/
 /* command codes */
 #define	KEYBD_CMD_READ_KEYS	0x01
@@ -66,7 +75,6 @@ static int compare_magic (uchar *kbd_data, uchar *str);
 /* maximum number of "magic" key codes that can be assigned */
 
 static uchar kbd_addr = CONFIG_SYS_I2C_KEYBD_ADDR;
-static uchar dspic_addr = CONFIG_SYS_I2C_DSPIC_IO_ADDR;
 
 static uchar *key_match (uchar *);
 
@@ -98,9 +106,9 @@ static void kbd_init (void)
 	uchar val, errcd;
 	int i;
 
-	i2c_set_bus_num(0);
+	i2c_init (CONFIG_SYS_I2C_SPEED, CONFIG_SYS_I2C_SLAVE);
 
-	gd->arch.kbd_status = 0;
+	gd->kbd_status = 0;
 
 	/* Forced by PIC. Delays <= 175us loose */
 	udelay(1000);
@@ -114,7 +122,7 @@ static void kbd_init (void)
 	/* clear "irrelevant" bits. Recommended by Martin Rajek, LWN */
 	errcd &= ~(KEYBD_STATUS_H_RESET|KEYBD_STATUS_BROWNOUT);
 	if (errcd) {
-		gd->arch.kbd_status |= errcd << 8;
+		gd->kbd_status |= errcd << 8;
 	}
 	/* Reset error code and verify */
 	val = KEYBD_CMD_RESET_ERRORS;
@@ -127,7 +135,7 @@ static void kbd_init (void)
 
 	val &= KEYBD_STATUS_MASK;	/* clear unused bits */
 	if (val) {			/* permanent error, report it */
-		gd->arch.kbd_status |= val;
+		gd->kbd_status |= val;
 		return;
 	}
 
@@ -159,23 +167,6 @@ static void kbd_init (void)
 	}
 }
 
-
-/* Read a register from the dsPIC. */
-int _dspic_read(ushort reg, ushort *data)
-{
-	uchar buf[sizeof(*data)];
-	int rval;
-
-	if (i2c_read(dspic_addr, reg, 2, buf, 2))
-		return -1;
-
-	rval = i2c_read(dspic_addr, reg, sizeof(reg), buf, sizeof(*data));
-	*data = (buf[0] << 8) | buf[1];
-
-	return rval;
-}
-
-
 /***********************************************************************
 F* Function:     int misc_init_r (void) P*A*Z*
  *
@@ -203,10 +194,9 @@ int misc_init_r_kbd (void)
 {
 	uchar kbd_data[KEYBD_DATALEN];
 	char keybd_env[2 * KEYBD_DATALEN + 1];
-	uchar kbd_init_status = gd->arch.kbd_status >> 8;
-	uchar kbd_status = gd->arch.kbd_status;
+	uchar kbd_init_status = gd->kbd_status >> 8;
+	uchar kbd_status = gd->kbd_status;
 	uchar val;
-	ushort data, inv_data;
 	char *str;
 	int i;
 
@@ -241,31 +231,9 @@ int misc_init_r_kbd (void)
 	i2c_write (kbd_addr, 0, 0, &val, 1);
 	i2c_read (kbd_addr, 0, 0, kbd_data, KEYBD_DATALEN);
 
-	/* read out start key from bse01 received via can */
-	_dspic_read(DSPIC_PON_STATUS_REG, &data);
-	/* check highbyte from status register */
-	if (data > 0xFF) {
-		_dspic_read(DSPIC_PON_INV_STATUS_REG, &inv_data);
-
-		/* check inverse data */
-		if ((data+inv_data) == 0xFFFF) {
-			/* don't overwrite local key */
-			if (kbd_data[1] == 0) {
-				/* read key value */
-				_dspic_read(DSPIC_PON_KEY_REG, &data);
-				str = (char *)&data;
-				/* swap bytes */
-				kbd_data[1] = str[1];
-				kbd_data[2] = str[0];
-				printf("CAN received startkey: 0x%X\n", data);
-			}
-		}
-	}
-
 	for (i = 0; i < KEYBD_DATALEN; ++i) {
 		sprintf (keybd_env + i + i, "%02X", kbd_data[i]);
 	}
-
 	setenv ("keybd", keybd_env);
 
 	str = strdup ((char *)key_match (kbd_data));	/* decode keys */
@@ -412,7 +380,7 @@ static uchar *key_match (uchar *kbd_data)
 
 /***********************************************************************
 F* Function:     int do_kbd (cmd_tbl_t *cmdtp, int flag,
-F*                           int argc, char * const argv[]) P*A*Z*
+F*                           int argc, char *argv[]) P*A*Z*
  *
 P* Parameters:   cmd_tbl_t *cmdtp
 P*                - Pointer to our command table entry
@@ -421,7 +389,7 @@ P*                - If the CMD_FLAG_REPEAT bit is set, then this call is
 P*                  a repetition
 P*               int argc
 P*                - Argument count
-P*               char * const argv[]
+P*               char *argv[]
 P*                - Array of the actual arguments
 P*
 P* Returnvalue:  int
@@ -436,7 +404,7 @@ D* Design:       wd@denx.de
 C* Coding:       wd@denx.de
 V* Verification: dzu@denx.de
  ***********************************************************************/
-int do_kbd (cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
+int do_kbd (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 {
 	uchar kbd_data[KEYBD_DATALEN];
 	char keybd_env[2 * KEYBD_DATALEN + 1];

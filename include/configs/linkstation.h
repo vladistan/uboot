@@ -1,27 +1,24 @@
 /*
  * Copyright (C) 2006 Mihai Georgian <u-boot@linuxnotincluded.org.uk>
  *
- * SPDX-License-Identifier:	GPL-2.0+ 
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation; either version 2 of
+ * the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	 See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
+ * MA 02111-1307 USA
  */
 
 #ifndef __CONFIG_H
 #define __CONFIG_H
-
-/*
- * Valid values for CONFIG_SYS_TEXT_BASE are:
- *
- * Standard configuration - all models
- * 0xFFF00000	boot from flash
- *
- * Test configuration (boot from RAM using uloader.o)
- * LinkStation HD-HLAN and KuroBox Standard
- * 0x03F00000	boot from RAM
- * LinkStation HD-HGLAN and KuroBox HG
- * 0x07F00000	boot from RAM
- */
-#ifndef CONFIG_SYS_TEXT_BASE
-#define CONFIG_SYS_TEXT_BASE	0xFFF00000
-#endif
 
 #if 0
 #define DEBUG
@@ -95,20 +92,12 @@
 #define CONFIG_CMD_PING
 #define CONFIG_CMD_EXT2
 
-#define CONFIG_BOOTP_SUBNETMASK
-#define CONFIG_BOOTP_GATEWAY
-#define CONFIG_BOOTP_HOSTNAME
-#define CONFIG_BOOTP_NISDOMAIN
-#define CONFIG_BOOTP_BOOTPATH
-#define CONFIG_BOOTP_BOOTFILESIZE
-#define CONFIG_BOOTP_DNS
-#define CONFIG_BOOTP_DNS2
-#define CONFIG_BOOTP_SEND_HOSTNAME
-#define CONFIG_BOOTP_NTPSERVER
-#define CONFIG_BOOTP_TIMEOFFSET
+#define CONFIG_BOOTP_MASK	CONFIG_BOOTP_ALL
 
 #define CONFIG_OF_LIBFDT	1
 
+#define OF_CPU			"PowerPC,603e"
+#define OF_SOC			"soc10x@80000000"
 #define OF_STDOUT_PATH		"/soc10x/serial@80004600"
 
 /* this must be included AFTER the definition of CONFIG_COMMANDS (if any) */
@@ -132,6 +121,9 @@
 
 #define CONFIG_SYS_CONSOLE_IS_IN_ENV
 
+#define XMK_STR(x)		#x
+#define MK_STR(x)		XMK_STR(x)
+
 #if defined(CONFIG_HLAN) || defined(CONFIG_LAN)
 #define UBFILE			"share/u-boot/u-boot-hd.flash.bin"
 #elif defined(CONFIG_HGLAN)
@@ -147,10 +139,10 @@
 	"stdin=nc\0"								\
 	"stdout=nc\0"								\
 	"stderr=nc\0"								\
-	"ipaddr="__stringify(CONFIG_IPADDR_LS)"\0"			\
+	"ipaddr="MK_STR(CONFIG_IPADDR_LS)"\0"					\
 	"netmask=255.255.255.0\0"						\
-	"serverip="__stringify(CONFIG_SERVERIP_LS)"\0"			\
-	"ncip="__stringify(CONFIG_NCIP_LS)"\0"				\
+	"serverip="MK_STR(CONFIG_SERVERIP_LS)"\0"				\
+	"ncip="MK_STR(CONFIG_NCIP_LS)"\0"					\
 	"netretry=no\0"								\
 	"nc=setenv stdin nc;setenv stdout nc;setenv stderr nc\0"		\
 	"ser=setenv stdin serial;setenv stdout serial;setenv stderr serial\0"	\
@@ -182,7 +174,6 @@
  * PCI stuff
  */
 #define CONFIG_PCI
-#define CONFIG_PCI_INDIRECT_BRIDGE
 /* Verified: CONFIG_PCI_PNP doesn't work */
 #undef CONFIG_PCI_PNP
 #define CONFIG_PCI_SCAN_SHOW
@@ -206,6 +197,7 @@
 /*-----------------------------------------------------------------------
  * Ethernet stuff
  */
+#define CONFIG_NET_MULTI
 
 #if defined(CONFIG_LAN) || defined(CONFIG_HLAN)
 #define CONFIG_TULIP
@@ -227,7 +219,7 @@
 
 #define CONFIG_SYS_FLASH_BASE		0xFFC00000
 #define CONFIG_SYS_FLASH_SIZE		0x00400000
-#define CONFIG_SYS_MONITOR_BASE	CONFIG_SYS_TEXT_BASE
+#define CONFIG_SYS_MONITOR_BASE	TEXT_BASE
 
 #define CONFIG_SYS_RESET_ADDRESS	0xFFF00100
 #define CONFIG_SYS_EUMB_ADDR		0x80000000
@@ -250,7 +242,7 @@
 #endif
 
 /*-----------------------------------------------------------------------
- * Change CONFIG_SYS_TEXT_BASE in bord/linkstation/config.mk to get a RAM build
+ * Change TEXT_BASE in bord/linkstation/config.mk to get a RAM build
  *
  * RAM based builds are for testing purposes. A Linux module, uloader.o,
  * exists to load U-Boot and pass control to it
@@ -269,14 +261,16 @@
 #else
 #define CONFIG_SYS_INIT_RAM_ADDR	0x40000000
 #endif
-#define CONFIG_SYS_INIT_RAM_SIZE	0x1000
-#define CONFIG_SYS_GBL_DATA_OFFSET	(CONFIG_SYS_INIT_RAM_SIZE - GENERATED_GBL_DATA_SIZE)
+#define CONFIG_SYS_INIT_RAM_END	0x1000
+#define CONFIG_SYS_GBL_DATA_SIZE	128
+#define CONFIG_SYS_GBL_DATA_OFFSET	(CONFIG_SYS_INIT_RAM_END - CONFIG_SYS_GBL_DATA_SIZE)
 
 /*----------------------------------------------------------------------
  * Serial configuration
  */
 #define CONFIG_CONS_INDEX	1
 #define CONFIG_BAUDRATE		57600
+#define CONFIG_SYS_BAUDRATE_TABLE	{ 9600, 19200, 38400, 57600, 115200 }
 
 #define CONFIG_SYS_NS16550
 #define CONFIG_SYS_NS16550_SERIAL
@@ -298,7 +292,7 @@
  * taken from the orignal Linkstation boot code
  *
  * Most of the low level configuration setttings are normally used
- * in arch/powerpc/cpu/mpc824x/cpu_init.c which is NOT used by this implementation.
+ * in cpu/mpc824x/cpu_init.c which is NOT used by this implementation.
  * Low level initialisation is done in board/linkstation/early_init.S
  * The values below are included for reference purpose only
  */
@@ -502,5 +496,13 @@
  * Partitions and file system
  */
 #define CONFIG_DOS_PARTITION
+
+/*-----------------------------------------------------------------------
+ * Internal Definitions
+ *
+ * Boot Flags
+ */
+#define BOOTFLAG_COLD		0x01	/* Normal Power-On: Boot from FLASH	*/
+#define BOOTFLAG_WARM		0x02	/* Software reboot			*/
 
 #endif	/* __CONFIG_H */

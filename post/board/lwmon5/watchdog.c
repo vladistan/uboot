@@ -3,7 +3,23 @@
  *
  * Developed for DENX Software Engineering GmbH
  *
- * SPDX-License-Identifier:	GPL-2.0+
+ * See file CREDITS for list of people who contributed to this
+ * project.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation; either version 2 of
+ * the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
+ * MA 02111-1307 USA
  */
 
 #include <common.h>
@@ -18,7 +34,7 @@
 #if CONFIG_POST & CONFIG_SYS_POST_WATCHDOG
 
 #include <watchdog.h>
-#include <asm/ppc4xx-gpio.h>
+#include <asm/gpio.h>
 #include <asm/io.h>
 
 static uint watchdog_magic_read(void)
@@ -41,11 +57,8 @@ int sysmon1_post_test(int flags)
 		 * 3.1. GPIO62 is low
 		 * Assuming system voltage failure.
 		 */
-		post_log("sysmon1 Abnormal voltage detected (GPIO62)\n");
-		post_log("POST sysmon1 FAILED\n");
+		post_log("Abnormal voltage detected (GPIO62)\n");
 		return 1;
-	} else {
-		post_log("sysmon1 PASSED\n");
 	}
 
 	return 0;
@@ -104,16 +117,10 @@ int lwmon5_watchdog_post_test(int flags)
 		ulong time;
 		/* 3.3.1. So, the test succeed, save measured time to syslog. */
 		time = in_be32((void *)CONFIG_SYS_WATCHDOG_TIME_ADDR);
-		if (time > 90 ) { /* ms*/
-			post_log("hw watchdog time : %u ms, passed ", time);
-			/* 3.3.2. Set scratch register 1 to 0x0000xxxx */
-			watchdog_magic_write(0);
-			return 0;
-		} else {
-			/*test minimum watchdogtime */
-			post_log("hw watchdog time : %u ms, failed ", time);
-			return 2;
-		}
+		post_log("hw watchdog time : %u ms, passed ", time);
+		/* 3.3.2. Set scratch register 1 to 0x0000xxxx */
+		watchdog_magic_write(0);
+		return 0;
 	}
 	return -1;
 }

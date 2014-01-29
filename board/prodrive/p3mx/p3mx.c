@@ -6,7 +6,23 @@
  *	Roel Loeffen, (C) Copyright 2006 Prodrive B.V.
  *	Josh Huber, (C) Copyright 2001 Mission Critical Linux, Inc.
  *
- * SPDX-License-Identifier:	GPL-2.0+
+ * See file CREDITS for list of people who contributed to this
+ * project.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation; either version 2 of
+ * the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
+ * MA 02111-1307 USA
  *
  * modifications for the DB64360 eval board based by Ingo.Assmus@keymile.com
  * modifications for the cpci750 by reinhard.arlt@esd-electronics.com
@@ -300,6 +316,16 @@ int misc_init_r ()
 	return 0;
 }
 
+int board_early_init_r(void)
+{
+	/* now relocate the debug serial driver */
+	mpsc_putchar += gd->reloc_off;
+	mpsc_getchar += gd->reloc_off;
+	mpsc_test_char += gd->reloc_off;
+
+	return 0;
+}
+
 void after_reloc (ulong dest_addr, gd_t * gd)
 {
 	memoryMapDeviceSpace (BOOT_DEVICE, CONFIG_SYS_BOOT_SPACE, CONFIG_SYS_BOOT_SIZE);
@@ -319,14 +345,13 @@ void after_reloc (ulong dest_addr, gd_t * gd)
 
 int checkboard (void)
 {
-	char buf[64];
-	int i = getenv_f("serial#", buf, sizeof(buf));
+	char *s = getenv("serial#");
 
 	printf("Board: %s", CONFIG_SYS_BOARD_NAME);
 
-	if (i > 0) {
+	if (s != NULL) {
 		puts(", serial# ");
-		puts(buf);
+		puts(s);
 	}
 	putc('\n');
 
@@ -752,18 +777,22 @@ int mem_test_walk (void)
 /*********************************************************************/
 int testdram (void)
 {
+	char *s;
 	int rundata    = 0;
 	int runaddress = 0;
 	int runwalk    = 0;
 
 #ifdef CONFIG_SYS_DRAM_TEST_DATA
-	rundata = getenv_yesno("testdramdata") == 1;
+	s = getenv ("testdramdata");
+	rundata = (s && (*s == 'y')) ? 1 : 0;
 #endif
 #ifdef CONFIG_SYS_DRAM_TEST_ADDRESS
-	runaddress = getenv_yesno("testdramaddress") == 1;
+	s = getenv ("testdramaddress");
+	runaddress = (s && (*s == 'y')) ? 1 : 0;
 #endif
 #ifdef CONFIG_SYS_DRAM_TEST_WALK
-	runwalk = getenv_yesno("testdramwalk") == 1;
+	s = getenv ("testdramwalk");
+	runwalk = (s && (*s == 'y')) ? 1 : 0;
 #endif
 
 	if ((rundata == 1) || (runaddress == 1) || (runwalk == 1))
@@ -830,9 +859,4 @@ void my_remap_gt_regs_bootm (u32 cur_loc, u32 new_loc)
 							(INTERNAL_SPACE_DECODE)))))
 	       != temp);
 
-}
-
-int board_eth_init(bd_t *bis)
-{
-	return mv6446x_eth_initialize(bis);
 }

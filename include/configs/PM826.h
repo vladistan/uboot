@@ -2,7 +2,23 @@
  * (C) Copyright 2001-2005
  * Wolfgang Denk, DENX Software Engineering, wd@denx.de.
  *
- * SPDX-License-Identifier:	GPL-2.0+
+ * See file CREDITS for list of people who contributed to this
+ * project.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation; either version 2 of
+ * the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
+ * MA 02111-1307 USA
  */
 
 /*
@@ -23,10 +39,6 @@
 #define CONFIG_PM826		1	/* ...on a PM8260 module	*/
 #define CONFIG_CPM2		1	/* Has a CPM2 */
 
-#ifndef CONFIG_SYS_TEXT_BASE
-#define CONFIG_SYS_TEXT_BASE	0xFF000000	/* Standard: boot 64-bit flash */
-#endif
-
 #undef CONFIG_DB_CR826_J30x_ON		/* J30x jumpers on D.B. carrier	*/
 
 #define CONFIG_BOOTDELAY	5	/* autoboot after 5 seconds	*/
@@ -41,10 +53,10 @@
 	"bootm"
 
 /* enable I2C and select the hardware/software driver */
-#define CONFIG_SYS_I2C
-#define CONFIG_SYS_I2C_SOFT		/* I2C bit-banged */
-#define CONFIG_SYS_I2C_SOFT_SPEED	50000
-#define CONFIG_SYS_I2C_SOFT_SLAVE	0xFE
+#undef  CONFIG_HARD_I2C
+#define CONFIG_SOFT_I2C		1	/* I2C bit-banged		*/
+# define CONFIG_SYS_I2C_SPEED		50000
+# define CONFIG_SYS_I2C_SLAVE		0xFE
 /*
  * Software (bit-bang) I2C driver configuration
  */
@@ -84,13 +96,16 @@
  *
  * if CONFIG_ETHER_ON_SCC is selected, then
  *   - CONFIG_ETHER_INDEX must be set to the channel number (1-4)
+ *   - CONFIG_NET_MULTI must not be defined
  *
  * if CONFIG_ETHER_ON_FCC is selected, then
  *   - one or more CONFIG_ETHER_ON_FCCx (x=1,2,3) must also be selected
+ *   - CONFIG_NET_MULTI must be defined
  *
  * if CONFIG_ETHER_NONE is defined, then either the ethernet routines must be
  * defined elsewhere (as for the console), or CONFIG_CMD_NET must be unset.
  */
+#define	CONFIG_NET_MULTI
 #undef	CONFIG_ETHER_NONE		/* define if ether on something else */
 
 #undef	CONFIG_ETHER_ON_SCC		/* define if ether on SCC       */
@@ -160,7 +175,6 @@
 #define CONFIG_CMD_SNTP
 
 #ifdef CONFIG_PCI
-#define CONFIG_PCI_INDIRECT_BRIDGE
 #define CONFIG_CMD_PCI
 #endif
 
@@ -184,6 +198,8 @@
 #define	CONFIG_SYS_LOAD_ADDR	0x100000	/* default load address	*/
 
 #define	CONFIG_SYS_HZ		1000		/* decrementer freq: 1 ms ticks	*/
+
+#define CONFIG_SYS_BAUDRATE_TABLE	{ 9600, 19200, 38400, 57600, 115200 }
 
 #define	CONFIG_SYS_RESET_ADDRESS 0xFDFFFFFC	/* "bad" address		*/
 
@@ -273,8 +289,9 @@
  * Definitions for initial stack pointer and data area (in DPRAM)
  */
 #define CONFIG_SYS_INIT_RAM_ADDR	CONFIG_SYS_IMMR
-#define CONFIG_SYS_INIT_RAM_SIZE	0x4000  /* Size of used area in DPRAM    */
-#define CONFIG_SYS_GBL_DATA_OFFSET	(CONFIG_SYS_INIT_RAM_SIZE - GENERATED_GBL_DATA_SIZE)
+#define CONFIG_SYS_INIT_RAM_END	0x4000  /* End of used area in DPRAM    */
+#define CONFIG_SYS_GBL_DATA_SIZE	128 /* size in bytes reserved for initial data*/
+#define CONFIG_SYS_GBL_DATA_OFFSET	(CONFIG_SYS_INIT_RAM_END - CONFIG_SYS_GBL_DATA_SIZE)
 #define CONFIG_SYS_INIT_SP_OFFSET	CONFIG_SYS_GBL_DATA_OFFSET
 
 /*-----------------------------------------------------------------------
@@ -287,7 +304,7 @@
  */
 #define CONFIG_SYS_SDRAM_BASE		0x00000000
 #define CONFIG_SYS_FLASH_BASE		CONFIG_SYS_FLASH0_BASE
-#define CONFIG_SYS_MONITOR_BASE	CONFIG_SYS_TEXT_BASE
+#define CONFIG_SYS_MONITOR_BASE	TEXT_BASE
 #define CONFIG_SYS_MONITOR_LEN		(256 << 10)	/* Reserve 256 kB for Monitor */
 #define CONFIG_SYS_MALLOC_LEN		(128 << 10)	/* Reserve 128 kB for malloc()*/
 
@@ -300,6 +317,15 @@
 #define CONFIG_EEPRO100
 #define CONFIG_SYS_RX_ETH_BUFFER	8               /* use 8 rx buffer on eepro100  */
 #endif
+
+/*
+ * Internal Definitions
+ *
+ * Boot Flags
+ */
+#define BOOTFLAG_COLD		0x01	/* Normal Power-On: Boot from FLASH*/
+#define BOOTFLAG_WARM		0x02	/* Software reboot                 */
+
 
 /*-----------------------------------------------------------------------
  * Cache Configuration

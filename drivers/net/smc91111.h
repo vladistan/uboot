@@ -8,7 +8,19 @@
  .       Developed by Simple Network Magic Corporation (SNMC)
  . Copyright (C) 1996 by Erik Stahlman (ES)
  .
-  * SPDX-License-Identifier:	GPL-2.0+
+ . This program is free software; you can redistribute it and/or modify
+ . it under the terms of the GNU General Public License as published by
+ . the Free Software Foundation; either version 2 of the License, or
+ . (at your option) any later version.
+ .
+ . This program is distributed in the hope that it will be useful,
+ . but WITHOUT ANY WARRANTY; without even the implied warranty of
+ . MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ . GNU General Public License for more details.
+ .
+ . You should have received a copy of the GNU General Public License
+ . along with this program; if not, write to the Free Software
+ . Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  .
  . This file contains register information and access macros for
  . the LAN91C111 single chip ethernet controller.  It is a modified
@@ -46,10 +58,6 @@ typedef unsigned char			byte;
 typedef unsigned short			word;
 typedef unsigned long int		dword;
 
-struct smc91111_priv{
-	u8 dev_num;
-};
-
 /*
  . DEBUGGING LEVELS
  .
@@ -66,35 +74,35 @@ struct smc91111_priv{
 
 #define	SMC_IO_EXTENT	16
 
-#ifdef CONFIG_CPU_PXA25X
+#ifdef CONFIG_PXA250
 
 #ifdef CONFIG_XSENGINE
-#define	SMC_inl(a,r)	(*((volatile dword *)((a)->iobase+((r)<<1))))
-#define	SMC_inw(a,r)	(*((volatile word *)((a)->iobase+((r)<<1))))
-#define SMC_inb(a,p)  ({ \
-	unsigned int __p = (unsigned int)((a)->iobase + ((p)<<1)); \
+#define	SMC_inl(r)	(*((volatile dword *)(SMC_BASE_ADDRESS+(r<<1))))
+#define	SMC_inw(r)	(*((volatile word *)(SMC_BASE_ADDRESS+(r<<1))))
+#define SMC_inb(p)  ({ \
+	unsigned int __p = (unsigned int)(SMC_BASE_ADDRESS + (p<<1)); \
 	unsigned int __v = *(volatile unsigned short *)((__p) & ~2); \
 	if (__p & 2) __v >>= 8; \
 	else __v &= 0xff; \
 	__v; })
 #elif defined(CONFIG_XAENIAX)
-#define SMC_inl(a,r)	(*((volatile dword *)((a)->iobase+(r))))
-#define SMC_inw(a,z)	({ \
-	unsigned int __p = (unsigned int)((a)->iobase + (z)); \
+#define SMC_inl(r)	(*((volatile dword *)(SMC_BASE_ADDRESS+(r))))
+#define SMC_inw(z)	({ \
+	unsigned int __p = (unsigned int)(SMC_BASE_ADDRESS + (z)); \
 	unsigned int __v = *(volatile unsigned int *)((__p) & ~3); \
 	if (__p & 3) __v >>= 16; \
 	else __v &= 0xffff; \
 	__v; })
-#define SMC_inb(a,p)	({ \
-	unsigned int ___v = SMC_inw((a),(p) & ~1); \
-	if ((p) & 1) ___v >>= 8; \
+#define SMC_inb(p)	({ \
+	unsigned int ___v = SMC_inw((p) & ~1); \
+	if (p & 1) ___v >>= 8; \
 	else ___v &= 0xff; \
 	___v; })
 #else
-#define	SMC_inl(a,r)	(*((volatile dword *)((a)->iobase+(r))))
-#define	SMC_inw(a,r)	(*((volatile word *)((a)->iobase+(r))))
-#define SMC_inb(a,p)	({ \
-	unsigned int __p = (unsigned int)((a)->iobase + (p)); \
+#define	SMC_inl(r)	(*((volatile dword *)(SMC_BASE_ADDRESS+(r))))
+#define	SMC_inw(r)	(*((volatile word *)(SMC_BASE_ADDRESS+(r))))
+#define SMC_inb(p)	({ \
+	unsigned int __p = (unsigned int)(SMC_BASE_ADDRESS + (p)); \
 	unsigned int __v = *(volatile unsigned short *)((__p) & ~1); \
 	if (__p & 1) __v >>= 8; \
 	else __v &= 0xff; \
@@ -102,73 +110,73 @@ struct smc91111_priv{
 #endif
 
 #ifdef CONFIG_XSENGINE
-#define	SMC_outl(a,d,r)	(*((volatile dword *)((a)->iobase+(r<<1))) = d)
-#define	SMC_outw(a,d,r)	(*((volatile word *)((a)->iobase+(r<<1))) = d)
+#define	SMC_outl(d,r)	(*((volatile dword *)(SMC_BASE_ADDRESS+(r<<1))) = d)
+#define	SMC_outw(d,r)	(*((volatile word *)(SMC_BASE_ADDRESS+(r<<1))) = d)
 #elif defined (CONFIG_XAENIAX)
-#define SMC_outl(a,d,r)	(*((volatile dword *)((a)->iobase+(r))) = d)
-#define SMC_outw(a,d,p)	({ \
-	dword __dwo = SMC_inl((a),(p) & ~3); \
+#define SMC_outl(d,r)	(*((volatile dword *)(SMC_BASE_ADDRESS+(r))) = d)
+#define SMC_outw(d,p)	({ \
+	dword __dwo = SMC_inl((p) & ~3); \
 	dword __dwn = (word)(d); \
 	__dwo &= ((p) & 3) ? 0x0000ffff : 0xffff0000; \
 	__dwo |= ((p) & 3) ? __dwn << 16 : __dwn; \
-	SMC_outl((a), __dwo, (p) & ~3); \
+	SMC_outl(__dwo, (p) & ~3); \
 })
 #else
-#define	SMC_outl(a,d,r)	(*((volatile dword *)((a)->iobase+(r))) = d)
-#define	SMC_outw(a,d,r)	(*((volatile word *)((a)->iobase+(r))) = d)
+#define	SMC_outl(d,r)	(*((volatile dword *)(SMC_BASE_ADDRESS+(r))) = d)
+#define	SMC_outw(d,r)	(*((volatile word *)(SMC_BASE_ADDRESS+(r))) = d)
 #endif
 
-#define	SMC_outb(a,d,r)	({	word __d = (byte)(d);  \
-				word __w = SMC_inw((a),(r)&~1);  \
+#define	SMC_outb(d,r)	({	word __d = (byte)(d);  \
+				word __w = SMC_inw((r)&~1);  \
 				__w &= ((r)&1) ? 0x00FF : 0xFF00;  \
 				__w |= ((r)&1) ? __d<<8 : __d;  \
-				SMC_outw((a),__w,(r)&~1);  \
+				SMC_outw(__w,(r)&~1);  \
 			})
 
-#define SMC_outsl(a,r,b,l)	({	int __i; \
+#define SMC_outsl(r,b,l)	({	int __i; \
 					dword *__b2; \
 					__b2 = (dword *) b; \
 					for (__i = 0; __i < l; __i++) { \
-					    SMC_outl((a), *(__b2 + __i), r); \
+					    SMC_outl( *(__b2 + __i), r); \
 					} \
 				})
 
-#define SMC_outsw(a,r,b,l)	({	int __i; \
+#define SMC_outsw(r,b,l)	({	int __i; \
 					word *__b2; \
 					__b2 = (word *) b; \
 					for (__i = 0; __i < l; __i++) { \
-					    SMC_outw((a), *(__b2 + __i), r); \
+					    SMC_outw( *(__b2 + __i), r); \
 					} \
 				})
 
-#define SMC_insl(a,r,b,l)	({	int __i ;  \
+#define SMC_insl(r,b,l)		({	int __i ;  \
 					dword *__b2;  \
 					__b2 = (dword *) b;  \
 					for (__i = 0; __i < l; __i++) {  \
-					  *(__b2 + __i) = SMC_inl((a),(r));  \
-					  SMC_inl((a),0);  \
+					  *(__b2 + __i) = SMC_inl(r);  \
+					  SMC_inl(0);  \
 					};  \
 				})
 
-#define SMC_insw(a,r,b,l)		({	int __i ;  \
+#define SMC_insw(r,b,l)		({	int __i ;  \
 					word *__b2;  \
 					__b2 = (word *) b;  \
 					for (__i = 0; __i < l; __i++) {  \
-					  *(__b2 + __i) = SMC_inw((a),(r));  \
-					  SMC_inw((a),0);  \
+					  *(__b2 + __i) = SMC_inw(r);  \
+					  SMC_inw(0);  \
 					};  \
 				})
 
-#define SMC_insb(a,r,b,l)	({	int __i ;  \
+#define SMC_insb(r,b,l)		({	int __i ;  \
 					byte *__b2;  \
 					__b2 = (byte *) b;  \
 					for (__i = 0; __i < l; __i++) {  \
-					  *(__b2 + __i) = SMC_inb((a),(r));  \
-					  SMC_inb((a),0);  \
+					  *(__b2 + __i) = SMC_inb(r);  \
+					  SMC_inb(0);  \
 					};  \
 				})
 
-#elif defined(CONFIG_LEON)	/* if not CONFIG_CPU_PXA25X */
+#elif defined(CONFIG_LEON)	/* if not CONFIG_PXA250 */
 
 #define SMC_LEON_SWAP16(_x_) ({ word _x = (_x_); ((_x << 8) | (_x >> 8)); })
 
@@ -179,65 +187,65 @@ struct smc91111_priv{
        ((0x00FF0000UL & _x) >>  8) |		\
        (_x  >> 24)); })
 
-#define	SMC_inl(a,r)	(SMC_LEON_SWAP32((*(volatile dword *)((a)->iobase+((r)<<0)))))
-#define	SMC_inl_nosw(a,r)	((*(volatile dword *)((a)->iobase+((r)<<0))))
-#define	SMC_inw(a,r)	(SMC_LEON_SWAP16((*(volatile word *)((a)->iobase+((r)<<0)))))
-#define	SMC_inw_nosw(a,r)	((*(volatile word *)((a)->iobase+((r)<<0))))
-#define SMC_inb(a,p)	({ \
-	word ___v = SMC_inw((a),(p) & ~1); \
+#define	SMC_inl(r)	(SMC_LEON_SWAP32((*(volatile dword *)(SMC_BASE_ADDRESS+((r)<<0)))))
+#define	SMC_inl_nosw(r)	((*(volatile dword *)(SMC_BASE_ADDRESS+((r)<<0))))
+#define	SMC_inw(r)	(SMC_LEON_SWAP16((*(volatile word *)(SMC_BASE_ADDRESS+((r)<<0)))))
+#define	SMC_inw_nosw(r)	((*(volatile word *)(SMC_BASE_ADDRESS+((r)<<0))))
+#define SMC_inb(p)	({ \
+	word ___v = SMC_inw((p) & ~1); \
 	if ((p) & 1) ___v >>= 8; \
 	else ___v &= 0xff; \
 	___v; })
 
-#define	SMC_outl(a,d,r)	(*(volatile dword *)((a)->iobase+((r)<<0))=SMC_LEON_SWAP32(d))
-#define	SMC_outl_nosw(a,d,r)	(*(volatile dword *)((a)->iobase+((r)<<0))=(d))
-#define	SMC_outw(a,d,r)	(*(volatile word *)((a)->iobase+((r)<<0))=SMC_LEON_SWAP16(d))
-#define	SMC_outw_nosw(a,d,r)	(*(volatile word *)((a)->iobase+((r)<<0))=(d))
-#define	SMC_outb(a,d,r)	do{	word __d = (byte)(d);  \
-				word __w = SMC_inw((a),(r)&~1);  \
+#define	SMC_outl(d,r)	(*(volatile dword *)(SMC_BASE_ADDRESS+((r)<<0))=SMC_LEON_SWAP32(d))
+#define	SMC_outl_nosw(d,r)	(*(volatile dword *)(SMC_BASE_ADDRESS+((r)<<0))=(d))
+#define	SMC_outw(d,r)	(*(volatile word *)(SMC_BASE_ADDRESS+((r)<<0))=SMC_LEON_SWAP16(d))
+#define	SMC_outw_nosw(d,r)	(*(volatile word *)(SMC_BASE_ADDRESS+((r)<<0))=(d))
+#define	SMC_outb(d,r)	do{	word __d = (byte)(d);  \
+				word __w = SMC_inw((r)&~1);  \
 				__w &= ((r)&1) ? 0x00FF : 0xFF00;  \
 				__w |= ((r)&1) ? __d<<8 : __d;  \
-				SMC_outw((a),__w,(r)&~1);  \
+				SMC_outw(__w,(r)&~1);  \
 			}while(0)
-#define SMC_outsl(a,r,b,l)	do{	int __i; \
+#define SMC_outsl(r,b,l)	do{	int __i; \
 					dword *__b2; \
 					__b2 = (dword *) b; \
 					for (__i = 0; __i < l; __i++) { \
-					    SMC_outl_nosw((a), *(__b2 + __i), r); \
+					    SMC_outl_nosw( *(__b2 + __i), r); \
 					} \
 				}while(0)
-#define SMC_outsw(a,r,b,l)	do{	int __i; \
+#define SMC_outsw(r,b,l)	do{	int __i; \
 					word *__b2; \
 					__b2 = (word *) b; \
 					for (__i = 0; __i < l; __i++) { \
-					    SMC_outw_nosw((a), *(__b2 + __i), r); \
+					    SMC_outw_nosw( *(__b2 + __i), r); \
 					} \
 				}while(0)
-#define SMC_insl(a,r,b,l)	do{	int __i ;  \
+#define SMC_insl(r,b,l)		do{	int __i ;  \
 					dword *__b2;  \
 					__b2 = (dword *) b;  \
 					for (__i = 0; __i < l; __i++) {  \
-					  *(__b2 + __i) = SMC_inl_nosw((a),(r));  \
+					  *(__b2 + __i) = SMC_inl_nosw(r);  \
 					};  \
 				}while(0)
 
-#define SMC_insw(a,r,b,l)		do{	int __i ;  \
+#define SMC_insw(r,b,l)		do{	int __i ;  \
 					word *__b2;  \
 					__b2 = (word *) b;  \
 					for (__i = 0; __i < l; __i++) {  \
-					  *(__b2 + __i) = SMC_inw_nosw((a),(r));  \
+					  *(__b2 + __i) = SMC_inw_nosw(r);  \
 					};  \
 				}while(0)
 
-#define SMC_insb(a,r,b,l)		do{	int __i ;  \
+#define SMC_insb(r,b,l)		do{	int __i ;  \
 					byte *__b2;  \
 					__b2 = (byte *) b;  \
 					for (__i = 0; __i < l; __i++) {  \
-					  *(__b2 + __i) = SMC_inb((a),(r));  \
+					  *(__b2 + __i) = SMC_inb(r);  \
 					};  \
 				}while(0)
 
-#else			/* if not CONFIG_CPU_PXA25X and not CONFIG_LEON */
+#else				/* if not CONFIG_PXA250 and not CONFIG_LEON */
 
 #ifndef CONFIG_SMC_USE_IOFUNCS /* these macros don't work on some boards */
 /*
@@ -245,48 +253,48 @@ struct smc91111_priv{
  */
 
 #ifdef CONFIG_ADNPESC1
-#define	SMC_inw(a,r)	(*((volatile word *)((a)->iobase+((r)<<1))))
+#define	SMC_inw(r)	(*((volatile word *)(SMC_BASE_ADDRESS+((r)<<1))))
 #elif CONFIG_BLACKFIN
-#define	SMC_inw(a,r)	({ word __v = (*((volatile word *)((a)->iobase+(r)))); SSYNC(); __v;})
+#define	SMC_inw(r)	({ word __v = (*((volatile word *)(SMC_BASE_ADDRESS+(r)))); SSYNC(); __v;})
 #else
-#define	SMC_inw(a,r)	(*((volatile word *)((a)->iobase+(r))))
+#define	SMC_inw(r)	(*((volatile word *)(SMC_BASE_ADDRESS+(r))))
 #endif
-#define  SMC_inb(a,r)	(((r)&1) ? SMC_inw((a),(r)&~1)>>8 : SMC_inw((a),(r)&0xFF))
+#define  SMC_inb(r)	(((r)&1) ? SMC_inw((r)&~1)>>8 : SMC_inw(r)&0xFF)
 
 #ifdef CONFIG_ADNPESC1
-#define	SMC_outw(a,d,r)	(*((volatile word *)((a)->iobase+((r)<<1))) = d)
+#define	SMC_outw(d,r)	(*((volatile word *)(SMC_BASE_ADDRESS+((r)<<1))) = d)
 #elif CONFIG_BLACKFIN
-#define	SMC_outw(a,d,r)	{(*((volatile word *)((a)->iobase+(r))) = d); SSYNC();}
+#define	SMC_outw(d,r)	{(*((volatile word *)(SMC_BASE_ADDRESS+(r))) = d); SSYNC();}
 #else
-#define	SMC_outw(a,d,r)	(*((volatile word *)((a)->iobase+(r))) = d)
+#define	SMC_outw(d,r)	(*((volatile word *)(SMC_BASE_ADDRESS+(r))) = d)
 #endif
-#define	SMC_outb(a,d,r)	({	word __d = (byte)(d);  \
-				word __w = SMC_inw((a),(r)&~1);  \
+#define	SMC_outb(d,r)	({	word __d = (byte)(d);  \
+				word __w = SMC_inw((r)&~1);  \
 				__w &= ((r)&1) ? 0x00FF : 0xFF00;  \
 				__w |= ((r)&1) ? __d<<8 : __d;  \
-				SMC_outw((a),__w,(r)&~1);  \
+				SMC_outw(__w,(r)&~1);  \
 			})
 #if 0
-#define	SMC_outsw(a,r,b,l)	outsw((a)->iobase+(r), (b), (l))
+#define	SMC_outsw(r,b,l)	outsw(SMC_BASE_ADDRESS+(r), (b), (l))
 #else
-#define SMC_outsw(a,r,b,l)	({	int __i; \
+#define SMC_outsw(r,b,l)	({	int __i; \
 					word *__b2; \
 					__b2 = (word *) b; \
 					for (__i = 0; __i < l; __i++) { \
-					    SMC_outw((a), *(__b2 + __i), r); \
+					    SMC_outw( *(__b2 + __i), r); \
 					} \
 				})
 #endif
 
 #if 0
-#define	SMC_insw(a,r,b,l)	insw((a)->iobase+(r), (b), (l))
+#define	SMC_insw(r,b,l)	insw(SMC_BASE_ADDRESS+(r), (b), (l))
 #else
-#define SMC_insw(a,r,b,l)	({	int __i ;  \
+#define SMC_insw(r,b,l)	({	int __i ;  \
 					word *__b2;  \
 					__b2 = (word *) b;  \
 					for (__i = 0; __i < l; __i++) {  \
-					  *(__b2 + __i) = SMC_inw((a),(r));  \
-					  SMC_inw((a),0);  \
+					  *(__b2 + __i) = SMC_inw(r);  \
+					  SMC_inw(0);  \
 					};  \
 				})
 #endif
@@ -296,30 +304,30 @@ struct smc91111_priv{
 #if defined(CONFIG_SMC_USE_32_BIT)
 
 #ifdef CONFIG_XSENGINE
-#define	SMC_inl(a,r)	(*((volatile dword *)((a)->iobase+(r<<1))))
+#define	SMC_inl(r)	(*((volatile dword *)(SMC_BASE_ADDRESS+(r<<1))))
 #else
-#define	SMC_inl(a,r)	(*((volatile dword *)((a)->iobase+(r))))
+#define	SMC_inl(r)	(*((volatile dword *)(SMC_BASE_ADDRESS+(r))))
 #endif
 
-#define SMC_insl(a,r,b,l)	({	int __i ;  \
+#define SMC_insl(r,b,l)	({	int __i ;  \
 					dword *__b2;  \
 					__b2 = (dword *) b;  \
 					for (__i = 0; __i < l; __i++) {  \
-					  *(__b2 + __i) = SMC_inl((a),(r));  \
-					  SMC_inl((a),0);  \
+					  *(__b2 + __i) = SMC_inl(r);  \
+					  SMC_inl(0);  \
 					};  \
 				})
 
 #ifdef CONFIG_XSENGINE
-#define	SMC_outl(a,d,r)	(*((volatile dword *)((a)->iobase+(r<<1))) = d)
+#define	SMC_outl(d,r)	(*((volatile dword *)(SMC_BASE_ADDRESS+(r<<1))) = d)
 #else
-#define	SMC_outl(a,d,r)	(*((volatile dword *)((a)->iobase+(r))) = d)
+#define	SMC_outl(d,r)	(*((volatile dword *)(SMC_BASE_ADDRESS+(r))) = d)
 #endif
-#define SMC_outsl(a,r,b,l)	({	int __i; \
+#define SMC_outsl(r,b,l)	({	int __i; \
 					dword *__b2; \
 					__b2 = (dword *) b; \
 					for (__i = 0; __i < l; __i++) { \
-					    SMC_outl((a), *(__b2 + __i), r); \
+					    SMC_outl( *(__b2 + __i), r); \
 					} \
 				})
 
@@ -744,25 +752,25 @@ enum {
 
 /* select a register bank, 0 to 3  */
 
-#define SMC_SELECT_BANK(a,x)  { SMC_outw((a), (x), BANK_SELECT ); }
+#define SMC_SELECT_BANK(x)  { SMC_outw( x, BANK_SELECT ); }
 
 /* this enables an interrupt in the interrupt mask register */
-#define SMC_ENABLE_INT(a,x) {\
+#define SMC_ENABLE_INT(x) {\
 		unsigned char mask;\
-		SMC_SELECT_BANK((a),2);\
-		mask = SMC_inb((a), IM_REG );\
+		SMC_SELECT_BANK(2);\
+		mask = SMC_inb( IM_REG );\
 		mask |= (x);\
-		SMC_outb( (a), mask, IM_REG ); \
+		SMC_outb( mask, IM_REG ); \
 }
 
 /* this disables an interrupt from the interrupt mask register */
 
-#define SMC_DISABLE_INT(a,x) {\
+#define SMC_DISABLE_INT(x) {\
 		unsigned char mask;\
 		SMC_SELECT_BANK(2);\
-		mask = SMC_inb( (a), IM_REG );\
+		mask = SMC_inb( IM_REG );\
 		mask &= ~(x);\
-		SMC_outb( (a), mask, IM_REG ); \
+		SMC_outb( mask, IM_REG ); \
 }
 
 /*----------------------------------------------------------------------

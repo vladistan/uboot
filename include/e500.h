@@ -8,22 +8,17 @@
 
 #ifndef __ASSEMBLY__
 
+#ifndef CONFIG_NUM_CPUS
+#define CONFIG_NUM_CPUS 1
+#endif
+
 typedef struct
 {
-	unsigned long freq_processor[CONFIG_MAX_CPUS];
-	unsigned long freq_systembus;
-	unsigned long freq_ddrbus;
-	unsigned long freq_localbus;
-	unsigned long freq_qe;
-#ifdef CONFIG_SYS_DPAA_FMAN
-	unsigned long freq_fman[CONFIG_SYS_NUM_FMAN];
-#endif
-#ifdef CONFIG_SYS_DPAA_QBMAN
-	unsigned long freq_qman;
-#endif
-#ifdef CONFIG_SYS_DPAA_PME
-	unsigned long freq_pme;
-#endif
+  unsigned long freqProcessor[CONFIG_NUM_CPUS];
+  unsigned long freqSystemBus;
+  unsigned long freqDDRBus;
+  unsigned long freqLocalBus;
+  unsigned long freqQE;
 } MPC85xx_SYS_INFO;
 
 #endif  /* _ASMLANGUAGE */

@@ -4,7 +4,23 @@
  * Copyright (C) 2008 Nobuhiro Iwamatsu
  * Copyright (C) 2008 Renesas Solutions Corp.
  *
- * SPDX-License-Identifier:	GPL-2.0+
+ * See file CREDITS for list of people who contributed to this
+ * project.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation; either version 2 of
+ * the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
+ * MA 02111-1307 USA
  */
 
 #ifndef __RSK7203_H
@@ -38,7 +54,6 @@
 #define RSK7203_FLASH_BASE_1	0x20000000	/* Non cache */
 #define RSK7203_FLASH_BANK_SIZE	(4 * 1024 * 1024)
 
-#define CONFIG_SYS_TEXT_BASE	0x0C7C0000
 #define CONFIG_SYS_LONGHELP		/* undef to save memory	*/
 #define CONFIG_SYS_PROMPT	"=> "	/* Monitor Command Prompt */
 #define CONFIG_SYS_CBSIZE	256	/* Buffer size for input from the Console */
@@ -63,6 +78,7 @@
 #define CONFIG_SYS_MONITOR_BASE	RSK7203_FLASH_BASE_1
 #define CONFIG_SYS_MONITOR_LEN		(128 * 1024)
 #define CONFIG_SYS_MALLOC_LEN		(256 * 1024)
+#define CONFIG_SYS_GBL_DATA_SIZE	256
 #define CONFIG_SYS_BOOTMAPSZ		(8 * 1024 * 1024)
 
 /* FLASH */
@@ -89,6 +105,7 @@
 #define CONFIG_SYS_HZ			(CONFIG_SYS_CLK_FREQ / CMT_CLK_DIVIDER)
 
 /* Network interface */
+#define CONFIG_NET_MULTI
 #define CONFIG_SMC911X
 #define CONFIG_SMC911X_16_BIT
 #define CONFIG_SMC911X_BASE (0x24000000)

@@ -2,7 +2,23 @@
  * (C) Copyright 2000-2004
  * Wolfgang Denk, DENX Software Engineering, wd@denx.de.
  *
- * SPDX-License-Identifier:	GPL-2.0+
+ * See file CREDITS for list of people who contributed to this
+ * project.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation; either version 2 of
+ * the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
+ * MA 02111-1307 USA
  */
 
 
@@ -106,12 +122,12 @@ int flash_erase (flash_info_t * info, int s_first, int s_last)
 	for (sect = s_first; sect <= s_last; sect++) {
 		if (info->protect[sect] == 0) {	/* not protected */
 			addr2 = (unsigned char *) info->start[sect];
-			writeb (0xaa, addr);
-			writeb (0x55, addr);
-			writeb (0x80, addr);
-			writeb (0xaa, addr);
-			writeb (0x55, addr);
-			writeb (0x30, addr2);
+			writeb (addr, 0xaa);
+			writeb (addr,  0x55);
+			writeb (addr,  0x80);
+			writeb (addr,  0xaa);
+			writeb (addr,  0x55);
+			writeb (addr2, 0x30);
 			/* Now just wait for 0xff & provide some user
 			 * feedback while we wait.
 			 */
@@ -153,9 +169,9 @@ int write_buff (flash_info_t * info, uchar * src, ulong addr, ulong cnt)
 			return (2);
 		}
 
-		writeb (0xaa, cmd);
-		writeb (0x55, cmd);
-		writeb (0xa0, cmd);
+		writeb (cmd,  0xaa);
+		writeb (cmd,  0x55);
+		writeb (cmd,  0xa0);
 		writeb (dst, b);
 
 		/* Verify write */

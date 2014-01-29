@@ -2,17 +2,30 @@
 # (C) Copyright 2007
 # Stefan Roese, DENX Software Engineering, sr@denx.de.
 #
-# SPDX-License-Identifier:	GPL-2.0+
+# See file CREDITS for list of people who contributed to this
+# project.
+#
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License as
+# published by the Free Software Foundation; either version 2 of
+# the License, or (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston,
+# MA 02111-1307 USA
 #
 
 include $(TOPDIR)/config.mk
 include $(TOPDIR)/nand_spl/board/$(BOARDDIR)/config.mk
 
-nandobj	:= $(OBJTREE)/nand_spl/
-
 LDSCRIPT= $(TOPDIR)/nand_spl/board/$(BOARDDIR)/u-boot.lds
-LDFLAGS := -T $(nandobj)u-boot.lds -Ttext $(CONFIG_SYS_TEXT_BASE) $(LDFLAGS) \
-	   $(LDFLAGS_FINAL)
+LDFLAGS	= -Bstatic -T $(nandobj)u-boot.lds -Ttext $(TEXT_BASE) $(PLATFORM_LDFLAGS)
 AFLAGS	+= -DCONFIG_NAND_SPL
 CFLAGS	+= -DCONFIG_NAND_SPL
 
@@ -22,7 +35,9 @@ COBJS	= gpio.o nand_boot.o nand_ecc.o memory.o ndfc.o pll.o
 SRCS	:= $(addprefix $(obj),$(SOBJS:.o=.S) $(COBJS:.o=.c))
 OBJS	:= $(addprefix $(obj),$(SOBJS) $(COBJS))
 __OBJS	:= $(SOBJS) $(COBJS)
-LNDIR	:= $(nandobj)board/$(BOARDDIR)
+LNDIR	:= $(OBJTREE)/nand_spl/board/$(BOARDDIR)
+
+nandobj	:= $(OBJTREE)/nand_spl/
 
 ALL	= $(nandobj)u-boot-spl $(nandobj)u-boot-spl.bin $(nandobj)u-boot-spl-16k.bin \
 	$(nandobj)System.map
@@ -36,7 +51,7 @@ $(nandobj)u-boot-spl.bin:	$(nandobj)u-boot-spl
 	$(OBJCOPY) ${OBJCFLAGS} -O binary $< $@
 
 $(nandobj)u-boot-spl:	$(OBJS) $(nandobj)u-boot.lds
-	cd $(LNDIR) && $(LD) $(LDFLAGS) $(__OBJS) $(PLATFORM_LIBS) \
+	cd $(LNDIR) && $(LD) $(LDFLAGS) $(__OBJS) \
 		-Map $(nandobj)u-boot-spl.map \
 		-o $(nandobj)u-boot-spl
 
@@ -53,11 +68,11 @@ $(nandobj)u-boot.lds: $(LDSCRIPT)
 # from cpu directory
 $(obj)cache.S:
 	@rm -f $(obj)cache.S
-	ln -s $(SRCTREE)/arch/powerpc/cpu/ppc4xx/cache.S $(obj)cache.S
+	ln -s $(SRCTREE)/cpu/ppc4xx/cache.S $(obj)cache.S
 
 $(obj)gpio.c:
 	@rm -f $(obj)gpio.c
-	ln -s $(SRCTREE)/arch/powerpc/cpu/ppc4xx/gpio.c $(obj)gpio.c
+	ln -s $(SRCTREE)/cpu/ppc4xx/gpio.c $(obj)gpio.c
 
 $(obj)ndfc.c:
 	@rm -f $(obj)ndfc.c
@@ -65,11 +80,11 @@ $(obj)ndfc.c:
 
 $(obj)resetvec.S:
 	@rm -f $(obj)resetvec.S
-	ln -s $(SRCTREE)/arch/powerpc/cpu/ppc4xx/resetvec.S $(obj)resetvec.S
+	ln -s $(SRCTREE)/cpu/ppc4xx/resetvec.S $(obj)resetvec.S
 
 $(obj)start.S:
 	@rm -f $(obj)start.S
-	ln -s $(SRCTREE)/arch/powerpc/cpu/ppc4xx/start.S $(obj)start.S
+	ln -s $(SRCTREE)/cpu/ppc4xx/start.S $(obj)start.S
 
 # from board directory
 $(obj)memory.c:

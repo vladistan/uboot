@@ -1,10 +1,26 @@
 #
 # (C) Copyright 2007 Semihalf
 #
-# SPDX-License-Identifier:	GPL-2.0+
+# See file CREDITS for list of people who contributed to this
+# project.
+#
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License as
+# published by the Free Software Foundatio; either version 2 of
+# the License, or (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston,
+# MA 02111-1307 USA
 #
 
-ifeq ($(ARCH),powerpc)
+ifeq ($(ARCH),ppc)
 LOAD_ADDR = 0x40000
 endif
 ifeq ($(ARCH),arm)
@@ -24,14 +40,13 @@ COBJ_FILES-$(CONFIG_API) += glue.o
 COBJ_FILES-$(CONFIG_API) += libgenwrap.o
 
 # Source files which exist outside the examples/api directory
-EXT_COBJ_FILES-$(CONFIG_API) += lib/crc32.o
-EXT_COBJ_FILES-$(CONFIG_API) += lib/ctype.o
-EXT_COBJ_FILES-$(CONFIG_API) += lib/div64.o
-EXT_COBJ_FILES-$(CONFIG_API) += lib/string.o
-EXT_COBJ_FILES-$(CONFIG_API) += lib/time.o
-EXT_COBJ_FILES-$(CONFIG_API) += lib/vsprintf.o
-ifeq ($(ARCH),powerpc)
-EXT_SOBJ_FILES-$(CONFIG_API) += arch/powerpc/lib/ppcstring.o
+EXT_COBJ_FILES-$(CONFIG_API) += lib_generic/crc32.o
+EXT_COBJ_FILES-$(CONFIG_API) += lib_generic/ctype.o
+EXT_COBJ_FILES-$(CONFIG_API) += lib_generic/div64.o
+EXT_COBJ_FILES-$(CONFIG_API) += lib_generic/string.o
+EXT_COBJ_FILES-$(CONFIG_API) += lib_generic/vsprintf.o
+ifeq ($(ARCH),ppc)
+EXT_SOBJ_FILES-$(CONFIG_API) += lib_ppc/ppcstring.o
 endif
 
 # Create a list of source files so their dependencies can be auto-generated
@@ -46,6 +61,8 @@ OBJS	+= $(addprefix $(obj),$(COBJ_FILES-y))
 OBJS	+= $(addprefix $(obj),$(notdir $(EXT_COBJ_FILES-y)))
 OBJS	+= $(addprefix $(obj),$(notdir $(EXT_SOBJ_FILES-y)))
 
+gcclibdir := $(shell dirname `$(CC) -print-libgcc-file-name`)
+
 CPPFLAGS += -I..
 
 all:	$(obj).depend $(OUTPUT)
@@ -53,15 +70,15 @@ all:	$(obj).depend $(OUTPUT)
 #########################################################################
 
 $(OUTPUT):	$(OBJS)
-		$(LD) -Ttext $(LOAD_ADDR) -o $@ $^ $(PLATFORM_LIBS)
+		$(LD) -Ttext $(LOAD_ADDR) -o $@ $^ -L$(gcclibdir) -lgcc
 		$(OBJCOPY) -O binary $@ $(OUTPUT).bin 2>/dev/null
 
 # Rule to build generic library C files
-$(obj)%.o: $(SRCTREE)/lib/%.c
+$(obj)%.o: $(SRCTREE)/lib_generic/%.c
 	$(CC) -g $(CFLAGS) -c -o $@ $<
 
 # Rule to build architecture-specific library assembly files
-$(obj)%.o: $(SRCTREE)/arch/$(ARCH)/lib/%.S
+$(obj)%.o: $(SRCTREE)/lib_$(ARCH)/%.S
 	$(CC) -g $(CFLAGS) -c -o $@ $<
 
 #########################################################################

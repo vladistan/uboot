@@ -61,14 +61,15 @@
  * (can't be used same time as ethernet)
  */
 #if (CONFIG_BFIN_BOOT_MODE == BFIN_BOOT_NAND)
-# define CONFIG_BFIN_NFC
-# define CONFIG_BFIN_NFC_BOOTROM_ECC
+#define CONFIG_BFIN_NFC
 #endif
 #ifdef CONFIG_BFIN_NFC
 #define CONFIG_BFIN_NFC_CTL_VAL	0x0033
 #define CONFIG_DRIVER_NAND_BFIN
 #define CONFIG_SYS_NAND_BASE		0 /* not actually used */
 #define CONFIG_SYS_MAX_NAND_DEVICE	1
+#define NAND_MAX_CHIPS		1
+#define CONFIG_CMD_NAND
 #endif
 
 
@@ -81,6 +82,7 @@
 #define CONFIG_BFIN_MAC
 #define CONFIG_RMII
 #define CONFIG_NETCONSOLE	1
+#define CONFIG_NET_MULTI	1
 #endif
 #define CONFIG_HOSTNAME		bf527-ezkit
 /* Uncomment next line to use fixed MAC address */
@@ -116,19 +118,14 @@
 #define CONFIG_ENV_OFFSET	0x10000
 #define CONFIG_ENV_SIZE		0x2000
 #define CONFIG_ENV_SECT_SIZE	0x10000
-#define CONFIG_ENV_IS_EMBEDDED_IN_LDR
-#elif (CONFIG_BFIN_BOOT_MODE == BFIN_BOOT_NAND)
-#define CONFIG_ENV_IS_IN_NAND
-#define CONFIG_ENV_OFFSET	0x40000
-#define CONFIG_ENV_SIZE		0x20000
 #else
 #define CONFIG_ENV_IS_IN_FLASH
 #define CONFIG_ENV_OFFSET	0x4000
 #define CONFIG_ENV_ADDR		(CONFIG_SYS_FLASH_BASE + CONFIG_ENV_OFFSET)
 #define CONFIG_ENV_SIZE		0x2000
 #define CONFIG_ENV_SECT_SIZE	0x2000
-#define CONFIG_ENV_IS_EMBEDDED_IN_LDR
 #endif
+#define ENV_IS_EMBEDDED_CUSTOM
 
 
 /*
@@ -136,6 +133,8 @@
  */
 #define CONFIG_BFIN_TWI_I2C	1
 #define CONFIG_HARD_I2C		1
+#define CONFIG_SYS_I2C_SPEED	50000
+#define CONFIG_SYS_I2C_SLAVE	0
 
 
 /*
@@ -149,29 +148,6 @@
 #define CONFIG_MUSB_TIMEOUT 100000
 #endif
 
-/* Don't waste time transferring a logo over the UART */
-#if (CONFIG_BFIN_BOOT_MODE != BFIN_BOOT_UART)
-/*# define CONFIG_VIDEO*/
-#endif
-
-/*
- * Video Settings
- */
-#ifdef CONFIG_VIDEO
-#ifdef CONFIG_BF527_EZKIT_REV_2_1
-# define CONFIG_LQ035Q1_SPI_BUS	0
-# define CONFIG_LQ035Q1_SPI_CS	7
-# define CONFIG_LQ035Q1_USE_RGB565_8_BIT_PPI
-#else
-# define CONFIG_LQ035Q1_USE_RGB888_8_BIT_PPI
-#endif
-
-#ifdef CONFIG_LQ035Q1_USE_RGB565_8_BIT_PPI
-# define EASYLOGO_HEADER <asm/bfin_logo_rgb565_230x230_lzma.h>
-#else
-# define EASYLOGO_HEADER <asm/bfin_logo_230x230_lzma.h>
-#endif
-#endif /* CONFIG_VIDEO */
 
 /*
  * Misc Settings
@@ -179,6 +155,11 @@
 #define CONFIG_MISC_INIT_R
 #define CONFIG_RTC_BFIN
 #define CONFIG_UART_CONSOLE	1
+
+/* Don't waste time transferring a logo over the UART */
+#if (CONFIG_BFIN_BOOT_MODE != BFIN_BOOT_UART)
+# define CONFIG_VIDEO
+#endif
 
 
 /*

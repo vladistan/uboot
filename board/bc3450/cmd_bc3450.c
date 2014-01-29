@@ -5,7 +5,23 @@
  * (C) Copyright 2005
  * Martin Krause, TQ-Systems GmbH, martin.krause@tqs.de.
  *
- * SPDX-License-Identifier:	GPL-2.0+
+ * See file CREDITS for list of people who contributed to this
+ * project.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation; either version 2 of
+ * the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
+ * MA 02111-1307 USA
  */
 
 #include <common.h>
@@ -15,6 +31,13 @@
  * BC3450 specific commands
  */
 #if defined(CONFIG_CMD_BSP)
+
+#undef DEBUG
+#ifdef DEBUG
+# define dprintf(fmt,args...)	printf(fmt, ##args)
+#else
+# define dprintf(fmt,args...)
+#endif
 
 /*
  * Definitions for DS1620 chip
@@ -29,6 +52,7 @@
 #define THERM_WRITE_TL		0x02
 #define THERM_WRITE_TH		0x01
 
+#define CONFIG_SYS_CPU			2
 #define CONFIG_SYS_1SHOT		1
 #define CONFIG_SYS_STANDALONE		0
 
@@ -105,7 +129,7 @@ int sm501_gpio_init (void)
 	static int init_done = 0;
 
 	if (init_done) {
-		debug("sm501_gpio_init: nothing to be done.\n");
+/*	dprintf("sm501_gpio_init: nothing to be done.\n"); */
 		return 1;
 	}
 
@@ -138,8 +162,7 @@ int sm501_gpio_init (void)
 		(PWR_OFF | BUZZER | FP_DATA_TRI);
 
 	init_done = 1;
-	debug("sm501_gpio_init: done.\n");
-
+/*  dprintf("sm501_gpio_init: done.\n"); */
 	return 0;
 }
 
@@ -150,7 +173,7 @@ int sm501_gpio_init (void)
  * read and prints the dip switch
  * and/or external config inputs (4bits) 0...0x0F
  */
-int cmd_dip (cmd_tbl_t * cmdtp, int flag, int argc, char * const argv[])
+int cmd_dip (cmd_tbl_t * cmdtp, int flag, int argc, char *argv[])
 {
 	vu_long rc = 0;
 
@@ -182,7 +205,7 @@ U_BOOT_CMD (dip, 1, 1, cmd_dip,
  * buz - turns Buzzer on/off
  */
 #ifdef CONFIG_BC3450_BUZZER
-static int cmd_buz (cmd_tbl_t * cmdtp, int flag, int argc, char * const argv[])
+static int cmd_buz (cmd_tbl_t * cmdtp, int flag, int argc, char *argv[])
 {
 	if (argc != 2) {
 		printf ("Usage:\nspecify one argument: \"on\" or \"off\"\n");
@@ -213,7 +236,7 @@ U_BOOT_CMD (buz, 2, 1, cmd_buz,
 /*
  * fp - front panel commands
  */
-static int cmd_fp (cmd_tbl_t * cmdtp, int flag, int argc, char * const argv[])
+static int cmd_fp (cmd_tbl_t * cmdtp, int flag, int argc, char *argv[])
 {
 	sm501_gpio_init ();
 
@@ -468,7 +491,7 @@ static void ds1620_write_state (struct therm *therm)
 	ds1620_out (THERM_START_CONVERT, 0, 0);
 }
 
-static int cmd_temp (cmd_tbl_t * cmdtp, int flag, int argc, char * const argv[])
+static int cmd_temp (cmd_tbl_t * cmdtp, int flag, int argc, char *argv[])
 {
 	int i;
 	struct therm therm;
@@ -659,7 +682,7 @@ int can_init (void)
  * return 1 on CAN failure
  * return 0 if no failure
  */
-int do_can (char * const argv[])
+int do_can (char *argv[])
 {
 	int i;
 	struct mpc5xxx_mscan *can1 =
@@ -754,7 +777,7 @@ int do_can (char * const argv[])
 /*
  * test - BC3450 HW test routines
  */
-int cmd_test (cmd_tbl_t * cmdtp, int flag, int argc, char * const argv[])
+int cmd_test (cmd_tbl_t * cmdtp, int flag, int argc, char *argv[])
 {
 #ifdef CONFIG_BC3450_CAN
 	int rcode;

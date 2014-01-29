@@ -2,7 +2,23 @@
  * (C) Copyright 2002 ELTEC Elektronik AG
  * Frank Gottschling <fgottschling@eltec.de>
  *
- * SPDX-License-Identifier:	GPL-2.0+
+ * See file CREDITS for list of people who contributed to this
+ * project.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation; either version 2 of
+ * the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
+ * MA 02111-1307 USA
  */
 
 /*
@@ -18,8 +34,6 @@
  * High Level Configuration Options
  * (easy to change)
  */
-
-#define	CONFIG_SYS_TEXT_BASE	0xFFF00000
 
 /* these hardware addresses are pretty bogus, please change them to
    suit your needs */
@@ -160,8 +174,9 @@
  * Definitions for initial stack pointer and data area
  */
 #define CONFIG_SYS_INIT_RAM_ADDR       0x00fd0000  /* above the memtest region */
-#define CONFIG_SYS_INIT_RAM_SIZE        0x4000
-#define CONFIG_SYS_GBL_DATA_OFFSET     (CONFIG_SYS_INIT_RAM_SIZE - GENERATED_GBL_DATA_SIZE)
+#define CONFIG_SYS_INIT_RAM_END        0x4000
+#define CONFIG_SYS_GBL_DATA_SIZE       64          /* size in bytes reserved for init data */
+#define CONFIG_SYS_GBL_DATA_OFFSET     (CONFIG_SYS_INIT_RAM_END - CONFIG_SYS_GBL_DATA_SIZE)
 #define CONFIG_SYS_INIT_SP_OFFSET      CONFIG_SYS_GBL_DATA_OFFSET
 
 /*
@@ -226,7 +241,6 @@
  * PCI stuff
  */
 #define CONFIG_PCI                                /* include pci support */
-#define CONFIG_PCI_INDIRECT_BRIDGE	/* indirect PCI bridge support */
 #define CONFIG_PCI_PNP                            /* pci plug-and-play */
 #define CONFIG_PCI_HOST         PCI_HOST_AUTO
 #undef  CONFIG_PCI_SCAN_SHOW
@@ -300,8 +314,9 @@
 /*
  * Speed settings are board specific
  */
-#define CONFIG_SYS_BUS_CLK	100000000
-#define CONFIG_SYS_CPU_CLK	400000000
+#define CONFIG_SYS_BUS_HZ              100000000
+#define CONFIG_SYS_CPU_CLK             400000000
+#define CONFIG_SYS_BUS_CLK             CONFIG_SYS_BUS_HZ
 
 /*
  * For booting Linux, the board info and command line data
@@ -333,6 +348,15 @@
 #endif
 #define L2_ENABLE   (L2_INIT | L2CR_L2E)
 
+/*
+ * Internal Definitions
+ *
+ * Boot Flags
+ */
+#define BOOTFLAG_COLD           0x01    /* Normal Power-On: Boot from FLASH */
+#define BOOTFLAG_WARM           0x02    /* Software reboot */
+
+#define CONFIG_NET_MULTI        /* Multi ethernet cards support */
 #define CONFIG_EEPRO100
 #define CONFIG_SYS_RX_ETH_BUFFER	8               /* use 8 rx buffer on eepro100  */
 #define CONFIG_EEPRO100_SROM_WRITE

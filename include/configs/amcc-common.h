@@ -1,44 +1,53 @@
 /*
- * (C) Copyright 2008, 2009
+ * (C) Copyright 2008
  * Stefan Roese, DENX Software Engineering, sr@denx.de.
  *
  * Common configuration options for all AMCC boards
  *
- * SPDX-License-Identifier:	GPL-2.0+
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation; either version 2 of
+ * the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
+ * MA 02111-1307 USA
  */
 
 #ifndef __AMCC_COMMON_H
 #define __AMCC_COMMON_H
 
 #define CONFIG_SYS_SDRAM_BASE		0x00000000	/* _must_ be 0		*/
-#define CONFIG_SYS_MONITOR_BASE	CONFIG_SYS_TEXT_BASE	/* Start of U-Boot	*/
+#define CONFIG_SYS_MONITOR_BASE	TEXT_BASE	/* Start of U-Boot	*/
 #define CONFIG_SYS_MONITOR_LEN		(0xFFFFFFFF - CONFIG_SYS_MONITOR_BASE + 1)
 #define CONFIG_SYS_MALLOC_LEN		(1 << 20)	/* Reserved for malloc	*/
 
 /*
  * UART
  */
-#define CONFIG_SYS_NS16550
-#define CONFIG_SYS_NS16550_SERIAL
-#define CONFIG_SYS_NS16550_REG_SIZE	1
-#define CONFIG_SYS_NS16550_CLK		get_serial_clock()
 #define CONFIG_BAUDRATE		115200
+#define CONFIG_SERIAL_MULTI
 #define CONFIG_SYS_BAUDRATE_TABLE  \
     {300, 600, 1200, 2400, 4800, 9600, 19200, 38400, 57600, 115200, 230400}
 
 /*
  * I2C
  */
-#define CONFIG_SYS_I2C
-#define CONFIG_SYS_I2C_PPC4XX
-#define CONFIG_SYS_I2C_PPC4XX_CH0
-#define CONFIG_SYS_I2C_PPC4XX_SLAVE_0		0x7F
+#define CONFIG_HARD_I2C			/* I2C with hardware support	*/
+#define CONFIG_SYS_I2C_SLAVE		0x7F
 
 /*
  * Ethernet/EMAC/PHY
  */
 #define CONFIG_PPC4xx_EMAC
 #define CONFIG_MII			/* MII PHY management		*/
+#define CONFIG_NET_MULTI
 #define CONFIG_NETCONSOLE		/* include NetConsole support	*/
 #if defined(CONFIG_440)
 #define CONFIG_SYS_RX_ETH_BUFFER	32	/* number of eth rx buffers	*/
@@ -59,7 +68,6 @@
 #define CONFIG_CMD_DIAG
 #define CONFIG_CMD_EEPROM
 #define CONFIG_CMD_ELF
-#define CONFIG_CMD_GREPENV
 #define CONFIG_CMD_I2C
 #define CONFIG_CMD_IRQ
 #define CONFIG_CMD_MII
@@ -67,7 +75,17 @@
 #define CONFIG_CMD_NFS
 #define CONFIG_CMD_PING
 #define CONFIG_CMD_REGINFO
-#define CONFIG_CMD_SETEXPR
+
+#if defined(CONFIG_SYS_RAMBOOT)
+/*
+ * Disable NOR FLASH commands on RAM-booting version. One main reason for this
+ * RAM-booting version is boards with NAND and without NOR. This image can
+ * be used for initial NAND programming.
+ */
+#define CONFIG_SYS_NO_FLASH
+#undef CONFIG_CMD_FLASH
+#undef CONFIG_CMD_IMLS
+#endif
 
 /*
  * Miscellaneous configurable options
@@ -98,14 +116,16 @@
 #define CONFIG_MX_CYCLIC		/* enable mdc/mwc commands      */
 #define CONFIG_ZERO_BOOTDELAY_CHECK	/* check for keypress on bootdelay==0 */
 #define CONFIG_VERSION_VARIABLE 	/* include version env variable */
-#define CONFIG_SYS_CONSOLE_INFO_QUIET	/* don't print console @ startup*/
+#define CONFIG_SYS_CONSOLE_INFO_QUIET		/* don't print console @ startup*/
 
-#define CONFIG_SYS_HUSH_PARSER		/* Use the HUSH parser		*/
+#define CONFIG_SYS_HUSH_PARSER			/* Use the HUSH parser		*/
+#ifdef	CONFIG_SYS_HUSH_PARSER
+#define	CONFIG_SYS_PROMPT_HUSH_PS2	"> "
+#endif
 
 #define CONFIG_LOADS_ECHO		/* echo on for serial download	*/
-#define CONFIG_SYS_LOADS_BAUD_CHANGE	/* allow baudrate change	*/
+#define CONFIG_SYS_LOADS_BAUD_CHANGE		/* allow baudrate change	*/
 
-#define CONFIG_REGEX			/* Enable regular expression support */
 /*
  * BOOTP options
  */
@@ -136,8 +156,6 @@
  */
 #define CONFIG_OF_LIBFDT
 #define CONFIG_OF_BOARD_SETUP
-/* Update size in "reg" property of NOR FLASH device tree nodes */
-#define CONFIG_FDT_FIXUP_NOR_FLASH_SIZE
 
 /*
  * Booting and default environment
@@ -179,11 +197,14 @@
 #define CONFIG_ADDMISC	"addmisc=setenv bootargs ${bootargs}\0"
 #endif
 
+#define xstr(s)	str(s)
+#define str(s)	#s
+
 /*
  * General common environment variables shared on all AMCC eval boards
  */
 #define CONFIG_AMCC_DEF_ENV						\
-	"netdev=" __stringify(CONFIG_USE_NETDEV) "\0"				\
+	"netdev=" xstr(CONFIG_USE_NETDEV) "\0"				\
 	"nfsargs=setenv bootargs root=/dev/nfs rw "			\
 		"nfsroot=${serverip}:${rootpath}\0"			\
 	"ramargs=setenv bootargs root=/dev/ram rw\0"			\
@@ -191,15 +212,15 @@
 		"ip=${ipaddr}:${serverip}:${gatewayip}:${netmask}"	\
 		":${hostname}:${netdev}:off panic=1\0"			\
 	"addtty=setenv bootargs ${bootargs}"				\
-		" console=" __stringify(CONFIG_USE_TTY) ",${baudrate}\0"	\
+		" console=" xstr(CONFIG_USE_TTY) ",${baudrate}\0"	\
 	CONFIG_ADDMISC							\
 	"initrd_high=30000000\0"					\
 	"kernel_addr_r=1000000\0"					\
 	"fdt_addr_r=1800000\0"						\
 	"ramdisk_addr_r=1900000\0"					\
-	"hostname=" __stringify(CONFIG_HOSTNAME) "\0"				\
-	"bootfile=" __stringify(CONFIG_HOSTNAME) "/uImage\0"			\
-	"ramdisk_file=" __stringify(CONFIG_HOSTNAME) "/uRamdisk\0"		\
+	"hostname=" xstr(CONFIG_HOSTNAME) "\0"				\
+	"bootfile=" xstr(CONFIG_HOSTNAME) "/uImage\0"			\
+	"ramdisk_file=" xstr(CONFIG_HOSTNAME) "/uRamdisk\0"		\
 	CONFIG_AMCC_DEF_ENV_ROOTPATH
 
 /*
@@ -221,7 +242,7 @@
 	"net_self=run net_self_load;"					\
 		"run ramargs addip addtty addmisc;"			\
 		"bootm ${kernel_addr_r} ${ramdisk_addr_r} ${fdt_addr_r}\0" \
-	"fdt_file=" __stringify(CONFIG_HOSTNAME) "/" __stringify(CONFIG_HOSTNAME) ".dtb\0"
+	"fdt_file=" xstr(CONFIG_HOSTNAME) "/" xstr(CONFIG_HOSTNAME) ".dtb\0"
 
 /*
  * Default environment for arch/ppc booting,
@@ -250,17 +271,17 @@
 		"bootm ${kernel_addr_r}\0"
 
 #define CONFIG_AMCC_DEF_ENV_NOR_UPD					\
-	"u-boot=" __stringify(CONFIG_HOSTNAME) "/u-boot.bin\0"		\
-	"load=tftp 200000 ${u-boot}\0"					\
-	"update=protect off " __stringify(CONFIG_SYS_MONITOR_BASE) " FFFFFFFF;"	\
-		"era " __stringify(CONFIG_SYS_MONITOR_BASE) " FFFFFFFF;"	\
-		"cp.b ${fileaddr} " __stringify(CONFIG_SYS_MONITOR_BASE) " ${filesize}\0" \
+	"load=tftp 200000 " xstr(CONFIG_HOSTNAME) "/u-boot.bin\0"	\
+	"update=protect off " xstr(CONFIG_SYS_MONITOR_BASE) " FFFFFFFF;"	\
+		"era " xstr(CONFIG_SYS_MONITOR_BASE) " FFFFFFFF;"		\
+		"cp.b ${fileaddr} " xstr(CONFIG_SYS_MONITOR_BASE) " ${filesize};" \
+		"setenv filesize;saveenv\0"				\
 	"upd=run load update\0"						\
 
 #define CONFIG_AMCC_DEF_ENV_NAND_UPD					\
-	"u-boot-nand=" __stringify(CONFIG_HOSTNAME) "/u-boot-nand.bin\0"\
-	"nload=tftp 200000 ${u-boot-nand}\0"				\
-	"nupdate=nand erase 0 100000;nand write 200000 0 100000\0"	\
+	"nload=tftp 200000 " xstr(CONFIG_HOSTNAME) "/u-boot-nand.bin\0"	\
+	"nupdate=nand erase 0 100000;nand write 200000 0 100000;"	\
+		"setenv filesize;saveenv\0"				\
 	"nupd=run nload nupdate\0"
 
 #endif /* __AMCC_COMMON_H */

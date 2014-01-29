@@ -3,7 +3,23 @@
  * Gary Jennejohn, DENX Software Engineering, garyj@denx.de.
  * Stefan Roese, esd gmbh germany, stefan.roese@esd-electronics.com
  *
- * SPDX-License-Identifier:	GPL-2.0+
+ * See file CREDITS for list of people who contributed to this
+ * project.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation; either version 2 of
+ * the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
+ * MA 02111-1307 USA
  */
 
 #include <common.h>
@@ -75,6 +91,7 @@ int au_check_cksum_valid(int i, long nbytes)
 int au_check_header_valid(int i, long nbytes)
 {
 	image_header_t *hdr;
+	unsigned long checksum;
 
 	hdr = (image_header_t *)LOAD_ADDR;
 #if defined(CONFIG_FIT)
@@ -109,6 +126,9 @@ int au_check_header_valid(int i, long nbytes)
 		printf ("Image %s wrong type\n", au_image[i].name);
 		return -1;
 	}
+
+	/* recycle checksum */
+	checksum = image_get_data_size (hdr);
 
 	return 0;
 }
@@ -377,7 +397,7 @@ int do_auto_update(void)
 {
 	block_dev_desc_t *stor_dev = NULL;
 	long sz;
-	int i, res, cnt, old_ctrlc;
+	int i, res, cnt, old_ctrlc, got_ctrlc;
 	char buffer[32];
 	char str[80];
 	int n;
@@ -453,6 +473,8 @@ int do_auto_update(void)
 			/* let the user break out of the loop */
 			if (ctrlc() || had_ctrlc ()) {
 				clear_ctrlc ();
+				if (res < 0)
+					got_ctrlc = 1;
 				break;
 			}
 			cnt++;
@@ -470,7 +492,7 @@ int do_auto_update(void)
 	return 0;
 }
 
-int auto_update(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
+int auto_update(cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 {
 	do_auto_update();
 

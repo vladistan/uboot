@@ -4,7 +4,20 @@
  *
  * Support for the Elmeg VoVPN Gateway Module
  *
- * SPDX-License-Identifier:	GPL-2.0+
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation; either version 2 of
+ * the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
+ * MA 02111-1307 USA
  */
 
 #ifndef __CONFIG_H
@@ -15,8 +28,6 @@
 
 /* define busmode: 8260 */
 #undef	CONFIG_BUSMODE_60x
-
-#define	CONFIG_SYS_TEXT_BASE		0xfff00000
 
 /* system clock rate (CLKIN) - equal to the 60x and local bus speed */
 #ifdef	CONFIG_CLKIN_66MHz
@@ -73,6 +84,9 @@
 /* don't allow baudrate change	*/
 #undef	CONFIG_SYS_LOADS_BAUD_CHANGE
 
+/* supported baudrates */
+#define CONFIG_SYS_BAUDRATE_TABLE		{ 9600, 19200, 38400, 57600, 115200 }
+
 /*
  * select ethernet configuration
  *
@@ -110,11 +124,6 @@
 #define CONFIG_BITBANGMII
 
 #define MDIO_PORT			1		/* Port B */
-
-#define MDIO_DECLARE		volatile ioport_t *iop = ioport_addr ( \
-					(immap_t *) CONFIG_SYS_IMMR, MDIO_PORT )
-#define MDC_DECLARE		MDIO_DECLARE
-
 #define CONFIG_SYS_MDIO_PIN			0x00002000	/* PB18 */
 #define CONFIG_SYS_MDC_PIN			0x00001000	/* PB19 */
 #define MDIO_ACTIVE			(iop->pdir |=  CONFIG_SYS_MDIO_PIN)
@@ -282,8 +291,9 @@
 
 /* definitions for initial stack pointer and data area (in DPRAM) */
 #define CONFIG_SYS_INIT_RAM_ADDR		CONFIG_SYS_IMMR
-#define CONFIG_SYS_INIT_RAM_SIZE		0x2000
-#define CONFIG_SYS_GBL_DATA_OFFSET		(CONFIG_SYS_INIT_RAM_SIZE - GENERATED_GBL_DATA_SIZE)
+#define CONFIG_SYS_INIT_RAM_END		0x2000
+#define CONFIG_SYS_GBL_DATA_SIZE		128
+#define CONFIG_SYS_GBL_DATA_OFFSET		(CONFIG_SYS_INIT_RAM_END - CONFIG_SYS_GBL_DATA_SIZE)
 #define CONFIG_SYS_INIT_SP_OFFSET		CONFIG_SYS_GBL_DATA_OFFSET
 
 /*
@@ -293,10 +303,14 @@
  */
 #define CONFIG_SYS_SDRAM_BASE			0x00000000
 #define CONFIG_SYS_SDRAM_SIZE			(32*1024*1024)
-#define CONFIG_SYS_MONITOR_BASE		CONFIG_SYS_TEXT_BASE
+#define CONFIG_SYS_MONITOR_BASE		TEXT_BASE
 #define CONFIG_SYS_MONITOR_FLASH		(CONFIG_SYS_FLASH_BASE + CONFIG_SYS_MONITOR_OFFSET)
 #define CONFIG_SYS_MONITOR_LEN			0x00020000
 #define CONFIG_SYS_MALLOC_LEN			0x00020000
+
+/* boot flags */
+#define BOOTFLAG_COLD			0x01	/* normal power-on */
+#define BOOTFLAG_WARM			0x02	/* software reboot */
 
 /* cache configuration */
 #define CONFIG_SYS_CACHELINE_SIZE		32      /* for MPC8260 */

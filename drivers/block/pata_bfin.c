@@ -14,10 +14,8 @@
 #include <asm/byteorder.h>
 #include <asm/io.h>
 #include <asm/errno.h>
-#include <asm/portmux.h>
 #include <asm/mach-common/bits/pata.h>
 #include <ata.h>
-#include <sata.h>
 #include <libata.h>
 #include "pata_bfin.h"
 
@@ -771,17 +769,19 @@ static int bfin_ata_reset_port(struct ata_port *ap)
  */
 static int bfin_config_atapi_gpio(struct ata_port *ap)
 {
-	const unsigned short pins[] = {
-		P_ATAPI_RESET, P_ATAPI_DIOR, P_ATAPI_DIOW, P_ATAPI_CS0,
-		P_ATAPI_CS1, P_ATAPI_DMACK, P_ATAPI_DMARQ, P_ATAPI_INTRQ,
-		P_ATAPI_IORDY, P_ATAPI_D0A, P_ATAPI_D1A, P_ATAPI_D2A,
-		P_ATAPI_D3A, P_ATAPI_D4A, P_ATAPI_D5A, P_ATAPI_D6A,
-		P_ATAPI_D7A, P_ATAPI_D8A, P_ATAPI_D9A, P_ATAPI_D10A,
-		P_ATAPI_D11A, P_ATAPI_D12A, P_ATAPI_D13A, P_ATAPI_D14A,
-		P_ATAPI_D15A, P_ATAPI_A0A, P_ATAPI_A1A, P_ATAPI_A2A, 0,
-	};
+	bfin_write_PORTH_FER(bfin_read_PORTH_FER() | 0x4);
+	bfin_write_PORTH_MUX(bfin_read_PORTH_MUX() & ~0x30);
+	bfin_write_PORTH_DIR_SET(0x4);
 
-	peripheral_request_list(pins, "pata_bfin");
+	bfin_write_PORTJ_FER(0x7f8);
+	bfin_write_PORTJ_MUX(bfin_read_PORTI_MUX() & ~0x3fffc0);
+	bfin_write_PORTJ_DIR_SET(0x5f8);
+	bfin_write_PORTJ_DIR_CLEAR(0x200);
+	bfin_write_PORTJ_INEN(0x200);
+
+	bfin_write_PINT2_ASSIGN(0x0707);
+	bfin_write_PINT2_MASK_SET(0x200);
+	SSYNC();
 
 	return 0;
 }
@@ -885,7 +885,7 @@ static void bfin_ata_identify(struct ata_port *ap, int dev)
 		sata_dev_desc[ap->port_no].removable = 0;
 
 	sata_dev_desc[ap->port_no].lba = (u32) n_sectors;
-	debug("lba=0x%lx\n", sata_dev_desc[ap->port_no].lba);
+	debug("lba=0x%x\n", sata_dev_desc[ap->port_no].lba);
 
 #ifdef CONFIG_LBA48
 	if (iop->command_set_2 & 0x0400)
@@ -897,8 +897,6 @@ static void bfin_ata_identify(struct ata_port *ap, int dev)
 	/* assuming HD */
 	sata_dev_desc[ap->port_no].type = DEV_TYPE_HARDDISK;
 	sata_dev_desc[ap->port_no].blksz = ATA_SECT_SIZE;
-	sata_dev_desc[ap->port_no].log2blksz =
-		LOG2(sata_dev_desc[ap->port_no].blksz);
 	sata_dev_desc[ap->port_no].lun = 0;	/* just to fill something in... */
 
 	printf("PATA device#%d %s is found on ata port#%d.\n",
@@ -1082,7 +1080,7 @@ static u8 do_one_read(struct ata_port *ap, u64 blknr, u8 blkcnt, u16 *buffer,
 	return sr;
 }
 
-ulong sata_read(int dev, ulong block, lbaint_t blkcnt, void *buff)
+ulong sata_read(int dev, ulong block, ulong blkcnt, void *buff)
 {
 	struct ata_port *ap = &port[dev];
 	ulong n = 0, sread;
@@ -1124,7 +1122,7 @@ ulong sata_read(int dev, ulong block, lbaint_t blkcnt, void *buff)
 	return n;
 }
 
-ulong sata_write(int dev, ulong block, lbaint_t blkcnt, const void *buff)
+ulong sata_write(int dev, ulong block, ulong blkcnt, const void *buff)
 {
 	struct ata_port *ap = &port[dev];
 	void __iomem *base = (void __iomem *)ap->ioaddr.ctl_addr;

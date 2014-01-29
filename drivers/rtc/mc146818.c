@@ -2,7 +2,23 @@
  * (C) Copyright 2001
  * Denis Peter MPL AG Switzerland. d.peter@mpl.ch
  *
- * SPDX-License-Identifier:	GPL-2.0+
+ * See file CREDITS for list of people who contributed to this
+ * project.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation; either version 2 of
+ * the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
+ * MA 02111-1307 USA
  */
 
 /*
@@ -15,16 +31,12 @@
 #include <command.h>
 #include <rtc.h>
 
-#ifdef __I386__
-#include <asm/io.h>
-#define in8(p) inb(p)
-#define out8(p, v) outb(v, p)
-#endif
-
 #if defined(CONFIG_CMD_DATE)
 
 static uchar rtc_read  (uchar reg);
 static void  rtc_write (uchar reg, uchar val);
+static uchar bin2bcd   (unsigned int n);
+static unsigned bcd2bin(uchar c);
 
 #define RTC_PORT_MC146818	CONFIG_SYS_ISA_IO_BASE_ADDRESS +  0x70
 #define RTC_SECONDS		0x00
@@ -57,6 +69,9 @@ int rtc_get (struct rtc_time *tmp)
 	wday	= rtc_read (RTC_DAY_OF_WEEK);
 	mon	= rtc_read (RTC_MONTH);
 	year	= rtc_read (RTC_YEAR);
+#ifdef CONFIG_AMIGAONEG3SE
+	wday -= 1; /* VIA 686 stores Sunday = 1, Monday = 2, ... */
+#endif
 #ifdef RTC_DEBUG
 	printf ( "Get RTC year: %02x mon/cent: %02x mday: %02x wday: %02x "
 		"hr: %02x min: %02x sec: %02x\n",
@@ -101,7 +116,11 @@ int rtc_set (struct rtc_time *tmp)
 
 	rtc_write (RTC_YEAR, bin2bcd(tmp->tm_year % 100));
 	rtc_write (RTC_MONTH, bin2bcd(tmp->tm_mon));
+#ifdef CONFIG_AMIGAONEG3SE
+	rtc_write (RTC_DAY_OF_WEEK, bin2bcd(tmp->tm_wday)+1);
+#else
 	rtc_write (RTC_DAY_OF_WEEK, bin2bcd(tmp->tm_wday));
+#endif
 	rtc_write (RTC_DATE_OF_MONTH, bin2bcd(tmp->tm_mday));
 	rtc_write (RTC_HOURS, bin2bcd(tmp->tm_hour));
 	rtc_write (RTC_MINUTES, bin2bcd(tmp->tm_min ));
@@ -148,5 +167,15 @@ static void rtc_write (uchar reg, uchar val)
 	out8(RTC_PORT_MC146818+1,val);
 }
 #endif
+
+static unsigned bcd2bin (uchar n)
+{
+	return ((((n >> 4) & 0x0F) * 10) + (n & 0x0F));
+}
+
+static unsigned char bin2bcd (unsigned int n)
+{
+	return (((n / 10) << 4) | (n % 10));
+}
 
 #endif

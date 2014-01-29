@@ -3,7 +3,23 @@
  * Wolfgang Denk, DENX Software Engineering, wd@denx.de.
  * Keith Outwater, keith_outwater@mvis.com
  *
- * SPDX-License-Identifier:	GPL-2.0+
+ * See file CREDITS for list of people who contributed to this
+ * project.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation; either version 2 of
+ * the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
+ * MA 02111-1307 USA
  */
 
 /*
@@ -18,8 +34,6 @@
  */
 #define CONFIG_MPC860
 #define CONFIG_GEN860T
-
-#define	CONFIG_SYS_TEXT_BASE		0x40000000
 
 /*
  * Identify the board
@@ -46,6 +60,16 @@
  */
 #define	CONFIG_8xx_CONS_SMC1
 #define CONFIG_BAUDRATE			38400
+
+/*
+ * Set allowable console baud rates
+ */
+#define CONFIG_SYS_BAUDRATE_TABLE		{ 9600,		\
+					  19200,	\
+					  38400,	\
+					  57600,	\
+					  115200,	\
+					}
 
 /*
  * Print console information
@@ -78,6 +102,11 @@
  */
 #undef	CONFIG_LOADS_ECHO
 #define	CONFIG_SYS_LOADS_BAUD_CHANGE
+
+/*
+ * Set default load address for tftp network downloads
+ */
+#define	CONFIG_SYS_TFTP_LOADADDR				0x01000000
 
 /*
  * Turn off the watchdog timer
@@ -142,33 +171,26 @@
 /*
  * Enable I2C and select the hardware/software driver
  */
-#define CONFIG_HARD_I2C		1		/* CPM based I2C */
-#undef	CONFIG_SYS_I2C_SOFT			/* Bit-banged I2C */
+#define CONFIG_HARD_I2C		1				/* CPM based I2C			*/
+#undef	CONFIG_SOFT_I2C						/* Bit-banged I2C			*/
 
 #ifdef CONFIG_HARD_I2C
-#define	CONFIG_SYS_I2C_SPEED		100000	/* clock speed in Hz */
-#define CONFIG_SYS_I2C_SLAVE		0xFE	/* I2C slave address */
+#define	CONFIG_SYS_I2C_SPEED		100000			/* clock speed in Hz		*/
+#define CONFIG_SYS_I2C_SLAVE		0xFE			/* I2C slave address		*/
 #endif
 
-#ifdef CONFIG_SYS_I2C_SOFT
-#define CONFIG_SYS_I2C
-#define CONFIG_SYS_I2C_SOFT_SPEED	50000
-#define CONFIG_SYS_I2C_SOFT_SLAVE	0xFE
-#define PB_SCL		0x00000020		/* PB 26 */
-#define PB_SDA		0x00000010		/* PB 27 */
-#define I2C_INIT	(immr->im_cpm.cp_pbdir |=  PB_SCL)
-#define I2C_ACTIVE	(immr->im_cpm.cp_pbdir |=  PB_SDA)
-#define I2C_TRISTATE	(immr->im_cpm.cp_pbdir &= ~PB_SDA)
-#define I2C_READ	((immr->im_cpm.cp_pbdat & PB_SDA) != 0)
-#define I2C_SDA(bit)	if (bit) \
-				immr->im_cpm.cp_pbdat |=  PB_SDA; \
-			else \
-				immr->im_cpm.cp_pbdat &= ~PB_SDA
-#define I2C_SCL(bit)	if (bit) \
-				immr->im_cpm.cp_pbdat |=  PB_SCL; \
-			else \
-				immr->im_cpm.cp_pbdat &= ~PB_SCL
-#define I2C_DELAY	udelay(5) /* 1/4 I2C clock duration */
+#ifdef CONFIG_SOFT_I2C
+#define PB_SCL				0x00000020		/* PB 26					*/
+#define PB_SDA				0x00000010		/* PB 27					*/
+#define I2C_INIT			(immr->im_cpm.cp_pbdir |=  PB_SCL)
+#define I2C_ACTIVE			(immr->im_cpm.cp_pbdir |=  PB_SDA)
+#define I2C_TRISTATE		(immr->im_cpm.cp_pbdir &= ~PB_SDA)
+#define I2C_READ			((immr->im_cpm.cp_pbdat & PB_SDA) != 0)
+#define I2C_SDA(bit)		if(bit) immr->im_cpm.cp_pbdat |=  PB_SDA; \
+								else    immr->im_cpm.cp_pbdat &= ~PB_SDA
+#define I2C_SCL(bit)		if(bit) immr->im_cpm.cp_pbdat |=  PB_SCL; \
+								else    immr->im_cpm.cp_pbdat &= ~PB_SCL
+#define I2C_DELAY			udelay(5)		/* 1/4 I2C clock duration	*/
 #endif
 
 /*
@@ -268,6 +290,7 @@
  * Use the "hush" command parser
  */
 #define	CONFIG_SYS_HUSH_PARSER
+#define	CONFIG_SYS_PROMPT_HUSH_PS2	"> "
 
 /*
  * Set buffer size for console I/O
@@ -357,9 +380,9 @@
  * Definitions for initial stack pointer and data area (in DPRAM)
  */
 #define CONFIG_SYS_INIT_RAM_ADDR		CONFIG_SYS_IMMR
-#define	CONFIG_SYS_INIT_RAM_SIZE		0x2F00	/* Size of used area in DPRAM		*/
+#define	CONFIG_SYS_INIT_RAM_END		0x2F00	/* End of used area in DPRAM		*/
 #define	CONFIG_SYS_INIT_DATA_SIZE		64	/* # bytes reserved for initial data*/
-#define CONFIG_SYS_GBL_DATA_OFFSET		(CONFIG_SYS_INIT_RAM_SIZE - CONFIG_SYS_INIT_DATA_SIZE)
+#define CONFIG_SYS_GBL_DATA_OFFSET		(CONFIG_SYS_INIT_RAM_END - CONFIG_SYS_INIT_DATA_SIZE)
 #define	CONFIG_SYS_INIT_SP_OFFSET		CONFIG_SYS_GBL_DATA_OFFSET
 
 /*
@@ -700,6 +723,12 @@
 						  BR_MS_GPCM				| \
 						  BR_V						  \
 						)
+
+/*
+ * Boot Flags
+ */
+#define	BOOTFLAG_COLD	0x01	/* Normal Power-On: Boot from FLASH	*/
+#define BOOTFLAG_WARM	0x02	/* Software reboot					*/
 
 /*
  * FEC interrupt assignment

@@ -5,7 +5,23 @@
  * (C) Copyright 2004
  * Mark Jonas, Freescale Semiconductor, mark.jonas@motorola.com.
  *
- * SPDX-License-Identifier:	GPL-2.0+
+ * See file CREDITS for list of people who contributed to this
+ * project.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation; either version 2 of
+ * the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
+ * MA 02111-1307 USA
  */
 
 #include <common.h>
@@ -65,6 +81,7 @@ static void sdram_start (int hi_addr)
  *            is something else than 0x00000000.
  */
 
+#if defined(CONFIG_MPC5200)
 phys_size_t initdram (int board_type)
 {
 	ulong dramsize = 0;
@@ -90,9 +107,9 @@ phys_size_t initdram (int board_type)
 
 	/* find RAM size using SDRAM CS0 only */
 	sdram_start(0);
-	test1 = get_ram_size((long *)CONFIG_SYS_SDRAM_BASE, 0x80000000);
+	test1 = get_ram_size((ulong *)CONFIG_SYS_SDRAM_BASE, 0x80000000);
 	sdram_start(1);
-	test2 = get_ram_size((long *)CONFIG_SYS_SDRAM_BASE, 0x80000000);
+	test2 = get_ram_size((ulong *)CONFIG_SYS_SDRAM_BASE, 0x80000000);
 	if (test1 > test2) {
 		sdram_start(0);
 		dramsize = test1;
@@ -118,10 +135,10 @@ phys_size_t initdram (int board_type)
 	/* find RAM size using SDRAM CS1 only */
 	if (!dramsize)
 		sdram_start(0);
-	test2 = test1 = get_ram_size((long *)(CONFIG_SYS_SDRAM_BASE + dramsize), 0x80000000);
+	test2 = test1 = get_ram_size((ulong *)(CONFIG_SYS_SDRAM_BASE + dramsize), 0x80000000);
 	if (!dramsize) {
 		sdram_start(1);
-		test2 = get_ram_size((long *)(CONFIG_SYS_SDRAM_BASE + dramsize), 0x80000000);
+		test2 = get_ram_size((ulong *)(CONFIG_SYS_SDRAM_BASE + dramsize), 0x80000000);
 	}
 	if (test1 > test2) {
 		sdram_start(0);
@@ -165,6 +182,57 @@ phys_size_t initdram (int board_type)
 
 	return dramsize + dramsize2;
 }
+
+#elif defined(CONFIG_MGT5100)
+
+phys_size_t initdram (int board_type)
+{
+	ulong dramsize = 0;
+#ifndef CONFIG_SYS_RAMBOOT
+	ulong test1, test2;
+
+	/* setup and enable SDRAM chip selects */
+	*(vu_long *)MPC5XXX_SDRAM_START = 0x00000000;
+	*(vu_long *)MPC5XXX_SDRAM_STOP = 0x0000ffff;/* 2G */
+	*(vu_long *)MPC5XXX_ADDECR |= (1 << 22); /* Enable SDRAM */
+	__asm__ volatile ("sync");
+
+	/* setup config registers */
+	*(vu_long *)MPC5XXX_SDRAM_CONFIG1 = SDRAM_CONFIG1;
+	*(vu_long *)MPC5XXX_SDRAM_CONFIG2 = SDRAM_CONFIG2;
+
+	/* address select register */
+	*(vu_long *)MPC5XXX_SDRAM_XLBSEL = SDRAM_ADDRSEL;
+	__asm__ volatile ("sync");
+
+	/* find RAM size */
+	sdram_start(0);
+	test1 = get_ram_size((ulong *)CONFIG_SYS_SDRAM_BASE, 0x80000000);
+	sdram_start(1);
+	test2 = get_ram_size((ulong *)CONFIG_SYS_SDRAM_BASE, 0x80000000);
+	if (test1 > test2) {
+		sdram_start(0);
+		dramsize = test1;
+	} else {
+		dramsize = test2;
+	}
+
+	/* set SDRAM end address according to size */
+	*(vu_long *)MPC5XXX_SDRAM_STOP = ((dramsize - 1) >> 15);
+
+#else /* CONFIG_SYS_RAMBOOT */
+
+	/* Retrieve amount of SDRAM available */
+	dramsize = ((*(vu_long *)MPC5XXX_SDRAM_STOP + 1) << 15);
+
+#endif /* CONFIG_SYS_RAMBOOT */
+
+	return dramsize;
+}
+
+#else
+#error Neither CONFIG_MPC5200 or CONFIG_MGT5100 defined
+#endif
 
 int checkboard (void)
 {

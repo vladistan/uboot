@@ -2,11 +2,27 @@
  * (C) Copyright 2001-2003
  * Stefan Roese, esd gmbh germany, stefan.roese@esd-electronics.com
  *
- * SPDX-License-Identifier:	GPL-2.0+
+ * See file CREDITS for list of people who contributed to this
+ * project.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation; either version 2 of
+ * the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
+ * MA 02111-1307 USA
  */
 
 #include <common.h>
-#include <asm/ppc4xx.h>
+#include <ppc4xx.h>
 #include <asm/processor.h>
 
 /*
@@ -75,13 +91,13 @@ unsigned long flash_init (void)
 			size_b1 = 1 << 20;
 		}
 		base_b1 = -size_b1;
-		mtdcr (EBC0_CFGADDR, PB0CR);
-		pbcr = mfdcr (EBC0_CFGDATA);
-		mtdcr (EBC0_CFGADDR, PB0CR);
+		mtdcr (ebccfga, pb0cr);
+		pbcr = mfdcr (ebccfgd);
+		mtdcr (ebccfga, pb0cr);
 		pbcr = (pbcr & 0x0001ffff) | base_b1 | (calc_size(size_b1) << 17);
-		mtdcr (EBC0_CFGDATA, pbcr);
+		mtdcr (ebccfgd, pbcr);
 #if 0 /* test-only */
-		printf("size_b1=%x base_b1=%x PB1CR = %x\n",
+		printf("size_b1=%x base_b1=%x pb1cr = %x\n",
 		       size_b1, base_b1, pbcr); /* test-only */
 #endif
 	}
@@ -92,13 +108,13 @@ unsigned long flash_init (void)
 			size_b0 = 1 << 20;
 		}
 		base_b0 = base_b1 - size_b0;
-		mtdcr (EBC0_CFGADDR, PB1CR);
-		pbcr = mfdcr (EBC0_CFGDATA);
-		mtdcr (EBC0_CFGADDR, PB1CR);
+		mtdcr (ebccfga, pb1cr);
+		pbcr = mfdcr (ebccfgd);
+		mtdcr (ebccfga, pb1cr);
 		pbcr = (pbcr & 0x0001ffff) | base_b0 | (calc_size(size_b0) << 17);
-		mtdcr (EBC0_CFGDATA, pbcr);
+		mtdcr (ebccfgd, pbcr);
 #if 0 /* test-only */
-		printf("size_b0=%x base_b0=%x PB0CR = %x\n",
+		printf("size_b0=%x base_b0=%x pb0cr = %x\n",
 		       size_b0, base_b0, pbcr); /* test-only */
 #endif
 	}

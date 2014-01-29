@@ -2,7 +2,23 @@
  * (C) Copyright 2007
  * DENX Software Engineering, Anatolij Gustschin, agust@denx.de
  *
- * SPDX-License-Identifier:	GPL-2.0+
+ * See file CREDITS for list of people who contributed to this
+ * project.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation; either version 2 of
+ * the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
+ * MA 02111-1307 USA
  */
 
 /*
@@ -16,8 +32,6 @@
 #define PCI_DEVICE_ID_CORAL_P	0x2019
 #define PCI_DEVICE_ID_CORAL_PA	0x201E
 
-#define MB862XX_TYPE_LIME	0x1
-
 #define GC_HOST_BASE		0x01fc0000
 #define GC_DISP_BASE		0x01fd0000
 #define GC_DRAW_BASE		0x01ff0000
@@ -25,7 +39,6 @@
 /* Host interface registers */
 #define GC_SRST			0x0000002c
 #define GC_CCF			0x00000038
-#define GC_CID			0x000000f0
 #define GC_MMR			0x0000fffc
 
 /*
@@ -86,7 +99,6 @@
 #define GC_FC			0x00000480
 #define GC_BC			0x00000484
 #define GC_FIFO			0x000004a0
-#define GC_REV			0x00008084
 #define GC_GEO_FIFO		0x00008400
 
 typedef struct {
@@ -94,7 +106,6 @@ typedef struct {
 	unsigned int value;
 } gdc_regs;
 
-int mb862xx_probe(unsigned int addr);
 const gdc_regs *board_get_regs (void);
 unsigned int board_video_init (void);
 void board_backlight_switch(int);

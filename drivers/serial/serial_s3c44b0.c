@@ -1,9 +1,11 @@
-pyright 2002
- * Sysgo Real-Time Solutions, GmbH <www.elinos.com>
- * Marius Groeger <mgroeger@sysgo.de>
+/*
+ * (C) Copyright 2004
+ * DAVE Srl
+ * http://www.dave-tech.it
+ * http://www.wawnet.biz
+ * mailto:info@wawnet.biz
  *
- * (C) Copyright 2002
- * ght 2002-2004
+ * (C) Copyright 2002-2004
  * Wolfgang Denk, DENX Software Engineering, <wd@denx.de>
  *
  * (C) Copyright 2002
@@ -16,7 +18,20 @@ pyright 2002
  *
  * Copyright (C) 1999 2000 2001 Erik Mouw (J.A.K.Mouw@its.tudelft.nl)
  *
- * SPDX-License-Identifier:	GPL-2.0+
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ *
  */
 
 #include <common.h>
@@ -53,7 +68,7 @@ static int serial_flush_output(void)
 }
 
 
-static void s3c44b0_serial_setbrg(void)
+void serial_setbrg (void)
 {
 	u32 divisor = 0;
 
@@ -141,7 +156,7 @@ static void s3c44b0_serial_setbrg(void)
  * are always 8 data bits, no parity, 1 stop bit, no start bits.
  *
  */
-static int s3c44b0_serial_init(void)
+int serial_init (void)
 {
 	serial_setbrg ();
 
@@ -152,7 +167,7 @@ static int s3c44b0_serial_init(void)
 /*
  * Output a single byte to the serial port.
  */
-static void s3c44b0_serial_putc(const char c)
+void serial_putc (const char c)
 {
 	/* wait for room in the transmit FIFO */
 	while(!(UTRSTAT0 & 0x02));
@@ -172,7 +187,7 @@ static void s3c44b0_serial_putc(const char c)
  * otherwise. When the function is succesfull, the character read is
  * written into its argument c.
  */
-static int s3c44b0_serial_tstc(void)
+int serial_tstc (void)
 {
 	return (UTRSTAT0 & 0x01);
 }
@@ -182,35 +197,22 @@ static int s3c44b0_serial_tstc(void)
  * otherwise. When the function is succesfull, the character read is
  * written into its argument c.
  */
-static int s3c44b0_serial_getc(void)
+int serial_getc (void)
 {
 	int rv;
 
 	for(;;) {
-		rv = s3c44b0_serial_tstc();
+		rv = serial_tstc();
 
 		if(rv > 0)
 			return URXH0;
 	}
 }
 
-static struct serial_device s3c44b0_serial_drv = {
-	.name	= "s3c44b0_serial",
-	.start	= s3c44b0_serial_init,
-	.stop	= NULL,
-	.setbrg	= s3c44b0_serial_setbrg,
-	.putc	= s3c44b0_serial_putc,
-	.puts	= default_serial_puts,
-	.getc	= s3c44b0_serial_getc,
-	.tstc	= s3c44b0_serial_tstc,
-};
-
-void s3c44b0_serial_initialize(void)
+void
+serial_puts (const char *s)
 {
-	serial_register(&s3c44b0_serial_drv);
-}
-
-__weak struct serial_device *default_serial_console(void)
-{
-	return &s3c44b0_serial_drv;
+	while (*s) {
+		serial_putc (*s++);
+	}
 }

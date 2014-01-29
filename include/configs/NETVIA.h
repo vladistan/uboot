@@ -1,8 +1,24 @@
 /*
- * (C) Copyright 2000-2010
+ * (C) Copyright 2000
  * Wolfgang Denk, DENX Software Engineering, wd@denx.de.
  *
- * SPDX-License-Identifier:	GPL-2.0+
+ * See file CREDITS for list of people who contributed to this
+ * project.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation; either version 2 of
+ * the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
+ * MA 02111-1307 USA
  */
 
 /*
@@ -20,8 +36,6 @@
 
 #define CONFIG_MPC850		1	/* This is a MPC850 CPU		*/
 #define CONFIG_NETVIA		1	/* ...on a NetVia board		*/
-
-#define	CONFIG_SYS_TEXT_BASE	0x40000000
 
 #if !defined(CONFIG_NETVIA_VERSION) || CONFIG_NETVIA_VERSION == 1
 #define	CONFIG_8xx_CONS_SMC1	1	/* Console is on SMC1		*/
@@ -121,6 +135,8 @@
 
 #define	CONFIG_SYS_HZ		1000		/* decrementer freq: 1 ms ticks	*/
 
+#define CONFIG_SYS_BAUDRATE_TABLE	{ 9600, 19200, 38400, 57600, 115200 }
+
 /*
  * Low Level Configuration Settings
  * (address mappings, register initial values, etc.)
@@ -135,8 +151,9 @@
  * Definitions for initial stack pointer and data area (in DPRAM)
  */
 #define CONFIG_SYS_INIT_RAM_ADDR	CONFIG_SYS_IMMR
-#define	CONFIG_SYS_INIT_RAM_SIZE	0x3000	/* Size of used area in DPRAM	*/
-#define CONFIG_SYS_GBL_DATA_OFFSET	(CONFIG_SYS_INIT_RAM_SIZE - GENERATED_GBL_DATA_SIZE)
+#define	CONFIG_SYS_INIT_RAM_END	0x3000	/* End of used area in DPRAM	*/
+#define	CONFIG_SYS_GBL_DATA_SIZE	64  /* size in bytes reserved for initial data */
+#define CONFIG_SYS_GBL_DATA_OFFSET	(CONFIG_SYS_INIT_RAM_END - CONFIG_SYS_GBL_DATA_SIZE)
 #define	CONFIG_SYS_INIT_SP_OFFSET	CONFIG_SYS_GBL_DATA_OFFSET
 
 /*-----------------------------------------------------------------------
@@ -174,9 +191,11 @@
 #define CONFIG_ENV_SECT_SIZE	0x10000
 
 #define	CONFIG_ENV_ADDR		(CONFIG_SYS_FLASH_BASE + 0x60000)
+#define CONFIG_ENV_OFFSET		0
 #define	CONFIG_ENV_SIZE		0x4000
 
 #define CONFIG_ENV_ADDR_REDUND	(CONFIG_SYS_FLASH_BASE + 0x70000)
+#define CONFIG_ENV_OFFSET_REDUND	0
 #define CONFIG_ENV_SIZE_REDUND	CONFIG_ENV_SIZE
 
 /*-----------------------------------------------------------------------
@@ -326,6 +345,14 @@
 #define CONFIG_SYS_MAMR_9COL	((CONFIG_SYS_MAMR_PTA << MAMR_PTA_SHIFT)  | MAMR_PTAE	    |	\
 			 MAMR_AMA_TYPE_1 | MAMR_DSA_1_CYCL | MAMR_G0CLA_A10 |	\
 			 MAMR_RLFA_1X	 | MAMR_WLFA_1X	   | MAMR_TLFA_4X)
+
+/*
+ * Internal Definitions
+ *
+ * Boot Flags
+ */
+#define	BOOTFLAG_COLD	0x01		/* Normal Power-On: Boot from FLASH	*/
+#define BOOTFLAG_WARM	0x02		/* Software reboot			*/
 
 /* Ethernet at SCC2 */
 #define CONFIG_SCC2_ENET

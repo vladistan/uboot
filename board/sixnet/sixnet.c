@@ -3,9 +3,23 @@
  * Dave Ellis, SIXNET, dge@sixnetio.com.
  *  Based on code by:
  * Wolfgang Denk, DENX Software Engineering, wd@denx.de.
- * and other contributors to U-Boot.
+ * and other contributors to U-Boot. See file CREDITS for list
+ * of people who contributed to this  project.
  *
- * SPDX-License-Identifier:	GPL-2.0+
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation; either version 2 of
+ * the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
+ * MA 02111-1307 USA
  */
 
 #include <common.h>
@@ -32,7 +46,7 @@ void show_boot_progress (int status)
 {
 #if defined(CONFIG_STATUS_LED)
 # if defined(STATUS_LED_BOOT)
-	if (status == BOOTSTAGE_ID_RUN_OS) {
+	if (status == 15) {
 		/* ready to transfer to kernel, make sure LED is proper state */
 		status_led_set(STATUS_LED_BOOT, CONFIG_BOOT_LED_STATE);
 	}

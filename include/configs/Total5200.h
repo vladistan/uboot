@@ -5,7 +5,23 @@
  * (C) Copyright 2004
  * Mark Jonas, Freescale Semiconductor, mark.jonas@freescale.com.
  *
- * SPDX-License-Identifier:	GPL-2.0+ 
+ * See file CREDITS for list of people who contributed to this
+ * project.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation; either version 2 of
+ * the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	 See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
+ * MA 02111-1307 USA
  */
 
 #ifndef __CONFIG_H
@@ -25,20 +41,12 @@
  */
 
 #define CONFIG_MPC5xxx		1	/* This is an MPC5xxx CPU */
-#define CONFIG_MPC5200		1	/* (more precisely a MPC5200 CPU) */
 #define CONFIG_TOTAL5200	1	/* ... on Total5200 board */
 
-/*
- * Valid values for CONFIG_SYS_TEXT_BASE are:
- * 0xFFF00000	boot high (standard configuration)
- * 0xFE000000	boot low
- * 0x00100000	boot from RAM (for testing only)
- */
-#ifndef CONFIG_SYS_TEXT_BASE
-#define	CONFIG_SYS_TEXT_BASE	0xFFF00000
-#endif
-
 #define CONFIG_SYS_MPC5XXX_CLKIN	33000000 /* ... running at 33.000000MHz */
+
+#define BOOTFLAG_COLD		0x01	/* Normal Power-On: Boot from FLASH  */
+#define BOOTFLAG_WARM		0x02	/* Software reboot	     */
 
 #define CONFIG_HIGH_BATS	1	/* High BATs supported */
 
@@ -65,6 +73,7 @@
 #define CONFIG_SPLASH_SCREEN
 
 
+#ifdef CONFIG_MPC5200	/* MGT5100 PCI is not supported yet. */
 /*
  * PCI Mapping:
  * 0x40000000 - 0x4fffffff - PCI Memory
@@ -83,10 +92,17 @@
 #define CONFIG_PCI_IO_PHYS	CONFIG_PCI_IO_BUS
 #define CONFIG_PCI_IO_SIZE	0x01000000
 
+#define CONFIG_NET_MULTI	1
 #define CONFIG_MII		1
 #define CONFIG_EEPRO100		1
 #define CONFIG_SYS_RX_ETH_BUFFER	8  /* use 8 rx buffer on eepro100  */
 #define CONFIG_NS8382X		1
+
+#else	/* MGT5100 */
+
+#define CONFIG_MII		1
+
+#endif
 
 /* Partitions */
 #define CONFIG_MAC_PARTITION
@@ -111,7 +127,9 @@
  */
 #include <config_cmd_default.h>
 
-#define CONFIG_CMD_PCI
+#if defined(CONFIG_MPC5200)
+    #define CONFIG_CMD_PCI
+#endif
 
 #define CONFIG_CMD_BMP
 #define CONFIG_CMD_EEPROM
@@ -122,7 +140,7 @@
 #define CONFIG_CMD_USB
 
 
-#if (CONFIG_SYS_TEXT_BASE == 0xFE000000)		/* Boot low */
+#if (TEXT_BASE == 0xFE000000)		/* Boot low */
 #   define CONFIG_SYS_LOWBOOT		1
 #endif
 
@@ -158,10 +176,12 @@
 
 #define CONFIG_BOOTCOMMAND	"run flash_self"
 
+#if defined(CONFIG_MPC5200)
 /*
  * IPB Bus clocking configuration.
  */
 #undef CONFIG_SYS_IPBCLK_EQUALS_XLBCLK		/* define for 133MHz speed */
+#endif
 
 /*
  * I2C configuration
@@ -229,12 +249,13 @@
 
 /* Use SRAM until RAM will be available */
 #define CONFIG_SYS_INIT_RAM_ADDR	MPC5XXX_SRAM
-#define CONFIG_SYS_INIT_RAM_SIZE	MPC5XXX_SRAM_SIZE	/* Size of used area in DPRAM */
+#define CONFIG_SYS_INIT_RAM_END	MPC5XXX_SRAM_SIZE	/* End of used area in DPRAM */
 
-#define CONFIG_SYS_GBL_DATA_OFFSET	(CONFIG_SYS_INIT_RAM_SIZE - GENERATED_GBL_DATA_SIZE)
+#define CONFIG_SYS_GBL_DATA_SIZE	128	/* size in bytes reserved for initial data */
+#define CONFIG_SYS_GBL_DATA_OFFSET	(CONFIG_SYS_INIT_RAM_END - CONFIG_SYS_GBL_DATA_SIZE)
 #define CONFIG_SYS_INIT_SP_OFFSET	CONFIG_SYS_GBL_DATA_OFFSET
 
-#define CONFIG_SYS_MONITOR_BASE    CONFIG_SYS_TEXT_BASE
+#define CONFIG_SYS_MONITOR_BASE    TEXT_BASE
 #if (CONFIG_SYS_MONITOR_BASE < CONFIG_SYS_FLASH_BASE)
 #   define CONFIG_SYS_RAMBOOT		1
 #endif
@@ -305,8 +326,17 @@
 /*
  * Various low-level settings
  */
+#if defined(CONFIG_MPC5200)
 #define CONFIG_SYS_HID0_INIT		HID0_ICE | HID0_ICFI
 #define CONFIG_SYS_HID0_FINAL		HID0_ICE
+#else
+#define CONFIG_SYS_HID0_INIT		0
+#define CONFIG_SYS_HID0_FINAL		0
+#endif
+
+#if defined (CONFIG_MGT5100)
+#   define CONFIG_BOARD_EARLY_INIT_R	/* switch from CS_BOOT to CS0 */
+#endif
 
 #if CONFIG_TOTAL5200_REV==1
 #   define CONFIG_SYS_BOOTCS_START	CONFIG_SYS_FLASH_BASE

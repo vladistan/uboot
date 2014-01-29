@@ -3,6 +3,7 @@
  * (C) Copyright 2004
  * DENX Software Engineering
  * Wolfgang Denk, wd@denx.de
+ * All rights reserved.
  *
  * PS/2 multiplexer driver
  *

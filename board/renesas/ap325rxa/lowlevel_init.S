@@ -4,7 +4,20 @@
  *
  * board/ap325rxa/lowlevel_init.S
  *
- * SPDX-License-Identifier:	GPL-2.0+
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation; either version 2 of
+ * the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
+ * MA 02111-1307 USA
  */
 
 #include <config.h>
@@ -106,16 +119,15 @@ lowlevel_init:
 
 DRVCRA_A:	.long	DRVCRA
 DRVCRB_A:	.long	DRVCRB
-DRVCRA_D:	.word	0x4555
-DRVCRB_D:	.word	0x0005
+DRVCRA_D:	.long	0x4555
+DRVCRB_D:	.long	0x0005
 
 RWTCSR_A:	.long	RWTCSR
 RWTCNT_A:	.long	RWTCNT
 FRQCR_A:	.long	FRQCR
-RWTCSR_D1:	.word	0xa507
-RWTCSR_D2:	.word	0xa504
-RWTCNT_D:	.word	0x5a00
-.align 2
+RWTCSR_D1:	.long	0xa507
+RWTCSR_D2:	.long	0xa504
+RWTCNT_D:	.long	0x5a00
 FRQCR_D:	.long	0x0b04474a
 
 SBSC_SDCR_A:	.long	SBSC_SDCR

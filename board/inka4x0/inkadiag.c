@@ -4,7 +4,23 @@
  * (C) Copyright 2009 Detlev Zundel,
  *     DENX Software Engineering, dzu@denx.de.
  *
- * SPDX-License-Identifier:	GPL-2.0+
+ * See file CREDITS for list of people who contributed to this
+ * project.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation; either version 2 of
+ * the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
+ * MA 02111-1307 USA
  */
 
 #include <asm/io.h>
@@ -115,7 +131,7 @@ static void inka_digio_set_output(unsigned int state, int which)
 }
 
 static int do_inkadiag_io(cmd_tbl_t *cmdtp, int flag, int argc,
-			  char * const argv[]) {
+			  char *argv[]) {
 	unsigned int state, val;
 
 	switch (argc) {
@@ -152,7 +168,8 @@ static int do_inkadiag_io(cmd_tbl_t *cmdtp, int flag, int argc,
 		printf("exit code: 0x%X\n", val);
 		return 0;
 	default:
-		return cmd_usage(cmdtp);
+		cmd_usage(cmdtp);
+		break;
 	}
 
 	return -1;
@@ -171,7 +188,7 @@ static int ser_init(volatile struct mpc5xxx_psc *psc, int baudrate)
 	/* select clock sources */
 
 	out_be16(&psc->psc_clock_select, 0);
-	baseclk = (gd->arch.ipb_clk + 16) / 32;
+	baseclk = (gd->ipb_clk + 16) / 32;
 
 	/* switch to UART mode */
 	out_be32(&psc->sicr, 0);
@@ -220,15 +237,17 @@ static int ser_getc(volatile struct mpc5xxx_psc *psc)
 }
 
 static int do_inkadiag_serial(cmd_tbl_t *cmdtp, int flag, int argc,
-			      char * const argv[]) {
+			      char *argv[]) {
 	volatile struct NS16550 *uart;
 	volatile struct mpc5xxx_psc *psc;
 	unsigned int num, mode;
 	int combrd, baudrate, i, j, len;
 	int address;
 
-	if (argc < 5)
-		return cmd_usage(cmdtp);
+	if (argc < 5) {
+		cmd_usage(cmdtp);
+		return 1;
+	}
 
 	argc--;
 	argv++;
@@ -353,7 +372,7 @@ static void buzzer_turn_on(unsigned int freq)
 {
 	volatile struct mpc5xxx_gpt *gpt = (struct mpc5xxx_gpt *)(BUZZER_GPT);
 
-	const u32 prescale = gd->arch.ipb_clk / freq / 128;
+	const u32 prescale = gd->ipb_clk / freq / 128;
 	const u32 count = 128;
 	const u32 width = 64;
 
@@ -370,13 +389,15 @@ static void buzzer_turn_off(void)
 }
 
 static int do_inkadiag_buzzer(cmd_tbl_t *cmdtp, int flag, int argc,
-			      char * const argv[]) {
+			      char *argv[]) {
 
 	unsigned int period, freq;
 	int prev, i;
 
-	if (argc != 3)
-		return cmd_usage(cmdtp);
+	if (argc != 3) {
+		cmd_usage(cmdtp);
+		return 1;
+	}
 
 	argc--;
 	argv++;
@@ -389,9 +410,9 @@ static int do_inkadiag_buzzer(cmd_tbl_t *cmdtp, int flag, int argc,
 
 	freq = simple_strtol(argv[0], NULL, 0);
 	/* avoid zero prescale in buzzer_turn_on() */
-	if (freq > gd->arch.ipb_clk / 128) {
+	if (freq > gd->ipb_clk / 128) {
 		printf("%dHz exceeds maximum (%ldHz)\n", freq,
-		       gd->arch.ipb_clk / 128);
+		       gd->ipb_clk / 128);
 	} else if (!freq)
 		printf("Zero frequency is senseless\n");
 	else
@@ -414,7 +435,7 @@ static int do_inkadiag_buzzer(cmd_tbl_t *cmdtp, int flag, int argc,
 	return 0;
 }
 
-static int do_inkadiag_help(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[]);
+static int do_inkadiag_help(cmd_tbl_t *cmdtp, int flag, int argc, char *argv[]);
 
 cmd_tbl_t cmd_inkadiag_sub[] = {
 	U_BOOT_CMD_MKENT(io, 1, 1, do_inkadiag_io, "read digital input",
@@ -429,10 +450,10 @@ cmd_tbl_t cmd_inkadiag_sub[] = {
 };
 
 static int do_inkadiag_help(cmd_tbl_t *cmdtp, int flag,
-			    int argc, char * const argv[]) {
+			    int argc, char *argv[]) {
 	extern int _do_help (cmd_tbl_t *cmd_start, int cmd_items,
 			     cmd_tbl_t *cmdtp, int flag,
-			     int argc, char * const argv[]);
+			     int argc, char *argv[]);
 	/* do_help prints command name - we prepend inkadiag to our subcommands! */
 #ifdef CONFIG_SYS_LONGHELP
 	puts ("inkadiag ");
@@ -442,7 +463,7 @@ static int do_inkadiag_help(cmd_tbl_t *cmdtp, int flag,
 }
 
 static int do_inkadiag(cmd_tbl_t *cmdtp, int flag, int argc,
-		       char * const argv[]) {
+		       char *argv[]) {
 	cmd_tbl_t *c;
 
 	c = find_cmd_tbl(argv[1], &cmd_inkadiag_sub[0], ARRAY_SIZE(cmd_inkadiag_sub));
@@ -453,7 +474,8 @@ static int do_inkadiag(cmd_tbl_t *cmdtp, int flag, int argc,
 		return c->cmd(c, flag, argc, argv);
 	} else {
 		/* Unrecognized command */
-		return cmd_usage(cmdtp);
+		cmd_usage(cmdtp);
+		return 1;
 	}
 }
 
@@ -462,3 +484,31 @@ U_BOOT_CMD(inkadiag, 6, 1, do_inkadiag,
 	   "[inkadiag what ...]\n"
 	   "    - perform a diagnosis on inka hardware\n"
 	   "'inkadiag' performs hardware tests.");
+
+/* Relocate the command table function pointers when running in RAM */
+int inkadiag_init_r (void) {
+	cmd_tbl_t *cmdtp;
+
+	for (cmdtp = &cmd_inkadiag_sub[0]; cmdtp !=
+		     &cmd_inkadiag_sub[ARRAY_SIZE(cmd_inkadiag_sub)]; cmdtp++) {
+		ulong addr;
+
+		addr = (ulong) (cmdtp->cmd) + gd->reloc_off;
+		cmdtp->cmd = (int (*)(struct cmd_tbl_s *, int, int, char *[]))addr;
+
+		addr = (ulong)(cmdtp->name) + gd->reloc_off;
+		cmdtp->name = (char *)addr;
+
+		if (cmdtp->usage) {
+			addr = (ulong)(cmdtp->usage) + gd->reloc_off;
+			cmdtp->usage = (char *)addr;
+		}
+#ifdef CONFIG_SYS_LONGHELP
+		if (cmdtp->help) {
+			addr = (ulong)(cmdtp->help) + gd->reloc_off;
+			cmdtp->help = (char *)addr;
+		}
+#endif
+	}
+	return 0;
+}

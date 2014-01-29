@@ -2,7 +2,23 @@
  * (C) Copyright 2000-2003
  * Wolfgang Denk, DENX Software Engineering, wd@denx.de.
  *
- * SPDX-License-Identifier:	GPL-2.0+
+ * See file CREDITS for list of people who contributed to this
+ * project.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation; either version 2 of
+ * the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
+ * MA 02111-1307 USA
  */
 
 /*
@@ -27,14 +43,14 @@
 DECLARE_GLOBAL_DATA_PTR;
 
 static void
-unimplemented ( cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
+unimplemented ( cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 {
 	printf ("Sorry, but the '%s' command has not been implemented\n",
 		cmdtp->name);
 }
 
 int
-do_siuinfo (cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
+do_siuinfo (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 {
 	volatile immap_t *immap = (immap_t *) CONFIG_SYS_IMMR;
 
@@ -65,7 +81,7 @@ do_siuinfo (cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 }
 
 int
-do_memcinfo (cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
+do_memcinfo (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 {
 	volatile immap_t *immap = (immap_t *) CONFIG_SYS_IMMR;
 
@@ -117,7 +133,7 @@ do_memcinfo (cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 }
 
 int
-do_sitinfo (cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
+do_sitinfo (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 {
 	unimplemented (cmdtp, flag, argc, argv);
 	return 0;
@@ -125,7 +141,7 @@ do_sitinfo (cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 
 #ifdef CONFIG_8260
 int
-do_icinfo (cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
+do_icinfo (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 {
 	unimplemented (cmdtp, flag, argc, argv);
 	return 0;
@@ -133,7 +149,7 @@ do_icinfo (cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 #endif
 
 int
-do_carinfo (cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
+do_carinfo (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 {
 	volatile immap_t *immap = (immap_t *) CONFIG_SYS_IMMR;
 
@@ -217,7 +233,7 @@ static void binary (char *label, uint value, int nbits)
 #endif
 
 int
-do_iopinfo (cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
+do_iopinfo (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 {
 	volatile immap_t *immap = (immap_t *) CONFIG_SYS_IMMR;
 
@@ -300,7 +316,7 @@ do_iopinfo (cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
  * use *uint and set the address based on cmd + port
  */
 int
-do_iopset (cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
+do_iopset (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 {
 	uint rcode = 0;
 	iopin_t iopin;
@@ -415,14 +431,14 @@ do_iopset (cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 }
 
 int
-do_dmainfo (cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
+do_dmainfo (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 {
 	unimplemented (cmdtp, flag, argc, argv);
 	return 0;
 }
 
 int
-do_fccinfo (cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
+do_fccinfo (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 {
 	unimplemented (cmdtp, flag, argc, argv);
 	return 0;
@@ -437,7 +453,7 @@ static void prbrg (int n, uint val)
 #if defined(CONFIG_8xx)
 	ulong clock = gd->cpu_clk;
 #elif defined(CONFIG_8260)
-	ulong clock = gd->arch.brg_clk;
+	ulong clock = gd->brg_clk;
 #endif
 
 	printf ("BRG%d:", n);
@@ -482,7 +498,7 @@ static void prbrg (int n, uint val)
 }
 
 int
-do_brginfo (cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
+do_brginfo (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 {
 	volatile immap_t *immap = (immap_t *) CONFIG_SYS_IMMR;
 
@@ -506,7 +522,7 @@ do_brginfo (cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 }
 
 int
-do_i2cinfo (cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
+do_i2cinfo (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 {
 	volatile immap_t *immap = (immap_t *) CONFIG_SYS_IMMR;
 
@@ -519,7 +535,7 @@ do_i2cinfo (cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 	volatile iic_t *iip;
 	uint dpaddr;
 
-	dpaddr = immap->im_dprambase16[PROFF_I2C_BASE / sizeof(u16)];
+	dpaddr = *((unsigned short *) (&immap->im_dprambase[PROFF_I2C_BASE]));
 	if (dpaddr == 0)
 		iip = NULL;
 	else
@@ -553,42 +569,42 @@ do_i2cinfo (cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 }
 
 int
-do_sccinfo (cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
+do_sccinfo (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 {
 	unimplemented (cmdtp, flag, argc, argv);
 	return 0;
 }
 
 int
-do_smcinfo (cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
+do_smcinfo (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 {
 	unimplemented (cmdtp, flag, argc, argv);
 	return 0;
 }
 
 int
-do_spiinfo (cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
+do_spiinfo (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 {
 	unimplemented (cmdtp, flag, argc, argv);
 	return 0;
 }
 
 int
-do_muxinfo (cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
+do_muxinfo (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 {
 	unimplemented (cmdtp, flag, argc, argv);
 	return 0;
 }
 
 int
-do_siinfo (cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
+do_siinfo (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 {
 	unimplemented (cmdtp, flag, argc, argv);
 	return 0;
 }
 
 int
-do_mccinfo (cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
+do_mccinfo (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 {
 	unimplemented (cmdtp, flag, argc, argv);
 	return 0;

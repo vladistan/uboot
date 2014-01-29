@@ -2,9 +2,25 @@
  * (C) Copyright 2000-2002
  * Wolfgang Denk, DENX Software Engineering, wd@denx.de.
  * (C) Copyright 2002
- * Daniel EngstrÃ¶m, Omicron Ceti AB
+ * Daniel Engström, Omicron Ceti AB
  *
- * SPDX-License-Identifier:	GPL-2.0+
+ * See file CREDITS for list of people who contributed to this
+ * project.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation; either version 2 of
+ * the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
+ * MA 02111-1307 USA
  *
  ********************************************************************
  *
@@ -52,12 +68,13 @@
 
 int pcmcia_on(int ide_base_bus);
 
+static int  pcmcia_off(void);
 static int  hardware_disable(int slot);
 static int  hardware_enable(int slot);
 static int  voltage_set(int slot, int vcc, int vpp);
 static void print_funcid(int func);
-static void print_fixed(volatile char *p);
-static int  identify(volatile char *p);
+static void print_fixed(volatile uchar *p);
+static int  identify(volatile uchar *p);
 static int  check_ide_device(int slot, int ide_base_bus);
 
 
@@ -65,6 +82,33 @@ static int  check_ide_device(int slot, int ide_base_bus);
 
 
 const char *indent = "\t   ";
+
+/* ------------------------------------------------------------------------- */
+
+
+int do_pinit(cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
+{
+#ifndef CONFIG_SYS_FIRST_PCMCIA_BUS
+# define CONFIG_SYS_FIRST_PCMCIA_BUS 0
+#endif
+
+	int rcode = 0;
+
+	if (argc != 2) {
+		printf ("Usage: pinit {on | off}\n");
+		return 1;
+	}
+	if (strcmp(argv[1],"on") == 0) {
+		rcode = pcmcia_on(CONFIG_SYS_FIRST_PCMCIA_BUS);
+	} else if (strcmp(argv[1],"off") == 0) {
+		rcode = pcmcia_off();
+	} else {
+		printf ("Usage: pinit {on | off}\n");
+		return 1;
+	}
+
+	return rcode;
+}
 
 /* ------------------------------------------------------------------------- */
 
@@ -201,8 +245,7 @@ int pcmcia_on(int ide_base_bus)
 /* ------------------------------------------------------------------------- */
 
 
-#if defined(CONFIG_CMD_PCMCIA)
-int pcmcia_off (void)
+static int pcmcia_off (void)
 {
 	int slot = 0;
 
@@ -242,7 +285,6 @@ int pcmcia_off (void)
 	return 0;
 }
 
-#endif
 
 /* ------------------------------------------------------------------------- */
 
@@ -252,9 +294,9 @@ int pcmcia_off (void)
 int ide_devices_found;
 static int check_ide_device(int slot, int ide_base_bus)
 {
-	volatile char *ident = NULL;
-	volatile char *feature_p[MAX_FEATURES];
-	volatile char *p, *start;
+	volatile uchar *ident = NULL;
+	volatile uchar *feature_p[MAX_FEATURES];
+	volatile uchar *p, *start;
 	int n_features = 0;
 	uchar func_id = ~0;
 	uchar code, len;
@@ -272,7 +314,7 @@ static int check_ide_device(int slot, int ide_base_bus)
 		return 1;
 	}
 
-	start = p = (volatile char *) pcmcia_cis_ptr;
+	start = p = (volatile uchar *) pcmcia_cis_ptr;
 
 	while ((p - start) < MAX_TUPEL_SZ) {
 
@@ -375,7 +417,7 @@ static int voltage_set(int slot, int vcc, int vpp)
 		socket_control |= 0x30;
 		break;
 	case 0:
-	default: ;
+	default:
 	}
 
 	switch (vpp) {
@@ -389,7 +431,7 @@ static int voltage_set(int slot, int vcc, int vpp)
 		socket_control |= 0x3;
 		break;
 	case 0:
-	default: ;
+	default:
 	}
 
 	writel(socket_control, reg);
@@ -495,7 +537,7 @@ static void print_funcid(int func)
 
 /* ------------------------------------------------------------------------- */
 
-static void print_fixed(volatile char *p)
+static void print_fixed(volatile uchar *p)
 {
 	if (p == NULL)
 		return;
@@ -563,17 +605,17 @@ static void print_fixed(volatile char *p)
 #define MAX_IDENT_CHARS		64
 #define	MAX_IDENT_FIELDS	4
 
-static char *known_cards[] = {
+static uchar *known_cards[] = {
 	"ARGOSY PnPIDE D5",
 	NULL
 };
 
-static int identify(volatile char *p)
+static int identify(volatile uchar *p)
 {
-	char id_str[MAX_IDENT_CHARS];
-	char data;
-	char *t;
-	char **card;
+	uchar id_str[MAX_IDENT_CHARS];
+	uchar data;
+	uchar *t;
+	uchar **card;
 	int i, done;
 
 	if (p == NULL)

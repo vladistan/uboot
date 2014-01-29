@@ -60,7 +60,7 @@
  * Network Settings
  */
 #define ADI_CMDS_NETWORK	1
-#define CONFIG_SMC91111	1
+#define CONFIG_DRIVER_SMC91111	1
 #define CONFIG_SMC91111_BASE	0x20310300
 #define CONFIG_HOSTNAME		bf538f-ezkit
 /* Uncomment next line to use fixed MAC address */
@@ -85,7 +85,10 @@
 #define CONFIG_ENV_SPI_MAX_HZ	30000000
 #define CONFIG_SF_DEFAULT_SPEED	30000000
 #define CONFIG_SPI_FLASH
-#define CONFIG_SPI_FLASH_ALL
+#define CONFIG_SPI_FLASH_ATMEL
+#define CONFIG_SPI_FLASH_SPANSION
+#define CONFIG_SPI_FLASH_STMICRO
+#define CONFIG_SPI_FLASH_WINBOND
 
 
 /*
@@ -106,7 +109,7 @@
 #if (CONFIG_BFIN_BOOT_MODE == BFIN_BOOT_BYPASS)
 #define ENV_IS_EMBEDDED
 #else
-#define CONFIG_ENV_IS_EMBEDDED_IN_LDR
+#define ENV_IS_EMBEDDED_CUSTOM
 #endif
 #ifdef ENV_IS_EMBEDDED
 /* WARNING - the following is hand-optimized to fit within
@@ -115,10 +118,13 @@
  * it linked after the configuration sector.
  */
 # define LDS_BOARD_TEXT \
-	arch/blackfin/lib/libblackfin.o (.text*); \
-	arch/blackfin/cpu/libblackfin.o (.text*); \
+	cpu/blackfin/traps.o		(.text .text.*); \
+	cpu/blackfin/interrupt.o	(.text .text.*); \
+	cpu/blackfin/serial.o		(.text .text.*); \
+	common/dlmalloc.o		(.text .text.*); \
+	lib_generic/crc32.o		(.text .text.*); \
 	. = DEFINED(env_offset) ? env_offset : .; \
-	common/env_embedded.o (.text*);
+	common/env_embedded.o		(.text .text.*);
 #endif
 
 
@@ -127,6 +133,8 @@
  */
 #define CONFIG_BFIN_TWI_I2C	1
 #define CONFIG_HARD_I2C		1
+#define CONFIG_SYS_I2C_SPEED	50000
+#define CONFIG_SYS_I2C_SLAVE	0
 
 
 /*

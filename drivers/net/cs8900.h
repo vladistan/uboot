@@ -1,16 +1,14 @@
-#ifndef CS8900_H
-#define CS8900_H
 /*
  * Cirrus Logic CS8900A Ethernet
- *
- * (C) 2009 Ben Warren , biggerbadderben@gmail.com
- *     Converted to use CONFIG_NET_MULTI API
  *
  * (C) Copyright 2002
  * Sysgo Real-Time Solutions, GmbH <www.elinos.com>
  * Marius Groeger <mgroeger@sysgo.de>
  *
  * Copyright (C) 1999 Ben Williamson <benw@pobox.com>
+ *
+ * See file CREDITS for list of people who contributed to this
+ * project.
  *
  * This program is loaded into SRAM in bootstrap mode, where it waits
  * for commands on UART1 to read and write memory, jump to code etc.
@@ -19,40 +17,51 @@
  * this code in bootstrap mode.  All the board specifics can be handled on
  * the host.
  *
- * SPDX-License-Identifier:	GPL-2.0+
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 
 #include <asm/types.h>
 #include <config.h>
 
-#define CS8900_DRIVERNAME "CS8900"
+#ifdef CONFIG_DRIVER_CS8900
+
 /* although the registers are 16 bit, they are 32-bit aligned on the
    EDB7111. so we have to read them as 32-bit registers and ignore the
    upper 16-bits. i'm not sure if this holds for the EDB7211. */
 
-#ifdef CONFIG_CS8900_BUS16
+#ifdef CS8900_BUS16
   /* 16 bit aligned registers, 16 bit wide */
   #define CS8900_REG u16
-#elif defined(CONFIG_CS8900_BUS32)
+  #define CS8900_OFF 0x02
+  #define CS8900_BUS16_0  *(volatile u8 *)(CS8900_BASE+0x00)
+  #define CS8900_BUS16_1  *(volatile u8 *)(CS8900_BASE+0x01)
+#elif  defined(CS8900_BUS32)
   /* 32 bit aligned registers, 16 bit wide (we ignore upper 16 bits) */
   #define CS8900_REG u32
+  #define CS8900_OFF 0x04
 #else
   #error unknown bussize ...
 #endif
 
-struct cs8900_regs {
-	CS8900_REG rtdata;
-	CS8900_REG pad0;
-	CS8900_REG txcmd;
-	CS8900_REG txlen;
-	CS8900_REG isq;
-	CS8900_REG pptr;
-	CS8900_REG pdata;
-};
+#define CS8900_RTDATA *(volatile CS8900_REG *)(CS8900_BASE+0x00*CS8900_OFF)
+#define CS8900_TxCMD  *(volatile CS8900_REG *)(CS8900_BASE+0x02*CS8900_OFF)
+#define CS8900_TxLEN  *(volatile CS8900_REG *)(CS8900_BASE+0x03*CS8900_OFF)
+#define CS8900_ISQ    *(volatile CS8900_REG *)(CS8900_BASE+0x04*CS8900_OFF)
+#define CS8900_PPTR   *(volatile CS8900_REG *)(CS8900_BASE+0x05*CS8900_OFF)
+#define CS8900_PDATA  *(volatile CS8900_REG *)(CS8900_BASE+0x06*CS8900_OFF)
 
-struct cs8900_priv {
-	struct cs8900_regs *regs;
-};
 
 #define ISQ_RxEvent     0x04
 #define ISQ_TxEvent     0x08
@@ -242,8 +251,7 @@ struct cs8900_priv {
 #define EEPROM_READ_CMD		0x0200
 #define EEPROM_ERASE_CMD	0x0300
 
-/* Exported functions */
-int cs8900_e2prom_read(struct eth_device *dev, uchar, ushort *);
-int cs8900_e2prom_write(struct eth_device *dev, uchar, ushort);
+extern int cs8900_e2prom_read(uchar, ushort *);
+extern int cs8900_e2prom_write(uchar, ushort);
 
-#endif  /* CS8900_H */
+#endif /* CONFIG_DRIVER_CS8900 */

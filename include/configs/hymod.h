@@ -2,7 +2,23 @@
  * (C) Copyright 2000
  * Murray Jensen <Murray.Jensen@cmst.csiro.au>
  *
- * SPDX-License-Identifier:	GPL-2.0+
+ * See file CREDITS for list of people who contributed to this
+ * project.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation; either version 2 of
+ * the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
+ * MA 02111-1307 USA
  */
 
 /*
@@ -20,8 +36,6 @@
 #define CONFIG_MPC8260		1	/* This is an MPC8260 CPU	*/
 #define CONFIG_HYMOD		1	/* ...on a Hymod board		*/
 #define CONFIG_CPM2		1	/* Has a CPM2 */
-
-#define	CONFIG_SYS_TEXT_BASE	0x40000000
 
 #define	CONFIG_MISC_INIT_F	1	/* Use misc_init_f()		*/
 
@@ -73,16 +87,12 @@
  * - RAM for BD/Buffers is on the 60x Bus (see 28-13)
  * - Enable Full Duplex in FSMR
  */
-# define CONFIG_SYS_CMXFCR_MASK1	(CMXFCR_FC1|CMXFCR_RF1CS_MSK|CMXFCR_TF1CS_MSK)
-# define CONFIG_SYS_CMXFCR_VALUE1	(CMXFCR_RF1CS_CLK10|CMXFCR_TF1CS_CLK11)
+# define CONFIG_SYS_CMXFCR_MASK	(CMXFCR_FC1|CMXFCR_RF1CS_MSK|CMXFCR_TF1CS_MSK)
+# define CONFIG_SYS_CMXFCR_VALUE	(CMXFCR_RF1CS_CLK10|CMXFCR_TF1CS_CLK11)
 # define CONFIG_SYS_CPMFCR_RAMTYPE	0
 # define CONFIG_SYS_FCC_PSMR		(FCC_PSMR_FDE|FCC_PSMR_LPB)
 
 # define MDIO_PORT		0		/* Port A */
-# define MDIO_DECLARE		volatile ioport_t *iop = ioport_addr ( \
-					(immap_t *) CONFIG_SYS_IMMR, MDIO_PORT )
-# define MDC_DECLARE		MDIO_DECLARE
-
 # define MDIO_DATA_PINMASK	0x00040000	/* Pin 13 */
 # define MDIO_CLCK_PINMASK	0x00080000	/* Pin 12 */
 
@@ -94,16 +104,12 @@
  * - RAM for BD/Buffers is on the 60x Bus (see 28-13)
  * - Enable Full Duplex in FSMR
  */
-# define CONFIG_SYS_CMXFCR_MASK2	(CMXFCR_FC2|CMXFCR_RF2CS_MSK|CMXFCR_TF2CS_MSK)
-# define CONFIG_SYS_CMXFCR_VALUE2	(CMXFCR_RF2CS_CLK13|CMXFCR_TF2CS_CLK14)
+# define CONFIG_SYS_CMXFCR_MASK	(CMXFCR_FC2|CMXFCR_RF2CS_MSK|CMXFCR_TF2CS_MSK)
+# define CONFIG_SYS_CMXFCR_VALUE	(CMXFCR_RF2CS_CLK13|CMXFCR_TF2CS_CLK14)
 # define CONFIG_SYS_CPMFCR_RAMTYPE	0
 # define CONFIG_SYS_FCC_PSMR		(FCC_PSMR_FDE|FCC_PSMR_LPB)
 
 # define MDIO_PORT		0		/* Port A */
-# define MDIO_DECLARE		volatile ioport_t *iop = ioport_addr ( \
-					(immap_t *) CONFIG_SYS_IMMR, MDIO_PORT )
-# define MDC_DECLARE		MDIO_DECLARE
-
 # define MDIO_DATA_PINMASK	0x00000040	/* Pin 25 */
 # define MDIO_CLCK_PINMASK	0x00000080	/* Pin 24 */
 
@@ -115,16 +121,12 @@
  * - RAM for BD/Buffers is on the 60x Bus (see 28-13)
  * - Enable Full Duplex in FSMR
  */
-# define CONFIG_SYS_CMXFCR_MASK3	(CMXFCR_FC3|CMXFCR_RF3CS_MSK|CMXFCR_TF3CS_MSK)
-# define CONFIG_SYS_CMXFCR_VALUE3	(CMXFCR_RF3CS_CLK15|CMXFCR_TF3CS_CLK16)
+# define CONFIG_SYS_CMXFCR_MASK	(CMXFCR_FC3|CMXFCR_RF3CS_MSK|CMXFCR_TF3CS_MSK)
+# define CONFIG_SYS_CMXFCR_VALUE	(CMXFCR_RF3CS_CLK15|CMXFCR_TF3CS_CLK16)
 # define CONFIG_SYS_CPMFCR_RAMTYPE	0
 # define CONFIG_SYS_FCC_PSMR		(FCC_PSMR_FDE|FCC_PSMR_LPB)
 
 # define MDIO_PORT		0		/* Port A */
-# define MDIO_DECLARE		volatile ioport_t *iop = ioport_addr ( \
-					(immap_t *) CONFIG_SYS_IMMR, MDIO_PORT )
-# define MDC_DECLARE		MDIO_DECLARE
-
 # define MDIO_DATA_PINMASK	0x00000100	/* Pin 23 */
 # define MDIO_CLCK_PINMASK	0x00000200	/* Pin 22 */
 
@@ -361,8 +363,9 @@
  * Definitions for initial stack pointer and data area (in DPRAM)
  */
 #define CONFIG_SYS_INIT_RAM_ADDR	CONFIG_SYS_IMMR
-#define	CONFIG_SYS_INIT_RAM_SIZE	0x4000	/* Size of used area in DPRAM	*/
-#define CONFIG_SYS_GBL_DATA_OFFSET	(CONFIG_SYS_INIT_RAM_SIZE - GENERATED_GBL_DATA_SIZE)
+#define	CONFIG_SYS_INIT_RAM_END	0x4000	/* End of used area in DPRAM	*/
+#define	CONFIG_SYS_GBL_DATA_SIZE	128  /* size in bytes reserved for initial data */
+#define CONFIG_SYS_GBL_DATA_OFFSET	(CONFIG_SYS_INIT_RAM_END - CONFIG_SYS_GBL_DATA_SIZE)
 #define	CONFIG_SYS_INIT_SP_OFFSET	CONFIG_SYS_GBL_DATA_OFFSET
 
 /*-----------------------------------------------------------------------
@@ -371,8 +374,8 @@
  * Please note that CONFIG_SYS_SDRAM_BASE _must_ start at 0
  */
 #define	CONFIG_SYS_SDRAM_BASE		0x00000000
-#define CONFIG_SYS_FLASH_BASE		CONFIG_SYS_TEXT_BASE
-#define	CONFIG_SYS_MONITOR_BASE	CONFIG_SYS_TEXT_BASE
+#define CONFIG_SYS_FLASH_BASE		TEXT_BASE
+#define	CONFIG_SYS_MONITOR_BASE	TEXT_BASE
 #define CONFIG_SYS_FPGA_BASE		0x80000000
 /*
  * unfortunately, CONFIG_SYS_MONITOR_LEN must include the
@@ -711,6 +714,14 @@
  * FPGA Interrupt configuration
  */
 #define FPGA_MAIN_IRQ		SIU_INT_IRQ2
+
+/*
+ * Internal Definitions
+ *
+ * Boot Flags
+ */
+#define	BOOTFLAG_COLD	0x01		/* Normal Power-On: Boot from FLASH*/
+#define BOOTFLAG_WARM	0x02		/* Software reboot		*/
 
 /*
  * JFFS2 partitions

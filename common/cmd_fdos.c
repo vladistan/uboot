@@ -1,9 +1,25 @@
 /*
  * (C) Copyright 2002
- * St√§ubli Faverges - <www.staubli.com>
+ * St‰ubli Faverges - <www.staubli.com>
  * Pierre AUBERT  p.aubert@staubli.com
  *
- * SPDX-License-Identifier:	GPL-2.0+
+ * See file CREDITS for list of people who contributed to this
+ * project.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation; either version 2 of
+ * the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
+ * MA 02111-1307 USA
  */
 
 /*
@@ -19,11 +35,13 @@
  * do_fdosboot --
  *-----------------------------------------------------------------------------
  */
-int do_fdosboot(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
+int do_fdosboot(cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 {
     char *name;
     char *ep;
     int size;
+    int rcode = 0;
+    char buf [12];
     int drive = CONFIG_SYS_FDC_DRIVE_NUMBER;
 
     /* pre-set load_addr */
@@ -55,7 +73,8 @@ int do_fdosboot(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 	name = argv [2];
 	break;
     default:
-	return CMD_RET_USAGE;
+	cmd_usage(cmdtp);
+	break;
     }
 
     /* Init physical layer                                                   */
@@ -74,19 +93,29 @@ int do_fdosboot(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
     }
     flush_cache (load_addr, size);
 
-    setenv_hex("filesize", size);
+    sprintf(buf, "%x", size);
+    setenv("filesize", buf);
 
     printf("Floppy DOS load complete: %d bytes loaded to 0x%lx\n",
 	   size, load_addr);
 
-    return bootm_maybe_autostart(cmdtp, argv[0]);
+    /* Check if we should attempt an auto-start */
+    if (((ep = getenv("autostart")) != NULL) && (strcmp(ep,"yes") == 0)) {
+	char *local_args[2];
+	extern int do_bootm (cmd_tbl_t *, int, int, char *[]);
+	local_args[0] = argv[0];
+	local_args[1] = NULL;
+	printf ("Automatic boot of image at addr 0x%08lX ...\n", load_addr);
+	rcode = do_bootm (cmdtp, 0, 1, local_args);
+    }
+    return rcode;
 }
 
 /*-----------------------------------------------------------------------------
  * do_fdosls --
  *-----------------------------------------------------------------------------
  */
-int do_fdosls(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
+int do_fdosls(cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 {
     char *path = "";
     int drive = CONFIG_SYS_FDC_DRIVE_NUMBER;

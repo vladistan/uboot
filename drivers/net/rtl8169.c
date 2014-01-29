@@ -11,7 +11,19 @@
 *    r8169.c: Etherboot device driver for the RealTek RTL-8169 Gigabit
 *    Written 2003 by Timothy Legge <tlegge@rogers.com>
 *
- * SPDX-License-Identifier:	GPL-2.0+
+*    This program is free software; you can redistribute it and/or modify
+*    it under the terms of the GNU General Public License as published by
+*    the Free Software Foundation; either version 2 of the License, or
+*    (at your option) any later version.
+*
+*    This program is distributed in the hope that it will be useful,
+*    but WITHOUT ANY WARRANTY; without even the implied warranty of
+*    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+*    GNU General Public License for more details.
+*
+*    You should have received a copy of the GNU General Public License
+*    along with this program; if not, write to the Free Software
+*    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 *
 *    Portions of this code based on:
 *	r8169.c: A RealTek RTL-8169 Gigabit Ethernet driver
@@ -452,7 +464,7 @@ static int rtl_recv(struct eth_device *dev)
 /**************************************************************************
 SEND - Transmit a frame
 ***************************************************************************/
-static int rtl_send(struct eth_device *dev, void *packet, int length)
+static int rtl_send(struct eth_device *dev, volatile void *packet, int length)
 {
 	/* send the packet to destination */
 
@@ -727,6 +739,7 @@ INIT - Look for an adapter, this routine's visible to the outside
 static int rtl_init(struct eth_device *dev, bd_t *bis)
 {
 	static int board_idx = -1;
+	static int printed_version = 0;
 	int i, rc;
 	int option = -1, Cap10_100 = 0, Cap1000 = 0;
 
@@ -737,6 +750,8 @@ static int rtl_init(struct eth_device *dev, bd_t *bis)
 	ioaddr = dev->iobase;
 
 	board_idx++;
+
+	printed_version = 1;
 
 	/* point to private storage */
 	tpc = &tpx;
@@ -879,12 +894,7 @@ int rtl8169_initialize(bd_t *bis)
 		debug ("rtl8169: REALTEK RTL8169 @0x%x\n", iobase);
 
 		dev = (struct eth_device *)malloc(sizeof *dev);
-		if (!dev) {
-			printf("Can not allocate memory of rtl8169\n");
-			break;
-		}
 
-		memset(dev, 0, sizeof(*dev));
 		sprintf (dev->name, "RTL8169#%d", card_number);
 
 		dev->priv = (void *) devno;

@@ -2,7 +2,23 @@
  * (C) Copyright 2001-2004
  * Stefan Roese, esd gmbh germany, stefan.roese@esd-electronics.com
  *
- * SPDX-License-Identifier:	GPL-2.0+
+ * See file CREDITS for list of people who contributed to this
+ * project.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation; either version 2 of
+ * the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
+ * MA 02111-1307 USA
  */
 
 #include <common.h>
@@ -13,6 +29,8 @@
 
 DECLARE_GLOBAL_DATA_PTR;
 
+/*cmd_boot.c*/
+extern int do_reset (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[]);
 extern void lxt971_no_sleep(void);
 
 /* ------------------------------------------------------------------------- */
@@ -112,13 +130,13 @@ int board_early_init_f (void)
 	 * IRQ 30 (EXT IRQ 5) PCI SLOT 3; active low; level sensitive
 	 * IRQ 31 (EXT IRQ 6) COMPACT FLASH; active high; level sensitive
 	 */
-	mtdcr (UIC0SR, 0xFFFFFFFF);	/* clear all ints */
-	mtdcr (UIC0ER, 0x00000000);	/* disable all ints */
-	mtdcr (UIC0CR, 0x00000000);	/* set all to be non-critical */
-	mtdcr (UIC0PR, 0xFFFFFF81);	/* set int polarities */
-	mtdcr (UIC0TR, 0x10000000);	/* set int trigger levels */
-	mtdcr (UIC0VCR, 0x00000001);	/* set vect base=0,INT0 highest priority */
-	mtdcr (UIC0SR, 0xFFFFFFFF);	/* clear all ints */
+	mtdcr (uicsr, 0xFFFFFFFF);	/* clear all ints */
+	mtdcr (uicer, 0x00000000);	/* disable all ints */
+	mtdcr (uiccr, 0x00000000);	/* set all to be non-critical */
+	mtdcr (uicpr, 0xFFFFFF81);	/* set int polarities */
+	mtdcr (uictr, 0x10000000);	/* set int trigger levels */
+	mtdcr (uicvcr, 0x00000001);	/* set vect base=0,INT0 highest priority */
+	mtdcr (uicsr, 0xFFFFFFFF);	/* clear all ints */
 
 	out_be16((void *)0xf03000ec, 0x0fff); /* enable interrupts in fpga */
 
@@ -133,7 +151,7 @@ int checkboard (void)
 	int index;
 	int len;
 	char str[64];
-	int i = getenv_f("serial#", str, sizeof (str));
+	int i = getenv_r ("serial#", str, sizeof (str));
 	const unsigned char *fpga;
 
 	puts ("Board: ");
@@ -178,7 +196,7 @@ int checkboard (void)
 /*
  * Some test routines
  */
-int do_digtest(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
+int do_digtest(cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 {
 	int i;
 	int k;
@@ -239,7 +257,7 @@ struct io {
 	short dummy;
 };
 
-int do_anatest(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
+int do_anatest(cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 {
 	short val;
 	int i;
@@ -335,7 +353,7 @@ void cyclicInt(void *ptr)
 }
 
 
-int do_inctest(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
+int do_inctest(cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 {
 	ulong *incin;
 	int i;

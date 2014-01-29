@@ -2,7 +2,20 @@
  * (C) Copyright 2002
  * Andrew May, Viasat Inc, amay@viasat.com
  *
- * SPDX-License-Identifier:	GPL-2.0+
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation; either version 2 of
+ * the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
+ * MA 02111-1307 USA
  */
 
 /*
@@ -31,6 +44,17 @@
 */
 
 #if defined(CONFIG_SYS_I2C_RTC_ADDR) && defined(CONFIG_CMD_DATE)
+
+static unsigned bcd2bin (uchar n)
+{
+	return ((((n >> 4) & 0x0F) * 10) + (n & 0x0F));
+}
+
+static unsigned char bin2bcd (unsigned int n)
+{
+	return (((n / 10) << 4) | (n % 10));
+}
+
 
 /* ------------------------------------------------------------------------- */
 /*
@@ -168,4 +192,18 @@ void rtc_reset (void)
 	val = val & 0x3F;/*turn off freq test keep calibration*/
 	i2c_write(CONFIG_SYS_I2C_RTC_ADDR, RTC_CONTROL_ADDR, 1, &val, 1);
 }
+
+int rtc_store(int addr, unsigned char* data, int size)
+{
+	/*don't let things wrap onto the time on a write*/
+	if( (addr+size) >= M41T11_STORAGE_SZ )
+		return 1;
+	return i2c_write( CONFIG_SYS_I2C_RTC_ADDR, REG_CNT+addr, 1, data, size );
+}
+
+int rtc_recall(int addr, unsigned char* data, int size)
+{
+	return i2c_read( CONFIG_SYS_I2C_RTC_ADDR, REG_CNT+addr, 1, data, size );
+}
+
 #endif

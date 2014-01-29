@@ -9,12 +9,27 @@
  * Sysgo Real-Time Solutions, GmbH <www.elinos.com>
  * Marius Groeger <mgroeger@sysgo.de>
  *
- * SPDX-License-Identifier:	GPL-2.0+
+ * See file CREDITS for list of people who contributed to this
+ * project.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation; either version 2 of
+ * the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
+ * MA 02111-1307 USA
  */
 
 #include <common.h>
 #include <asm/arch/platform.h>
-#include <netdev.h>
 
 DECLARE_GLOBAL_DATA_PTR;
 
@@ -31,8 +46,8 @@ DECLARE_GLOBAL_DATA_PTR;
  */
 int env_flash_cmdline (void)
 {
-	char *sp = (char *) 0x0201c020;
-	char *ep;
+	unsigned char *sp = (unsigned char *) 0x0201c020;
+	unsigned char *ep;
 	int len;
 
 	/* Check if "erase" push button is depressed */
@@ -59,10 +74,6 @@ int board_late_init (void)
 	return 0;
 }
 
-int board_eth_init(bd_t *bis)
-{
-	return ks8695_eth_initialize();
-}
 
 int board_init (void)
 {

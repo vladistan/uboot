@@ -2,7 +2,23 @@
  * (C) Copyright 2001-2004
  * Stefan Roese, esd gmbh germany, stefan.roese@esd-electronics.com
  *
- * SPDX-License-Identifier:	GPL-2.0+
+ * See file CREDITS for list of people who contributed to this
+ * project.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation; either version 2 of
+ * the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
+ * MA 02111-1307 USA
  */
 
 #include <common.h>
@@ -10,39 +26,10 @@
 #include <asm/io.h>
 #include <command.h>
 #include <malloc.h>
-#include <sja1000.h>
 
 DECLARE_GLOBAL_DATA_PTR;
 
 extern void lxt971_no_sleep(void);
-
-/*
- * generate a short spike on the CAN tx line
- * to bring the couplers in sync
- */
-void init_coupler(u32 addr)
-{
-	struct sja1000_basic_s *ctrl = (struct sja1000_basic_s *)addr;
-
-	/* reset */
-	out_8(&ctrl->cr, CR_RR);
-
-	/* dominant */
-	out_8(&ctrl->btr0, 0x00); /* btr setup is required */
-	out_8(&ctrl->btr1, 0x14); /* we use 1Mbit/s */
-	out_8(&ctrl->oc, OC_TP1 | OC_TN1 | OC_POL1 |
-	      OC_TP0 | OC_TN0 | OC_POL0 | OC_MODE1);
-	out_8(&ctrl->cr, 0x00);
-
-	/* delay */
-	in_8(&ctrl->cr);
-	in_8(&ctrl->cr);
-	in_8(&ctrl->cr);
-	in_8(&ctrl->cr);
-
-	/* reset */
-	out_8(&ctrl->cr, CR_RR);
-}
 
 int board_early_init_f (void)
 {
@@ -58,18 +45,18 @@ int board_early_init_f (void)
 	 * IRQ 30 (EXT IRQ 5) PCI INTA; active low; level sensitive
 	 * IRQ 31 (EXT IRQ 6) COMPACT FLASH; active high; level sensitive
 	 */
-	mtdcr(UIC0SR, 0xFFFFFFFF);       /* clear all ints */
-	mtdcr(UIC0ER, 0x00000000);       /* disable all ints */
-	mtdcr(UIC0CR, 0x00000000);       /* set all to be non-critical*/
-	mtdcr(UIC0PR, 0xFFFFFF80);       /* set int polarities */
-	mtdcr(UIC0TR, 0x10000000);       /* set int trigger levels */
-	mtdcr(UIC0VCR, 0x00000001);      /* set vect base=0,INT0 highest priority*/
-	mtdcr(UIC0SR, 0xFFFFFFFF);       /* clear all ints */
+	mtdcr(uicsr, 0xFFFFFFFF);       /* clear all ints */
+	mtdcr(uicer, 0x00000000);       /* disable all ints */
+	mtdcr(uiccr, 0x00000000);       /* set all to be non-critical*/
+	mtdcr(uicpr, 0xFFFFFF80);       /* set int polarities */
+	mtdcr(uictr, 0x10000000);       /* set int trigger levels */
+	mtdcr(uicvcr, 0x00000001);      /* set vect base=0,INT0 highest priority*/
+	mtdcr(uicsr, 0xFFFFFFFF);       /* clear all ints */
 
 	/*
 	 * EBC Configuration Register: set ready timeout to 512 ebc-clks -> ca. 15 us
 	 */
-	mtebc (EBC0_CFG, 0xa8400000); /* ebc always driven */
+	mtebc (epcr, 0xa8400000); /* ebc always driven */
 
 	/*
 	 * Reset CPLD via GPIO12 (CS3) pin
@@ -90,12 +77,6 @@ int misc_init_r (void)
 	gd->bd->bi_flashstart = 0 - gd->bd->bi_flashsize;
 	gd->bd->bi_flashoffset = 0;
 
-	/*
-	 * Init magnetic coupler
-	 */
-	if (!getenv("noinitcoupler"))
-		init_coupler(CAN_BA);
-
 	return (0);
 }
 
@@ -105,7 +86,7 @@ int misc_init_r (void)
 int checkboard (void)
 {
 	char str[64];
-	int i = getenv_f("serial#", str, sizeof(str));
+	int i = getenv_r ("serial#", str, sizeof(str));
 	int flashcnt;
 	int delay;
 	u8 *led_reg = (u8 *)(CAN_BA + 0x1000);

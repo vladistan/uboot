@@ -1,11 +1,25 @@
 /*
  * Copyright (C) 2007 Sergey Kubushyn <ksi@koi8.net>
  *
- * SPDX-License-Identifier:	GPL-2.0+ 
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation; either version 2 of
+ * the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	 See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
+ * MA 02111-1307 USA
  */
 
 #ifndef __CONFIG_H
 #define __CONFIG_H
+#include <asm/sizes.h>
 
 /*
  * Define this to make U-Boot skip low level initialization when loaded
@@ -37,7 +51,8 @@
 /*=======*/
 #define DV_EVM
 #define CONFIG_SYS_NAND_SMALLPAGE
-#define CONFIG_SYS_USE_NAND
+#define CONFIG_SYS_USE_NOR
+#define CONFIG_DISPLAY_CPUINFO
 /*===================*/
 /* SoC Configuration */
 /*===================*/
@@ -58,12 +73,13 @@
 /* Memory Info */
 /*=============*/
 #define CONFIG_SYS_MALLOC_LEN		(0x10000 + 128*1024)	/* malloc() len */
+#define CONFIG_SYS_GBL_DATA_SIZE	128		/* reserved for initial data */
 #define CONFIG_SYS_MEMTEST_START	0x80000000	/* memtest start address */
 #define CONFIG_SYS_MEMTEST_END		0x81000000	/* 16MB RAM test */
 #define CONFIG_NR_DRAM_BANKS	1		/* we have 1 bank of DRAM */
+#define CONFIG_STACKSIZE	(256*1024)	/* regular stack */
 #define PHYS_SDRAM_1		0x80000000	/* DDR Start */
 #define PHYS_SDRAM_1_SIZE	0x10000000	/* DDR size 256MB */
-
 #define DDR_8BANKS				/* 8-bank DDR2 (256MB) */
 /*====================*/
 /* Serial Driver info */
@@ -75,6 +91,7 @@
 #define CONFIG_SYS_NS16550_CLK	CONFIG_SYS_HZ_CLOCK	/* Input clock to NS16550 */
 #define CONFIG_CONS_INDEX	1		/* use UART0 for console */
 #define CONFIG_BAUDRATE		115200		/* Default baud rate */
+#define CONFIG_SYS_BAUDRATE_TABLE	{ 9600, 19200, 38400, 57600, 115200 }
 /*===================*/
 /* I2C Configuration */
 /*===================*/
@@ -87,24 +104,24 @@
 /*==================================*/
 #define CONFIG_DRIVER_TI_EMAC
 #define CONFIG_MII
+#define CONFIG_BOOTP_DEFAULT
 #define CONFIG_BOOTP_DNS
 #define CONFIG_BOOTP_DNS2
 #define CONFIG_BOOTP_SEND_HOSTNAME
 #define CONFIG_NET_RETRY_COUNT	10
+#define CONFIG_NET_MULTI
 /*=====================*/
 /* Flash & Environment */
 /*=====================*/
 #ifdef CONFIG_SYS_USE_NAND
 #define CONFIG_NAND_DAVINCI
-#define CONFIG_SYS_NAND_CS		2
 #undef CONFIG_ENV_IS_IN_FLASH
 #define CONFIG_SYS_NO_FLASH
 #define CONFIG_ENV_IS_IN_NAND		/* U-Boot env in NAND Flash  */
 #ifdef CONFIG_SYS_NAND_SMALLPAGE
 #define CONFIG_ENV_SECT_SIZE	512	/* Env sector Size */
-#define CONFIG_ENV_SIZE		(16 << 10)	/* 16 KiB */
+#define CONFIG_ENV_SIZE		SZ_16K
 #define CONFIG_MTD_PARTITIONS
-#define CONFIG_MTD_DEVICE
 #define CONFIG_CMD_MTDPARTS
 #define MTDIDS_DEFAULT		\
 	"nand0=davinci_nand.0"
@@ -112,19 +129,23 @@
 	"mtdparts=davinci_nand.0:384k(bootloader)ro,4m(kernel),-(filesystem)"
 #else
 #define CONFIG_ENV_SECT_SIZE	2048	/* Env sector Size */
-#define CONFIG_ENV_SIZE		(128 << 10)	/* 128 KiB */
+#define CONFIG_ENV_SIZE		SZ_128K
 #endif
 #define CONFIG_SKIP_LOWLEVEL_INIT	/* U-Boot is loaded by a bootloader */
+#define CONFIG_SKIP_RELOCATE_UBOOT	/* to a proper address, init done */
 #define CONFIG_SYS_NAND_BASE		0x02000000
 #define CONFIG_SYS_NAND_USE_FLASH_BBT
 #define CONFIG_SYS_NAND_HW_ECC
 #define CONFIG_SYS_MAX_NAND_DEVICE	1	/* Max number of NAND devices */
 #define CONFIG_ENV_OFFSET		0x0	/* Block 0--not used by bootcode */
+#define DEF_BOOTM		""
 #elif defined(CONFIG_SYS_USE_NOR)
 #ifdef CONFIG_NOR_UART_BOOT
 #define CONFIG_SKIP_LOWLEVEL_INIT	/* U-Boot is loaded by a bootloader */
+#define CONFIG_SKIP_RELOCATE_UBOOT	/* to a proper address, init done */
 #else
 #undef CONFIG_SKIP_LOWLEVEL_INIT
+#undef CONFIG_SKIP_RELOCATE_UBOOT
 #endif
 #define CONFIG_ENV_IS_IN_FLASH
 #undef CONFIG_SYS_NO_FLASH
@@ -142,6 +163,7 @@
 /*==============================*/
 /* U-Boot general configuration */
 /*==============================*/
+#undef	CONFIG_USE_IRQ			/* No IRQ/FIQ in U-Boot */
 #define CONFIG_MISC_INIT_R
 #undef CONFIG_BOOTDELAY
 #define CONFIG_BOOTFILE		"uImage"	/* Boot file name */
@@ -154,6 +176,7 @@
 #define CONFIG_VERSION_VARIABLE
 #define CONFIG_AUTO_COMPLETE		/* Won't work with hush so far, may be later */
 #define CONFIG_SYS_HUSH_PARSER
+#define CONFIG_SYS_PROMPT_HUSH_PS2	"> "
 #define CONFIG_CMDLINE_EDITING
 #define CONFIG_SYS_LONGHELP
 #define CONFIG_CRC32_VERIFY
@@ -181,11 +204,6 @@
 #define CONFIG_CMD_SAVES
 #define CONFIG_CMD_EEPROM
 #undef CONFIG_CMD_BDI
-
-#ifdef CONFIG_CMD_BDI
-#define CONFIG_CLOCKS
-#endif
-
 #undef CONFIG_CMD_FPGA
 #undef CONFIG_CMD_SETGETDCR
 #ifdef CONFIG_SYS_USE_NAND
@@ -213,13 +231,11 @@
 #define CONFIG_PREBOOT "usb start"
 #endif
 #endif
-
-#define CONFIG_MAX_RAM_BANK_SIZE	(256 << 20)	/* 256 MB */
-
-#define CONFIG_SYS_SDRAM_BASE		PHYS_SDRAM_1
-#define CONFIG_SYS_INIT_RAM_SIZE	0x1000
-#define CONFIG_SYS_INIT_SP_ADDR		(CONFIG_SYS_SDRAM_BASE + \
-					 CONFIG_SYS_INIT_RAM_SIZE - \
-					 GENERATED_GBL_DATA_SIZE)
-
+/*=======================*/
+/* KGDB support (if any) */
+/*=======================*/
+#ifdef CONFIG_CMD_KGDB
+#define CONFIG_KGDB_BAUDRATE	115200	/* speed to run kgdb serial port */
+#define CONFIG_KGDB_SER_INDEX	1	/* which serial port to use */
+#endif
 #endif /* __CONFIG_H */

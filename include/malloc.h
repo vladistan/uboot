@@ -196,7 +196,7 @@
   MORECORE_FAILURE          (default: -1)
      The value returned upon failure of MORECORE.
   MORECORE_CLEARS           (default 1)
-     true (1) if the routine mapped to MORECORE zeroes out memory (which
+     True (1) if the routine mapped to MORECORE zeroes out memory (which
      holds for sbrk).
   DEFAULT_TRIM_THRESHOLD
   DEFAULT_TOP_PAD
@@ -284,6 +284,14 @@ extern "C" {
     detail the assumptions and invariants underlying the algorithms.
 
 */
+
+#ifdef DEBUG
+/* #include <assert.h> */
+#define assert(x) ((void)0)
+#else
+#define assert(x) ((void)0)
+#endif
+
 
 /*
   INTERNAL_SIZE_T is the word-size used for internal bookkeeping
@@ -487,7 +495,7 @@ do {                                                                          \
 ***/
 #undef	HAVE_MREMAP	/* Not available for U-Boot */
 
-#ifdef HAVE_MMAP
+#if HAVE_MMAP
 
 #include <unistd.h>
 #include <fcntl.h>
@@ -587,7 +595,7 @@ do {                                                                          \
 
 /* #define HAVE_USR_INCLUDE_MALLOC_H */
 
-#ifdef HAVE_USR_INCLUDE_MALLOC_H
+#if HAVE_USR_INCLUDE_MALLOC_H
 #include "/usr/include/malloc.h"
 #else
 
@@ -754,7 +762,7 @@ struct mallinfo {
 
 
 #ifndef DEFAULT_MMAP_MAX
-#ifdef HAVE_MMAP
+#if HAVE_MMAP
 #define DEFAULT_MMAP_MAX       (64)
 #else
 #define DEFAULT_MMAP_MAX       (0)
@@ -929,14 +937,6 @@ int     mALLOPt();
 struct mallinfo mALLINFo();
 #endif
 
-/*
- * Begin and End of memory area for malloc(), and current "brk"
- */
-extern ulong mem_malloc_start;
-extern ulong mem_malloc_end;
-extern ulong mem_malloc_brk;
-
-void mem_malloc_init(ulong start, ulong size);
 
 #ifdef __cplusplus
 };  /* end of extern "C" */

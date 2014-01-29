@@ -14,7 +14,23 @@
  * Internal regs are at 0xf0000000
  * Reset jumps to 0x00000100
  *
- * SPDX-License-Identifier:	GPL-2.0+ 
+ * See file CREDITS for list of people who contributed to this
+ * project.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation; either version 2 of
+ * the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	 See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
+ * MA 02111-1307 USA
  */
 
 #ifndef __CONFIG_H
@@ -29,15 +45,10 @@
 #define CONFIG_MPC5200		1	/* More exactly a MPC5200 */
 #define CONFIG_TOP5200		1	/* ... on TOP5200 board - we need this for FEC.C */
 
-/*
- * allowed and functional CONFIG_SYS_TEXT_BASE values:
- * 0xff000000	low boot at 0x00000100 (default board setting)
- * 0xfff00000	high boot at 0xfff00100 (board needs modification)
- * 0x00100000	RAM load and test
- */
-#define	CONFIG_SYS_TEXT_BASE	0xff000000
-
 #define CONFIG_SYS_MPC5XXX_CLKIN	33000000 /* ... running at 33.000000MHz */
+
+#define BOOTFLAG_COLD		0x01	/* Normal Power-On: Boot from FLASH  */
+#define BOOTFLAG_WARM		0x02	/* Software reboot	     */
 
 #define CONFIG_HIGH_BATS	1	/* High BATs supported */
 
@@ -127,11 +138,11 @@
 /*
  * MUST be low boot - HIGHBOOT is not supported anymore
  */
-#if (CONFIG_SYS_TEXT_BASE == 0xFF000000)		/* Boot low with 16 MB Flash */
+#if (TEXT_BASE == 0xFF000000)		/* Boot low with 16 MB Flash */
 #   define CONFIG_SYS_LOWBOOT		1
 #   define CONFIG_SYS_LOWBOOT16	1
 #else
-#   error "CONFIG_SYS_TEXT_BASE must be 0xff000000"
+#   error "TEXT_BASE must be 0xff000000"
 #endif
 
 /*
@@ -184,13 +195,10 @@
 #define CONFIG_ENV_OVERWRITE
 #define CONFIG_MISC_INIT_R
 
-#define CONFIG_SYS_I2C_SOFT		/* I2C bit-banged */
+#undef	CONFIG_HARD_I2C			/* I2C with hardware support */
+#define	CONFIG_SOFT_I2C		1	/* I2C with softwate support */
 
-#if defined(CONFIG_SYS_I2C_SOFT)
-#  define CONFIG_SYS_I2C
-#  define CONFIG_SYS_I2C_SOFT_SPEED	100000
-#  define CONFIG_SYS_I2C_SOFT_SLAVE	0x7F
-/**/
+#if defined (CONFIG_SOFT_I2C)
 #  define SDA0			0x40
 #  define SCL0			0x80
 #  define GPIOE0		*((volatile uchar*)(CONFIG_SYS_MBAR+0x0c00))
@@ -205,7 +213,8 @@
 #  define I2C_DELAY		{udelay(5);}
 #  define I2C_ACTIVE	{DDR0|=SDA0;}
 #  define I2C_TRISTATE	{DDR0&=~SDA0;}
-
+#  define CONFIG_SYS_I2C_SPEED		100000
+#  define CONFIG_SYS_I2C_SLAVE		0x7F
 #define CONFIG_SYS_I2C_EEPROM_ADDR 0x57
 #define CONFIG_SYS_I2C_FACT_ADDR	0x57
 #endif
@@ -283,13 +292,14 @@
 
 /* Use SRAM until RAM will be available */
 #define CONFIG_SYS_INIT_RAM_ADDR	MPC5XXX_SRAM
-#define CONFIG_SYS_INIT_RAM_SIZE	MPC5XXX_SRAM_SIZE	/* Size of used area in DPRAM */
+#define CONFIG_SYS_INIT_RAM_END	MPC5XXX_SRAM_SIZE	/* End of used area in DPRAM */
 
 
-#define CONFIG_SYS_GBL_DATA_OFFSET	(CONFIG_SYS_INIT_RAM_SIZE - GENERATED_GBL_DATA_SIZE)
+#define CONFIG_SYS_GBL_DATA_SIZE	128	/* size in bytes reserved for initial data */
+#define CONFIG_SYS_GBL_DATA_OFFSET	(CONFIG_SYS_INIT_RAM_END - CONFIG_SYS_GBL_DATA_SIZE)
 #define CONFIG_SYS_INIT_SP_OFFSET	CONFIG_SYS_GBL_DATA_OFFSET
 
-#define CONFIG_SYS_MONITOR_BASE    CONFIG_SYS_TEXT_BASE
+#define CONFIG_SYS_MONITOR_BASE    TEXT_BASE
 #if (CONFIG_SYS_MONITOR_BASE < CONFIG_SYS_FLASH_BASE)
 #   define CONFIG_SYS_RAMBOOT		1
 #endif

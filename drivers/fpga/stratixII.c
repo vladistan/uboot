@@ -2,7 +2,24 @@
  * (C) Copyright 2007
  * Eran Liberty, Extricom , eran.liberty@gmail.com
  *
- * SPDX-License-Identifier:	GPL-2.0+
+ * See file CREDITS for list of people who contributed to this
+ * project.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation; either version 2 of
+ * the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	 See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
+ * MA 02111-1307 USA
+ *
  */
 
 #include <common.h>		/* core U-Boot definitions */
@@ -57,6 +74,30 @@ int StratixII_dump (Altera_desc * desc, void *buf, size_t bsize)
 
 int StratixII_info (Altera_desc * desc)
 {
+	return FPGA_SUCCESS;
+}
+
+int StratixII_reloc (Altera_desc * desc, ulong reloc_offset)
+{
+	int i;
+	uint32_t dest = (uint32_t) desc & 0xff000000;
+
+	/* we assume a relocated code and non relocated code has different upper 8 bits */
+	if (dest != ((uint32_t) desc->iface_fns & 0xff000000)) {
+		desc->iface_fns =
+		    (void *)((uint32_t) (desc->iface_fns) + reloc_offset);
+	}
+	for (i = 0; i < sizeof (altera_board_specific_func) / sizeof (void *);
+	     i++) {
+		if (dest !=
+		    ((uint32_t) (((void **)(desc->iface_fns))[i]) & 0xff000000))
+		{
+			((void **)(desc->iface_fns))[i] =
+			    (void
+			     *)(((uint32_t) (((void **)(desc->iface_fns))[i])) +
+				reloc_offset);
+		}
+	}
 	return FPGA_SUCCESS;
 }
 

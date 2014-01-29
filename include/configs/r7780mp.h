@@ -4,7 +4,23 @@
  * Copyright (C) 2007,2008 Nobuhiro Iwamatsu <iwamatsu@nigauri.org>
  * Copyright (C) 2008 Yusuke Goda <goda.yusuke@renesas.com>
  *
- * SPDX-License-Identifier:	GPL-2.0+
+ * See file CREDITS for list of people who contributed to this
+ * project.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation; either version 2 of
+ * the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
+ * MA 02111-1307 USA
  */
 
 #ifndef __R7780RP_H
@@ -44,7 +60,6 @@
 /* check for keypress on bootdelay==0 */
 /*#define CONFIG_ZERO_BOOTDELAY_CHECK*/
 
-#define CONFIG_SYS_TEXT_BASE		0x0FFC0000
 #define CONFIG_SYS_SDRAM_BASE		(0x08000000)
 #define CONFIG_SYS_SDRAM_SIZE		(128 * 1024 * 1024)
 
@@ -54,9 +69,11 @@
 #define CONFIG_SYS_PBSIZE		256
 #define CONFIG_SYS_MAXARGS		16
 #define CONFIG_SYS_BARGSIZE	512
+/* List of legal baudrate settings for this board */
+#define CONFIG_SYS_BAUDRATE_TABLE	{ 115200, 57600, 38400, 19200, 9600 }
 
 #define CONFIG_SYS_MEMTEST_START	(CONFIG_SYS_SDRAM_BASE)
-#define CONFIG_SYS_MEMTEST_END		(CONFIG_SYS_TEXT_BASE - 0x100000)
+#define CONFIG_SYS_MEMTEST_END		(TEXT_BASE - 0x100000)
 
 /* Flash board support */
 #define CONFIG_SYS_FLASH_BASE		(0xA0000000)
@@ -83,6 +100,8 @@
 /* Size of DRAM reserved for malloc() use */
 #define CONFIG_SYS_MALLOC_LEN		(1204 * 1024)
 
+/* size in bytes reserved for initial data */
+#define CONFIG_SYS_GBL_DATA_SIZE	(256)
 #define CONFIG_SYS_BOOTMAPSZ		(8 * 1024 * 1024)
 #define CONFIG_SYS_RX_ETH_BUFFER	(8)
 
@@ -132,9 +151,11 @@
 
 #if defined(CONFIG_CMD_NET)
 /*
+#define CONFIG_NET_MULTI
 #define CONFIG_RTL8169
 */
-/* AX88796L Support(NE2000 base chip) */
+/* AX88696L Support(NE2000 base chip) */
+#define CONFIG_DRIVER_NE2000
 #define CONFIG_DRIVER_AX88796L
 #define CONFIG_DRIVER_NE2000_BASE	0xA4100000
 #endif
@@ -150,7 +171,6 @@
 #define CONFIG_SYS_ATA_DATA_OFFSET     0x1000          /* data reg offset */
 #define CONFIG_SYS_ATA_REG_OFFSET      0x1000          /* reg offset */
 #define CONFIG_SYS_ATA_ALT_OFFSET      0x800           /* alternate register offset */
-#define CONFIG_IDE_SWAP_IO
 #endif /* CONFIG_CMD_IDE */
 
 #endif /* __R7780RP_H */

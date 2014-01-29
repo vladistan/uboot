@@ -1,7 +1,13 @@
 /*
  * Copyright (C) 2006-2009 Freescale Semiconductor, Inc.
  *
- * SPDX-License-Identifier:	GPL-2.0+
+ * See file CREDITS for list of people who contributed to this
+ * project.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation; either version 2 of
+ * the License, or (at your option) any later version.
  */
 
 #include <asm/mmu.h>
@@ -12,7 +18,7 @@
 #include <i2c.h>
 #include <fdt_support.h>
 #include <asm/fsl_i2c.h>
-#include <asm/fsl_mpc83xx_serdes.h>
+#include <asm/fsl_serdes.h>
 
 static struct pci_region pci_regions[] = {
 	{
@@ -102,7 +108,7 @@ void pci_init_board(void)
 
 	udelay(2000);
 
-	mpc83xx_pci_init(1, reg);
+	mpc83xx_pci_init(1, reg, 0);
 skip_pci:
 	/* There is no PEX in MPC8379 parts. */
 	if (PARTID_NO_E(spridr) == SPR_8379)
@@ -132,7 +138,7 @@ skip_pci:
 	out_be32(&pcie_law[1].bar, CONFIG_SYS_PCIE2_BASE & LAWBAR_BAR);
 	out_be32(&pcie_law[1].ar, LBLAWAR_EN | LBLAWAR_512MB);
 
-	mpc83xx_pcie_init(pex2 ? 1 : 2, pcie_reg);
+	mpc83xx_pcie_init(pex2 ? 1 : 2, pcie_reg, 0);
 }
 
 void ft_pcie_fixup(void *blob, bd_t *bd)

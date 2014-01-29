@@ -2,7 +2,23 @@
  * (C) Copyright 2000
  * Wolfgang Denk, DENX Software Engineering, wd@denx.de.
  *
- * SPDX-License-Identifier:	GPL-2.0+
+ * See file CREDITS for list of people who contributed to this
+ * project.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation; either version 2 of
+ * the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
+ * MA 02111-1307 USA
  */
 
 /*
@@ -105,8 +121,10 @@ int do_flerase(cmd_tbl_t *cmdtp, bd_t *bd, int flag, int argc, char *argv[])
 	int n, sect_first, sect_last;
 	int rcode = 0;
 
-	if (argc < 2)
-		return cmd_usage(cmdtp);
+	if (argc < 2) {
+		cmd_usage(cmdtp);
+		return 1;
+	}
 
 	if (strcmp(argv[1], "all") == 0) {
 		for (bank=1; bank<=CONFIG_SYS_MAX_FLASH_BANKS; ++bank) {
@@ -128,8 +146,10 @@ int do_flerase(cmd_tbl_t *cmdtp, bd_t *bd, int flag, int argc, char *argv[])
 		return rcode;
 	}
 
-	if (argc != 3)
-		return cmd_usage(cmdtp);
+	if (argc != 3) {
+		cmd_usage(cmdtp);
+		return 1;
+	}
 
 	if (strcmp(argv[1], "bank") == 0) {
 		bank = simple_strtoul(argv[2], NULL, 16);
@@ -147,8 +167,10 @@ int do_flerase(cmd_tbl_t *cmdtp, bd_t *bd, int flag, int argc, char *argv[])
 	addr_first = simple_strtoul(argv[1], NULL, 16);
 	addr_last  = simple_strtoul(argv[2], NULL, 16);
 
-	if (addr_first >= addr_last)
-		return cmd_usage(cmdtp);
+	if (addr_first >= addr_last) {
+		cmd_usage(cmdtp);
+		return 1;
+	}
 
 	printf ("Erase Flash from 0x%08lx to 0x%08lx ", addr_first, addr_last);
 	rcode = flash_sect_erase(addr_first, addr_last);
@@ -221,15 +243,19 @@ int do_protect(cmd_tbl_t *cmdtp, bd_t *bd, int flag, int argc, char *argv[])
 	int i, p, n, sect_first, sect_last;
 	int rcode = 0;
 
-	if (argc < 3)
-		return cmd_usage(cmdtp);
+	if (argc < 3) {
+		cmd_usage(cmdtp);
+		return 1;
+	}
 
 	if (strcmp(argv[1], "off") == 0)
 		p = 0;
 	else if (strcmp(argv[1], "on") == 0)
 		p = 1;
-	else
-		return cmd_usage(cmdtp);
+	else {
+		cmd_usage(cmdtp);
+		return 1;
+	}
 
 	if (strcmp(argv[2], "all") == 0) {
 		for (bank=1; bank<=CONFIG_SYS_MAX_FLASH_BANKS; ++bank) {
@@ -283,8 +309,10 @@ int do_protect(cmd_tbl_t *cmdtp, bd_t *bd, int flag, int argc, char *argv[])
 		return rcode;
 	}
 
-	if (argc != 4)
-		return cmd_usage(cmdtp);
+	if (argc != 4) {
+		cmd_usage(cmdtp);
+		return 1;
+	}
 
 	if (strcmp(argv[2], "bank") == 0) {
 		bank = simple_strtoul(argv[3], NULL, 16);
@@ -312,8 +340,7 @@ int do_protect(cmd_tbl_t *cmdtp, bd_t *bd, int flag, int argc, char *argv[])
 		}
 
 #if defined(CONFIG_SYS_FLASH_PROTECTION)
-		if (!rcode)
-			puts(" done\n");
+		if (!rcode) puts (" done\n");
 #endif	/* CONFIG_SYS_FLASH_PROTECTION */
 
 		return rcode;
@@ -322,10 +349,12 @@ int do_protect(cmd_tbl_t *cmdtp, bd_t *bd, int flag, int argc, char *argv[])
 	addr_first = simple_strtoul(argv[2], NULL, 16);
 	addr_last  = simple_strtoul(argv[3], NULL, 16);
 
-	if (addr_first >= addr_last)
-		return cmd_usage(cmdtp);
-
-	return flash_sect_protect (p, addr_first, addr_last);
+	if (addr_first >= addr_last) {
+		cmd_usage(cmdtp);
+		return 1;
+	}
+	rcode = flash_sect_protect (p, addr_first, addr_last);
+	return rcode;
 }
 int flash_sect_protect (int p, ulong addr_first, ulong addr_last)
 {

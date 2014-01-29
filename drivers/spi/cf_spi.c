@@ -6,7 +6,23 @@
  * Copyright (C) 2004-2009 Freescale Semiconductor, Inc.
  * TsiChung Liew (Tsi-Chung.Liew@freescale.com)
  *
- * SPDX-License-Identifier:	GPL-2.0+
+ * See file CREDITS for list of people who contributed to this
+ * project.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation; either version 2 of
+ * the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
+ * MA 02111-1307 USA
  */
 
 #include <common.h>
@@ -32,14 +48,6 @@ extern int cfspi_claim_bus(uint bus, uint cs);
 extern void cfspi_release_bus(uint bus, uint cs);
 
 DECLARE_GLOBAL_DATA_PTR;
-
-#ifndef CONFIG_SPI_IDLE_VAL
-#if defined(CONFIG_SPI_MMC)
-#define CONFIG_SPI_IDLE_VAL	0xFFFF
-#else
-#define CONFIG_SPI_IDLE_VAL	0x0
-#endif
-#endif
 
 #if defined(CONFIG_CF_DSPI)
 /* DSPI specific mode */
@@ -137,7 +145,7 @@ int cfspi_xfer(struct spi_slave *slave, uint bitlen, const void *dout,
 			}
 
 			if (din != NULL) {
-				cfspi_tx(ctrl, CONFIG_SPI_IDLE_VAL);
+				cfspi_tx(ctrl, 0);
 				if (cfslave->charbit == 16)
 					*spi_rd16++ = cfspi_rx();
 				else
@@ -161,7 +169,7 @@ int cfspi_xfer(struct spi_slave *slave, uint bitlen, const void *dout,
 		}
 
 		if (din != NULL) {
-			cfspi_tx(ctrl, CONFIG_SPI_IDLE_VAL);
+			cfspi_tx(ctrl, 0);
 			if (cfslave->charbit == 16)
 				*spi_rd16 = cfspi_rx();
 			else
@@ -169,7 +177,7 @@ int cfspi_xfer(struct spi_slave *slave, uint bitlen, const void *dout,
 		}
 	} else {
 		/* dummy read */
-		cfspi_tx(ctrl, CONFIG_SPI_IDLE_VAL);
+		cfspi_tx(ctrl, 0);
 		cfspi_rx();
 	}
 
@@ -314,10 +322,12 @@ struct spi_slave *spi_setup_slave(unsigned int bus, unsigned int cs,
 	if (!spi_cs_is_valid(bus, cs))
 		return NULL;
 
-	cfslave = spi_alloc_slave(struct cf_spi_slave, bus, cs);
+	cfslave = malloc(sizeof(struct cf_spi_slave));
 	if (!cfslave)
 		return NULL;
 
+	cfslave->slave.bus = bus;
+	cfslave->slave.cs = cs;
 	cfslave->baudrate = max_hz;
 
 	/* specific setup */

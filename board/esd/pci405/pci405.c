@@ -2,7 +2,23 @@
  * (C) Copyright 2001-2004
  * Stefan Roese, esd gmbh germany, stefan.roese@esd-electronics.com
  *
- * SPDX-License-Identifier:	GPL-2.0+
+ * See file CREDITS for list of people who contributed to this
+ * project.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation; either version 2 of
+ * the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
+ * MA 02111-1307 USA
  */
 
 #include <common.h>
@@ -18,6 +34,8 @@
 DECLARE_GLOBAL_DATA_PTR;
 
 /* Prototypes */
+int gunzip(void *, int, unsigned char *, unsigned long *);
+int do_reset (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[]);
 unsigned long fpga_done_state(void);
 unsigned long fpga_init_state(void);
 
@@ -49,7 +67,7 @@ const unsigned char fpgadata[] =
 
 int board_revision(void)
 {
-	unsigned long CPC0_CR0Reg;
+	unsigned long cntrl0Reg;
 	unsigned long value;
 
 	/*
@@ -59,8 +77,8 @@ int board_revision(void)
 	/*
 	 * Setup GPIO pins (CS2/GPIO11 and CS3/GPIO12 as GPIO)
 	 */
-	CPC0_CR0Reg = mfdcr(CPC0_CR0);
-	mtdcr(CPC0_CR0, CPC0_CR0Reg | 0x03000000);
+	cntrl0Reg = mfdcr(cntrl0);
+	mtdcr(cntrl0, cntrl0Reg | 0x03000000);
 	out_be32((void*)GPIO0_ODR, in_be32((void*)GPIO0_ODR) & ~0x00100200);
 	out_be32((void*)GPIO0_TCR, in_be32((void*)GPIO0_TCR) & ~0x00100200);
 	udelay(1000);                   /* wait some time before reading input */
@@ -69,7 +87,7 @@ int board_revision(void)
 	/*
 	 * Restore GPIO settings
 	 */
-	mtdcr(CPC0_CR0, CPC0_CR0Reg);
+	mtdcr(cntrl0, cntrl0Reg);
 
 	switch (value) {
 	case 0x00100200:
@@ -115,7 +133,7 @@ unsigned long fpga_init_state(void)
 
 int board_early_init_f (void)
 {
-	unsigned long CPC0_CR0Reg;
+	unsigned long cntrl0Reg;
 
 	/*
 	 * First pull fpga-prg pin low, to disable fpga logic (on version 1.2 board)
@@ -137,29 +155,29 @@ int board_early_init_f (void)
 	 * IRQ 30 (EXT IRQ 5) FPGA Timestamp; active low; level sensitive
 	 * IRQ 31 (EXT IRQ 6) PCI Reset; active low; level sensitive
 	 */
-	mtdcr(UIC0SR, 0xFFFFFFFF);        /* clear all ints */
-	mtdcr(UIC0ER, 0x00000000);        /* disable all ints */
-	mtdcr(UIC0CR, 0x00000000);        /* set all to be non-critical*/
-	mtdcr(UIC0PR, 0xFFFFFF80);        /* set int polarities */
-	mtdcr(UIC0TR, 0x10000000);        /* set int trigger levels */
-	mtdcr(UIC0VCR, 0x00000001);       /* set vect base=0,INT0 highest priority*/
-	mtdcr(UIC0SR, 0xFFFFFFFF);        /* clear all ints */
+	mtdcr(uicsr, 0xFFFFFFFF);        /* clear all ints */
+	mtdcr(uicer, 0x00000000);        /* disable all ints */
+	mtdcr(uiccr, 0x00000000);        /* set all to be non-critical*/
+	mtdcr(uicpr, 0xFFFFFF80);        /* set int polarities */
+	mtdcr(uictr, 0x10000000);        /* set int trigger levels */
+	mtdcr(uicvcr, 0x00000001);       /* set vect base=0,INT0 highest priority*/
+	mtdcr(uicsr, 0xFFFFFFFF);        /* clear all ints */
 
 	/*
 	 * Setup GPIO pins (IRQ4/GPIO21 as GPIO)
 	 */
-	CPC0_CR0Reg = mfdcr(CPC0_CR0);
-	mtdcr(CPC0_CR0, CPC0_CR0Reg | 0x00008000);
+	cntrl0Reg = mfdcr(cntrl0);
+	mtdcr(cntrl0, cntrl0Reg | 0x00008000);
 
 	/*
 	 * Setup GPIO pins (CS6+CS7 as GPIO)
 	 */
-	mtdcr(CPC0_CR0, CPC0_CR0Reg | 0x00300000);
+	mtdcr(cntrl0, cntrl0Reg | 0x00300000);
 
 	/*
 	 * EBC Configuration Register: set ready timeout to 512 ebc-clks -> ca. 25 us
 	 */
-	mtebc (EBC0_CFG, 0xa8400000); /* ebc always driven */
+	mtebc (epcr, 0xa8400000); /* ebc always driven */
 
 	return 0;
 }
@@ -253,7 +271,7 @@ int misc_init_r (void)
 				pci_write_config_dword(PCIDEVID_405GP, i, *ptr++);
 			}
 		}
-		mtdcr(UIC0SR, 0xFFFFFFFF);        /* clear all ints */
+		mtdcr(uicsr, 0xFFFFFFFF);        /* clear all ints */
 
 		*magic = 0;      /* clear pci reconfig magic again */
 	}
@@ -264,10 +282,11 @@ int misc_init_r (void)
 #define PCI0_BRDGOPT1 0x4a
 	pci_write_config_word(PCIDEVID_405GP, PCI0_BRDGOPT1, 0x3f20);
 
+#define plb0_acr      0x87
 	/*
 	 * Enable fairness and high bus utilization
 	 */
-	mtdcr(PLB0_ACR, 0x98000000);
+	mtdcr(plb0_acr, 0x98000000);
 
 	free(dst);
 	return (0);
@@ -280,7 +299,7 @@ int misc_init_r (void)
 int checkboard (void)
 {
 	char str[64];
-	int i = getenv_f("serial#", str, sizeof(str));
+	int i = getenv_r ("serial#", str, sizeof(str));
 
 	puts ("Board: ");
 
@@ -294,14 +313,14 @@ int checkboard (void)
 	printf(" (Rev 1.%ld", gd->board_type);
 
 	if (gd->board_type >= 2) {
-		unsigned long CPC0_CR0Reg;
+		unsigned long cntrl0Reg;
 		unsigned long value;
 
 		/*
 		 * Setup GPIO pins (Trace/GPIO1 to GPIO)
 		 */
-		CPC0_CR0Reg = mfdcr(CPC0_CR0);
-		mtdcr(CPC0_CR0, CPC0_CR0Reg & ~0x08000000);
+		cntrl0Reg = mfdcr(cntrl0);
+		mtdcr(cntrl0, cntrl0Reg & ~0x08000000);
 		out_be32((void*)GPIO0_ODR, in_be32((void*)GPIO0_ODR) & ~0x40000000);
 		out_be32((void*)GPIO0_TCR, in_be32((void*)GPIO0_TCR) & ~0x40000000);
 		udelay(1000);                   /* wait some time before reading input */
@@ -338,7 +357,7 @@ int wpeeprom(int wp)
 	return wp_state;
 }
 
-int do_wpeeprom(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
+int do_wpeeprom(cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 {
 	int wp = -1;
 	if (argc >= 2) {

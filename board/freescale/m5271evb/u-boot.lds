@@ -2,21 +2,72 @@
  * (C) Copyright 2000
  * Wolfgang Denk, DENX Software Engineering, wd@denx.de.
  *
- * SPDX-License-Identifier:	GPL-2.0+
+ * See file CREDITS for list of people who contributed to this
+ * project.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation; either version 2 of
+ * the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
+ * MA 02111-1307 USA
  */
 
 OUTPUT_ARCH(m68k)
-
+/* Do we need any of these for elf?
+   __DYNAMIC = 0;    */
+GROUP(libgcc.a)
 SECTIONS
 {
+  /* Read-only sections, merged into text segment: */
+  . = + SIZEOF_HEADERS;
+  .interp : { *(.interp) }
+  .hash          : { *(.hash)		}
+  .dynsym        : { *(.dynsym)		}
+  .dynstr        : { *(.dynstr)		}
+  .rel.text      : { *(.rel.text)		}
+  .rela.text     : { *(.rela.text)	}
+  .rel.data      : { *(.rel.data)		}
+  .rela.data     : { *(.rela.data)	}
+  .rel.rodata    : { *(.rel.rodata)	}
+  .rela.rodata   : { *(.rela.rodata)	}
+  .rel.got       : { *(.rel.got)		}
+  .rela.got      : { *(.rela.got)		}
+  .rel.ctors     : { *(.rel.ctors)	}
+  .rela.ctors    : { *(.rela.ctors)	}
+  .rel.dtors     : { *(.rel.dtors)	}
+  .rela.dtors    : { *(.rela.dtors)	}
+  .rel.bss       : { *(.rel.bss)		}
+  .rela.bss      : { *(.rela.bss)		}
+  .rel.plt       : { *(.rel.plt)		}
+  .rela.plt      : { *(.rela.plt)		}
+  .init          : { *(.init)	}
+  .plt : { *(.plt) }
   .text      :
   {
-    arch/m68k/cpu/mcf52x2/start.o		(.text*)
+    /* WARNING - the following is hand-optimized to fit within	*/
+    /* the sector layout of our flash chips!	XXX FIXME XXX	*/
+
+    cpu/mcf52x2/start.o		(.text)
+    lib_m68k/traps.o		(.text)
+    cpu/mcf52x2/interrupts.o	(.text)
+    common/dlmalloc.o		(.text)
+    lib_generic/zlib.o		(.text)
 
     . = DEFINED(env_offset) ? env_offset : .;
     common/env_embedded.o	(.ppcenv)
 
-    *(.text*)
+    *(.text)
+    *(.fixup)
+    *(.got1)
   }
   _etext = .;
   PROVIDE (etext = .);
@@ -24,6 +75,9 @@ SECTIONS
   {
     *(SORT_BY_ALIGNMENT(SORT_BY_NAME(.rodata*)))
   }
+  .fini      : { *(.fini)    } =0
+  .ctors     : { *(.ctors)   }
+  .dtors     : { *(.dtors)   }
 
   /* Read-write section, merged into data segment: */
   . = (. + 0x00FF) & 0xFFFFFF00;
@@ -33,30 +87,33 @@ SECTIONS
   .reloc   :
   {
     __got_start = .;
-    KEEP(*(.got))
+    *(.got)
     __got_end = .;
     _GOT2_TABLE_ = .;
-    KEEP(*(.got2))
+    *(.got2)
     _FIXUP_TABLE_ = .;
-    KEEP(*(.fixup))
+    *(.fixup)
   }
   __got2_entries = (_FIXUP_TABLE_ - _GOT2_TABLE_) >>2;
   __fixup_entries = (. - _FIXUP_TABLE_)>>2;
 
   .data    :
   {
-    *(.data*)
-    *(.sdata*)
+    *(.data)
+    *(.data1)
+    *(.sdata)
+    *(.sdata2)
+    *(.dynamic)
+    CONSTRUCTORS
   }
   _edata  =  .;
   PROVIDE (edata = .);
 
   . = .;
+  __u_boot_cmd_start = .;
+  .u_boot_cmd : { *(.u_boot_cmd) }
+  __u_boot_cmd_end = .;
 
-  . = ALIGN(4);
-  .u_boot_list : {
-	KEEP(*(SORT(.u_boot_list*)));
-  }
 
   . = .;
   __start___ex_table = .;
@@ -71,15 +128,16 @@ SECTIONS
   __init_end = .;
 
   __bss_start = .;
-  .bss (NOLOAD)      :
+  .bss (NOLOAD)       :
   {
    _sbss = .;
-   *(.bss*)
-   *(.sbss*)
+   *(.sbss) *(.scommon)
+   *(.dynbss)
+   *(.bss)
    *(COMMON)
    . = ALIGN(4);
    _ebss = .;
   }
-  __bss_end = . ;
+  _end = . ;
   PROVIDE (end = .);
 }

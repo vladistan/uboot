@@ -10,7 +10,23 @@
  * (C) Copyright 2009 Semihalf
  * Optimized for digsyMTC by: Grzegorz Bernacki <gjb@semihalf.com>
  *
- * SPDX-License-Identifier:	GPL-2.0+
+ * See file CREDITS for list of people who contributed to this
+ * project.
+ *
+ * This program is free software\; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation\; either version 2 of
+ * the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY\; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program\; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
+ * MA 02111-1307 USA
  */
 
 #ifndef __CONFIG_H
@@ -24,17 +40,10 @@
 #define CONFIG_MPC5200		1	/* (more precisely an MPC5200 CPU) */
 #define CONFIG_DIGSY_MTC	1	/* ... on InterControl digsyMTC board */
 
-/*
- * Valid values for CONFIG_SYS_TEXT_BASE are:
- * 0xFFF00000	boot high (standard configuration)
- * 0xFE000000	boot low
- * 0x00100000	boot from RAM (for testing only)
- */
-#ifndef CONFIG_SYS_TEXT_BASE
-#define CONFIG_SYS_TEXT_BASE	0xFFF00000	/* Standard: boot high */
-#endif
-
 #define CONFIG_SYS_MPC5XXX_CLKIN	33000000
+
+#define BOOTFLAG_COLD		0x01
+#define BOOTFLAG_WARM		0x02
 
 #define CONFIG_SYS_CACHELINE_SIZE	32
 
@@ -54,7 +63,6 @@
 #define CONFIG_PCI		1
 #define CONFIG_PCI_PNP		1
 #define CONFIG_PCI_SCAN_SHOW	1
-#define CONFIG_PCI_BOOTDELAY	250
 
 #define CONFIG_PCI_MEM_BUS	0x40000000
 #define CONFIG_PCI_MEM_PHYS	CONFIG_PCI_MEM_BUS
@@ -71,38 +79,11 @@
 #define CONFIG_BZIP2
 
 /*
- * Video
- */
-#define CONFIG_VIDEO
-
-#ifdef CONFIG_VIDEO
-#define CONFIG_VIDEO_MB862xx
-#define CONFIG_VIDEO_MB862xx_ACCEL
-#define CONFIG_VIDEO_CORALP
-#define CONFIG_CFB_CONSOLE
-#define CONFIG_VIDEO_LOGO
-#define CONFIG_VIDEO_BMP_LOGO
-#define CONFIG_VIDEO_SW_CURSOR
-#define CONFIG_VGA_AS_SINGLE_DEVICE
-#define CONFIG_SYS_CONSOLE_IS_IN_ENV
-#define CONFIG_SPLASH_SCREEN
-#define CONFIG_VIDEO_BMP_GZIP
-#define CONFIG_SYS_VIDEO_LOGO_MAX_SIZE	(2 << 20)	/* decompressed img */
-
-/* Coral-PA clock frequency, geo and other both 133MHz */
-#define CONFIG_SYS_MB862xx_CCF	0x00050000
-/* Video SDRAM parameters */
-#define CONFIG_SYS_MB862xx_MMR	0x11d7fa72
-#endif
-
-/*
  * Command line configuration.
  */
 #include <config_cmd_default.h>
 
-#ifdef CONFIG_VIDEO
-#define CONFIG_CMD_BMP
-#endif
+#define CONFIG_CMD_DFL
 #define CONFIG_CMD_CACHE
 #define CONFIG_CMD_DATE
 #define CONFIG_CMD_DHCP
@@ -122,7 +103,7 @@
 #define CONFIG_CMD_SPI
 #define CONFIG_CMD_USB
 
-#if (CONFIG_SYS_TEXT_BASE == 0xFF000000)
+#if (TEXT_BASE == 0xFF000000)
 #define CONFIG_SYS_LOWBOOT	1
 #endif
 
@@ -261,16 +242,8 @@
 /*
  * RTC configuration
  */
-#if defined(CONFIG_DIGSY_REV5)
-#define CONFIG_SYS_I2C_RTC_ADDR	0x56
-#define CONFIG_RTC_RV3029
-/* Enable 5k Ohm trickle charge resistor */
-#define CONFIG_SYS_RV3029_TCR	0x20
-#else
 #define CONFIG_RTC_DS1337
 #define CONFIG_SYS_I2C_RTC_ADDR	0x68
-#define CONFIG_SYS_DS1339_TCR_VAL	0xAB	/* diode + 4k resistor */
-#endif
 
 /*
  * Flash configuration
@@ -278,24 +251,14 @@
 #define	CONFIG_SYS_FLASH_CFI		1
 #define	CONFIG_FLASH_CFI_DRIVER	1
 
-#if defined(CONFIG_DIGSY_REV5)
-#define CONFIG_SYS_FLASH_BASE		0xFE000000
-#define CONFIG_SYS_FLASH_BASE_CS1	0xFC000000
-#define CONFIG_SYS_MAX_FLASH_BANKS	2
-#define CONFIG_SYS_FLASH_BANKS_LIST	{ CONFIG_SYS_FLASH_BASE, \
-					CONFIG_SYS_FLASH_BASE_CS1}
-#define CONFIG_SYS_UPDATE_FLASH_SIZE
-#define CONFIG_FDT_FIXUP_NOR_FLASH_SIZE
-#else
 #define CONFIG_SYS_FLASH_BASE		0xFF000000
-#define CONFIG_SYS_MAX_FLASH_BANKS	1
-#define CONFIG_SYS_FLASH_BANKS_LIST	{ CONFIG_SYS_FLASH_BASE }
-#endif
+#define CONFIG_SYS_FLASH_SIZE	0x01000000
 
+#define CONFIG_SYS_MAX_FLASH_BANKS	1
 #define CONFIG_SYS_MAX_FLASH_SECT	256
 #define CONFIG_FLASH_16BIT
 #define CONFIG_SYS_FLASH_CFI_WIDTH FLASH_CFI_16BIT
-#define CONFIG_SYS_FLASH_SIZE	0x01000000
+#define CONFIG_SYS_FLASH_BANKS_LIST	{ CONFIG_SYS_FLASH_BASE }
 #define CONFIG_SYS_FLASH_ERASE_TOUT	240000
 #define CONFIG_SYS_FLASH_WRITE_TOUT	500
 
@@ -337,13 +300,14 @@
  *  Use SRAM until RAM will be available
  */
 #define CONFIG_SYS_INIT_RAM_ADDR	MPC5XXX_SRAM
-#define CONFIG_SYS_INIT_RAM_SIZE		MPC5XXX_SRAM_SIZE
+#define CONFIG_SYS_INIT_RAM_END		MPC5XXX_SRAM_SIZE
 
+#define CONFIG_SYS_GBL_DATA_SIZE	4096
 #define CONFIG_SYS_GBL_DATA_OFFSET	\
-	(CONFIG_SYS_INIT_RAM_SIZE - GENERATED_GBL_DATA_SIZE)
+	(CONFIG_SYS_INIT_RAM_END - CONFIG_SYS_GBL_DATA_SIZE)
 #define CONFIG_SYS_INIT_SP_OFFSET	CONFIG_SYS_GBL_DATA_OFFSET
 
-#define CONFIG_SYS_MONITOR_BASE	CONFIG_SYS_TEXT_BASE
+#define CONFIG_SYS_MONITOR_BASE	TEXT_BASE
 #if (CONFIG_SYS_MONITOR_BASE < CONFIG_SYS_FLASH_BASE)
 #define CONFIG_SYS_RAMBOOT		1
 #endif
@@ -357,11 +321,7 @@
  */
 #define CONFIG_MPC5xxx_FEC	1
 #define CONFIG_MPC5xxx_FEC_MII100
-#if defined(CONFIG_DIGSY_REV5)
-#define CONFIG_PHY_ADDR		0x01
-#else
 #define CONFIG_PHY_ADDR		0x00
-#endif
 #define CONFIG_PHY_RESET_DELAY	1000
 
 #define CONFIG_NETCONSOLE		/* include NetConsole support	*/
@@ -395,6 +355,7 @@
 #define CONFIG_CMDLINE_EDITING	1
 #define CONFIG_SYS_PROMPT	"=> "
 #define CONFIG_SYS_HUSH_PARSER
+#define CONFIG_SYS_PROMPT_HUSH_PS2	"> "
 
 #define CONFIG_AUTOBOOT_KEYED
 #define CONFIG_AUTOBOOT_PROMPT "autoboot in %d seconds\n", bootdelay
@@ -440,12 +401,6 @@
 #define CONFIG_SYS_CS0_START		CONFIG_SYS_FLASH_BASE
 #define CONFIG_SYS_CS0_SIZE		CONFIG_SYS_FLASH_SIZE
 #define CONFIG_SYS_CS0_CFG		0x0002DD00
-
-#if defined(CONFIG_DIGSY_REV5)
-#define CONFIG_SYS_CS1_START		CONFIG_SYS_FLASH_BASE_CS1
-#define CONFIG_SYS_CS1_SIZE		CONFIG_SYS_FLASH_SIZE
-#define CONFIG_SYS_CS1_CFG		0x0002DD00
-#endif
 
 #define CONFIG_SYS_CS_BURST		0x00000000
 #define CONFIG_SYS_CS_DEADCYCLE	0x11111111

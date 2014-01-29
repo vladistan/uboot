@@ -2,7 +2,23 @@
  * (C) Copyright 2005
  * Matthias Fuchs, esd gmbh germany, matthias.fuchs@esd-electronics.com
  *
- * SPDX-License-Identifier:	GPL-2.0+ 
+ * See file CREDITS for list of people who contributed to this
+ * project.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation; either version 2 of
+ * the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	 See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
+ * MA 02111-1307 USA
  */
 
 #include <common.h>
@@ -15,13 +31,13 @@ DECLARE_GLOBAL_DATA_PTR;
 
 int board_early_init_f (void)
 {
-	unsigned long CPC0_CR0Reg;
+	unsigned long cntrl0Reg;
 
 	/*
 	 * Setup GPIO pins
 	 */
-	CPC0_CR0Reg = mfdcr(CPC0_CR0);
-	mtdcr(CPC0_CR0, CPC0_CR0Reg |
+	cntrl0Reg = mfdcr(cntrl0);
+	mtdcr(cntrl0, cntrl0Reg |
 	      ((CONFIG_SYS_EEPROM_WP | CONFIG_SYS_PB_LED |
 		CONFIG_SYS_SELF_RST | CONFIG_SYS_INTA_FAKE) << 5));
 
@@ -42,21 +58,21 @@ int board_early_init_f (void)
 	 * IRQ 30 (EXT IRQ 5) PCI SLOT 3; active low; level sensitive
 	 * IRQ 31 (EXT IRQ 6) unused
 	 */
-	mtdcr(UIC0SR, 0xFFFFFFFF);	/* clear all ints */
-	mtdcr(UIC0ER, 0x00000000);	/* disable all ints */
-	mtdcr(UIC0CR, 0x00000000);	/* set all to be non-critical*/
-	mtdcr(UIC0PR, 0xFFFFFF81);	/* set int polarities */
+	mtdcr(uicsr, 0xFFFFFFFF);	/* clear all ints */
+	mtdcr(uicer, 0x00000000);	/* disable all ints */
+	mtdcr(uiccr, 0x00000000);	/* set all to be non-critical*/
+	mtdcr(uicpr, 0xFFFFFF81);	/* set int polarities */
 
-	mtdcr(UIC0TR, 0x10000000);	/* set int trigger levels */
-	mtdcr(UIC0VCR, 0x00000001);	/* set vect base=0,INT0 highest priority*/
-	mtdcr(UIC0SR, 0xFFFFFFFF);	/* clear all ints */
+	mtdcr(uictr, 0x10000000);	/* set int trigger levels */
+	mtdcr(uicvcr, 0x00000001);	/* set vect base=0,INT0 highest priority*/
+	mtdcr(uicsr, 0xFFFFFFFF);	/* clear all ints */
 
 	return 0;
 }
 
 int misc_init_r (void)
 {
-	unsigned long CPC0_CR0Reg;
+	unsigned long cntrl0Reg;
 
 	/* adjust flash start and offset */
 	gd->bd->bi_flashstart = 0 - gd->bd->bi_flashsize;
@@ -65,8 +81,8 @@ int misc_init_r (void)
 	/*
 	 * Select cts (and not dsr) on uart1
 	 */
-	CPC0_CR0Reg = mfdcr(CPC0_CR0);
-	mtdcr(CPC0_CR0, CPC0_CR0Reg | 0x00001000);
+	cntrl0Reg = mfdcr(cntrl0);
+	mtdcr(cntrl0, cntrl0Reg | 0x00001000);
 
 	return (0);
 }
@@ -78,7 +94,7 @@ int misc_init_r (void)
 int checkboard (void)
 {
 	char str[64];
-	int i = getenv_f("serial#", str, sizeof(str));
+	int i = getenv_r ("serial#", str, sizeof(str));
 
 	puts ("Board: ");
 
@@ -133,7 +149,7 @@ int eeprom_write_enable (unsigned dev_addr, int state) {
 #endif
 
 #if defined(CONFIG_SYS_EEPROM_WREN)
-int do_eep_wren (cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
+int do_eep_wren (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 {
 	int query = argc == 1;
 	int state = 0;

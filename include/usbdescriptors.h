@@ -13,7 +13,20 @@
  *	Tom Rushworth <tbr@lineo.com>,
  *	Bruce Balden <balden@lineo.com>
  *
- * SPDX-License-Identifier:	GPL-2.0+
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	 See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ *
  */
 
 /* USB Descriptors - Create a complete description of all of the
@@ -227,21 +240,6 @@ struct usb_device_descriptor {
 	u8 iSerialNumber;
 	u8 bNumConfigurations;
 } __attribute__ ((packed));
-
-#if defined(CONFIG_USBD_HS)
-struct usb_qualifier_descriptor {
-	u8 bLength;
-	u8 bDescriptorType;
-
-	u16 bcdUSB;
-	u8 bDeviceClass;
-	u8 bDeviceSubClass;
-	u8 bDeviceProtocol;
-	u8 bMaxPacketSize0;
-	u8 bNumConfigurations;
-	u8 breserved;
-} __attribute__ ((packed));
-#endif
 
 struct usb_string_descriptor {
 	u8 bLength;
@@ -506,30 +504,4 @@ struct usb_class_descriptor {
 
 } __attribute__ ((packed));
 
-#ifdef DEBUG
-static inline void print_device_descriptor(struct usb_device_descriptor *d)
-{
-	serial_printf("usb device descriptor \n");
-	serial_printf("\tbLength %2.2x\n", d->bLength);
-	serial_printf("\tbDescriptorType %2.2x\n", d->bDescriptorType);
-	serial_printf("\tbcdUSB %4.4x\n", d->bcdUSB);
-	serial_printf("\tbDeviceClass %2.2x\n", d->bDeviceClass);
-	serial_printf("\tbDeviceSubClass %2.2x\n", d->bDeviceSubClass);
-	serial_printf("\tbDeviceProtocol %2.2x\n", d->bDeviceProtocol);
-	serial_printf("\tbMaxPacketSize0 %2.2x\n", d->bMaxPacketSize0);
-	serial_printf("\tidVendor %4.4x\n", d->idVendor);
-	serial_printf("\tidProduct %4.4x\n", d->idProduct);
-	serial_printf("\tbcdDevice %4.4x\n", d->bcdDevice);
-	serial_printf("\tiManufacturer %2.2x\n", d->iManufacturer);
-	serial_printf("\tiProduct %2.2x\n", d->iProduct);
-	serial_printf("\tiSerialNumber %2.2x\n", d->iSerialNumber);
-	serial_printf("\tbNumConfigurations %2.2x\n", d->bNumConfigurations);
-}
-
-#else
-
-/* stubs */
-#define print_device_descriptor(d)
-
-#endif /* DEBUG */
 #endif

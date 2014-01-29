@@ -1,7 +1,10 @@
 /*
  * (C) Masami Komiya <mkomiya@sonare.it> 2004
  *
- * SPDX-License-Identifier:	GPL-2.0+
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation; either version 2, or (at
+ * your option) any later version.
  */
 
 #ifndef __NFS_H__
@@ -35,14 +38,8 @@
 
 /* Block size used for NFS read accesses.  A RPC reply packet (including  all
  * headers) must fit within a single Ethernet frame to avoid fragmentation.
- * However, if CONFIG_IP_DEFRAG is set, the config file may want to use a
- * bigger value. In any case, most NFS servers are optimized for a power of 2.
- */
-#ifdef CONFIG_NFS_READ_SIZE
-#define NFS_READ_SIZE CONFIG_NFS_READ_SIZE
-#else
-#define NFS_READ_SIZE 1024 /* biggest power of two that fits Ether frame */
-#endif
+ * Chosen to be a power of two, as most NFS servers are optimized for this.  */
+#define NFS_READ_SIZE   1024
 
 #define NFS_MAXLINKDEPTH 16
 
@@ -69,7 +66,7 @@ struct rpc_t {
 		} reply;
 	} u;
 };
-extern void NfsStart(void);	/* Begin NFS */
+extern void	NfsStart (void);	/* Begin NFS */
 
 
 /**********************************************************************/

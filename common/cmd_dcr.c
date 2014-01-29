@@ -2,7 +2,23 @@
  * (C) Copyright 2001
  * Erik Theisen,  Wave 7 Optics, etheisen@mindspring.com.
  *
- * SPDX-License-Identifier:	GPL-2.0+
+ * See file CREDITS for list of people who contributed to this
+ * project.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation; either version 2 of
+ * the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
+ * MA 02111-1307 USA
  */
 
 /*
@@ -20,7 +36,7 @@ unsigned long set_dcr (unsigned short, unsigned long);
  * Interpreter command to retrieve an AMCC PPC 4xx Device Control Register
  * =======================================================================
  */
-int do_getdcr ( cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[] )
+int do_getdcr ( cmd_tbl_t *cmdtp, int flag, int argc, char *argv[] )
 {
 	unsigned short dcrn;	/* Device Control Register Num */
 	unsigned long value;	/* DCR's value */
@@ -28,8 +44,10 @@ int do_getdcr ( cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[] )
 	unsigned long get_dcr (unsigned short);
 
 	/* Validate arguments */
-	if (argc < 2)
-		return CMD_RET_USAGE;
+	if (argc < 2) {
+		cmd_usage(cmdtp);
+		return 1;
+	}
 
 	/* Get a DCR */
 	dcrn = (unsigned short) simple_strtoul (argv[1], NULL, 16);
@@ -45,17 +63,20 @@ int do_getdcr ( cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[] )
  * Interpreter command to set an AMCC PPC 4xx Device Control Register
  * ======================================================================
 */
-int do_setdcr (cmd_tbl_t * cmdtp, int flag, int argc, char * const argv[])
+int do_setdcr (cmd_tbl_t * cmdtp, int flag, int argc, char *argv[])
 {
 	unsigned short dcrn;	/* Device Control Register Num */
 	unsigned long value;
 
 	/* DCR's value */
 	int nbytes;
+	extern char console_buffer[];
 
 	/* Validate arguments */
-	if (argc < 2)
-		return CMD_RET_USAGE;
+	if (argc < 2) {
+		cmd_usage(cmdtp);
+		return 1;
+	}
 
 	/* Set a DCR */
 	dcrn = (unsigned short) simple_strtoul (argv[1], NULL, 16);
@@ -89,7 +110,7 @@ int do_setdcr (cmd_tbl_t * cmdtp, int flag, int argc, char * const argv[])
  * Device Control Register inderect addressing.
  * =======================================================================
  */
-int do_getidcr (cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
+int do_getidcr (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 {
 	unsigned short adr_dcrn;	/* Device Control Register Num for Address */
 	unsigned short dat_dcrn;	/* Device Control Register Num for Data */
@@ -99,8 +120,10 @@ int do_getidcr (cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 	char buf[80];
 
 	/* Validate arguments */
-	if (argc < 3)
-		return CMD_RET_USAGE;
+	if (argc < 3) {
+		cmd_usage(cmdtp);
+		return 1;
+	}
 
 	/* Find out whether ther is '.' (dot) symbol in the first parameter. */
 	strncpy (buf, argv[1], sizeof(buf)-1);
@@ -143,7 +166,7 @@ int do_getidcr (cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
  * Device Control Register inderect addressing.
  * =======================================================================
  */
-int do_setidcr (cmd_tbl_t * cmdtp, int flag, int argc, char * const argv[])
+int do_setidcr (cmd_tbl_t * cmdtp, int flag, int argc, char *argv[])
 {
 	unsigned short adr_dcrn;	/* Device Control Register Num for Address */
 	unsigned short dat_dcrn;	/* Device Control Register Num for Data */
@@ -153,8 +176,10 @@ int do_setidcr (cmd_tbl_t * cmdtp, int flag, int argc, char * const argv[])
 	char buf[80];
 
 	/* Validate arguments */
-	if (argc < 4)
-		return CMD_RET_USAGE;
+	if (argc < 4) {
+		cmd_usage(cmdtp);
+		return 1;
+	}
 
 	/* Find out whether ther is '.' (dot) symbol in the first parameter. */
 	strncpy (buf, argv[1], sizeof(buf)-1);

@@ -6,10 +6,23 @@
  * Alain Saurel,	    AMCC/IBM, alain.saurel@fr.ibm.com
  * Robert Snyder,	    AMCC/IBM, rob.snyder@fr.ibm.com
  *
- * (C) Copyright 2007-2013
+ * (C) Copyright 2007-2008
  * Stefan Roese, DENX Software Engineering, sr@denx.de.
  *
- * SPDX-License-Identifier:	GPL-2.0+
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation; either version 2 of
+ * the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
+ * MA 02111-1307 USA
  */
 
 /* define DEBUG for debugging output (obviously ;-)) */
@@ -22,7 +35,7 @@
 #include <asm/mmu.h>
 #include <asm/io.h>
 #include <asm/cache.h>
-#include <asm/ppc440.h>
+#include <ppc440.h>
 #include <watchdog.h>
 
 /*
@@ -32,10 +45,10 @@
  * memory.
  *
  * If at some time this restriction doesn't apply anymore, just define
- * CONFIG_4xx_DCACHE in the board config file and this code should setup
+ * CONFIG_SYS_ENABLE_SDRAM_CACHE in the board config file and this code should setup
  * everything correctly.
  */
-#ifdef CONFIG_4xx_DCACHE
+#ifdef CONFIG_SYS_ENABLE_SDRAM_CACHE
 #define MY_TLB_WORD2_I_ENABLE	0			/* enable caching on SDRAM */
 #else
 #define MY_TLB_WORD2_I_ENABLE	TLB_WORD2_I_ENABLE	/* disable caching on SDRAM */
@@ -147,7 +160,6 @@ static void program_ecc(u32 start_address,
  ************************************************************************/
 phys_size_t initdram (int board_type)
 {
-#if defined(CONFIG_SPL_BUILD) || !defined(CONFIG_LCD4_LWMON5)
 	/* CL=4 */
 	mtsdram(DDR0_02, 0x00000000);
 
@@ -208,32 +220,18 @@ phys_size_t initdram (int board_type)
 	program_tlb(0, CONFIG_SYS_SDRAM_BASE, CONFIG_SYS_MBYTES_SDRAM << 20,
 		    MY_TLB_WORD2_I_ENABLE);
 
-#if defined(CONFIG_DDR_ECC)
-#if defined(CONFIG_4xx_DCACHE)
-	/*
-	 * If ECC is enabled, initialize the parity bits.
-	 */
-	program_ecc(0, CONFIG_SYS_MBYTES_SDRAM << 20, 0);
-#else /* CONFIG_4xx_DCACHE */
 	/*
 	 * Setup 2nd TLB with same physical address but different virtual address
 	 * with cache enabled. This is done for fast ECC generation.
 	 */
 	program_tlb(0, CONFIG_SYS_DDR_CACHED_ADDR, CONFIG_SYS_MBYTES_SDRAM << 20, 0);
 
+#ifdef CONFIG_DDR_ECC
 	/*
 	 * If ECC is enabled, initialize the parity bits.
 	 */
 	program_ecc(CONFIG_SYS_DDR_CACHED_ADDR, CONFIG_SYS_MBYTES_SDRAM << 20, 0);
-
-	/*
-	 * Now after initialization (auto-calibration and ECC generation)
-	 * remove the TLB entries with caches enabled and program again with
-	 * desired cache functionality
-	 */
-	remove_tlb(CONFIG_SYS_DDR_CACHED_ADDR, CONFIG_SYS_MBYTES_SDRAM << 20);
-#endif /* CONFIG_4xx_DCACHE */
-#endif /* CONFIG_DDR_ECC */
+#endif
 
 	/*
 	 * Clear possible errors resulting from data-eye-search.
@@ -241,7 +239,6 @@ phys_size_t initdram (int board_type)
 	 * exceptions are enabled.
 	 */
 	set_mcsr(get_mcsr());
-#endif /* CONFIG_SPL_BUILD */
 
 	return (CONFIG_SYS_MBYTES_SDRAM << 20);
 }

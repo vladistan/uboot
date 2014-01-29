@@ -9,7 +9,25 @@
  * (C) Copyright 2000
  * Wolfgang Denk, DENX Software Engineering, wd@denx.de.
  *
- * SPDX-License-Identifier:	GPL-2.0+
+ * See file CREDITS for list of people who contributed to this
+ * project.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation; either version 2 of
+ * the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
+ * MA 02111-1307 USA
+ *
+ * $Log:$
  */
 
 #include <common.h>
@@ -181,14 +199,14 @@ int board_start_ide(void)
 static int sc3_cameron_init (void)
 {
 	/* Set up the Memory Controller for the CAMERON version */
-	mtebc (PB4AP, 0x01805940);
-	mtebc (PB4CR, 0x7401a000);
-	mtebc (PB5AP, 0x01805940);
-	mtebc (PB5CR, 0x7401a000);
-	mtebc (PB6AP, 0x0);
-	mtebc (PB6CR, 0x0);
-	mtebc (PB7AP, 0x0);
-	mtebc (PB7CR, 0x0);
+	mtebc (pb4ap, 0x01805940);
+	mtebc (pb4cr, 0x7401a000);
+	mtebc (pb5ap, 0x01805940);
+	mtebc (pb5cr, 0x7401a000);
+	mtebc (pb6ap, 0x0);
+	mtebc (pb6cr, 0x0);
+	mtebc (pb7ap, 0x0);
+	mtebc (pb7cr, 0x0);
 	return 0;
 }
 
@@ -276,36 +294,36 @@ int board_early_init_f (void)
 
 	writeb (cpldConfig_1, CPLD_CONTROL_1);	/* disable everything in CPLD */
 
-	mtdcr (UIC0SR, 0xFFFFFFFF);    /* clear all ints */
-	mtdcr (UIC0ER, 0x00000000);    /* disable all ints */
-	mtdcr (UIC0CR, 0x00000000);    /* set all to be non-critical */
+	mtdcr (uicsr, 0xFFFFFFFF);    /* clear all ints */
+	mtdcr (uicer, 0x00000000);    /* disable all ints */
+	mtdcr (uiccr, 0x00000000);    /* set all to be non-critical */
 
 	if (IS_CAMERON) {
 		sc3_cameron_init();
 		mtdcr (0x0B6, 0x18000000);
-		mtdcr (UIC0PR, 0xFFFFFFF0);
-		mtdcr (UIC0TR, 0x10001030);
+		mtdcr (uicpr, 0xFFFFFFF0);
+		mtdcr (uictr, 0x10001030);
 	} else {
 		mtdcr (0x0B6, 0x0000000);
-		mtdcr (UIC0PR, 0xFFFFFFE0);
-		mtdcr (UIC0TR, 0x10000020);
+		mtdcr (uicpr, 0xFFFFFFE0);
+		mtdcr (uictr, 0x10000020);
 	}
-	mtdcr (UIC0VCR, 0x00000001);   /* set vect base=0,INT0 highest priority */
-	mtdcr (UIC0SR, 0xFFFFFFFF);    /* clear all ints */
+	mtdcr (uicvcr, 0x00000001);   /* set vect base=0,INT0 highest priority */
+	mtdcr (uicsr, 0xFFFFFFFF);    /* clear all ints */
 
 	/* setup other implementation specific details */
-	mtdcr (CPC0_ECR, 0x60606000);
+	mtdcr (ecr, 0x60606000);
 
-	mtdcr (CPC0_CR1, 0x000042C0);
+	mtdcr (cntrl1, 0x000042C0);
 
 	if (IS_CAMERON) {
-		mtdcr (CPC0_CR0, 0x01380000);
+		mtdcr (cntrl0, 0x01380000);
 		/* Setup the GPIOs */
 		writel (0x08008000, 0xEF600700);	/* Output states */
 		writel (0x00000000, 0xEF600718);	/* Open Drain control */
 		writel (0x68098000, 0xEF600704);	/* Output control */
 	} else {
-		mtdcr (CPC0_CR0,0x00080000);
+		mtdcr (cntrl0,0x00080000);
 		/* Setup the GPIOs */
 		writel (0x08000000, 0xEF600700);	/* Output states */
 		writel (0x14000000, 0xEF600718);	/* Open Drain control */
@@ -313,16 +331,16 @@ int board_early_init_f (void)
 	}
 
 	/* Code decompression disabled */
-	mtdcr (DCP0_CFGADDR, KCONF);
-	mtdcr (DCP0_CFGDATA, 0x2B);
+	mtdcr (kiar, kconf);
+	mtdcr (kidr, 0x2B);
 
 	/* CPC0_ER: enable sleep mode of (currently) unused components */
 	/* CPC0_FR: force unused components into sleep mode */
-	mtdcr (CPC0_ER, 0x3F800000);
-	mtdcr (CPC0_FR, 0x14000000);
+	mtdcr (cpmer, 0x3F800000);
+	mtdcr (cpmfr, 0x14000000);
 
 	/* set PLB priority */
-	mtdcr (PLB0_ACR, 0x08000000);
+	mtdcr (0x87, 0x08000000);
 
 	/* --------------- DMA stuff ------------------------------------- */
 	mtdcr (0x126, 0x49200000);
@@ -454,19 +472,19 @@ static void printCSConfig(int reg,unsigned long ap,unsigned long cr)
 
 #ifdef SC3_DEBUGOUT
 
-static unsigned int ap[] = {PB0AP, PB1AP, PB2AP, PB3AP, PB4AP,
-				PB5AP, PB6AP, PB7AP};
-static unsigned int cr[] = {PB0CR, PB1CR, PB2CR, PB3CR, PB4CR,
-				PB5CR, PB6CR, PB7CR};
+static unsigned int ap[] = {pb0ap, pb1ap, pb2ap, pb3ap, pb4ap,
+				pb5ap, pb6ap, pb7ap};
+static unsigned int cr[] = {pb0cr, pb1cr, pb2cr, pb3cr, pb4cr,
+				pb5cr, pb6cr, pb7cr};
 
 static int show_reg (int nr)
 {
 	unsigned long ul1, ul2;
 
-	mtdcr (EBC0_CFGADDR, ap[nr]);
-	ul1 = mfdcr (EBC0_CFGDATA);
-	mtdcr (EBC0_CFGADDR, cr[nr]);
-	ul2 = mfdcr(EBC0_CFGDATA);
+	mtdcr (ebccfga, ap[nr]);
+	ul1 = mfdcr (ebccfgd);
+	mtdcr (ebccfga, cr[nr]);
+	ul2 = mfdcr(ebccfgd);
 	printCSConfig(nr, ul1, ul2);
 	return 0;
 }
@@ -482,8 +500,8 @@ int checkboard (void)
 		show_reg (i);
 	}
 
-	mtdcr (EBC0_CFGADDR, EBC0_CFG);
-	ul1 = mfdcr (EBC0_CFGDATA);
+	mtdcr (ebccfga, epcr);
+	ul1 = mfdcr (ebccfgd);
 
 	puts ("\nGeneral configuration:\n");
 
@@ -559,7 +577,7 @@ static int printSDRAMConfig(char reg, unsigned long cr)
 }
 
 #ifdef SC3_DEBUGOUT
-static unsigned int mbcf[] = {SDRAM0_B0CR, SDRAM0_B1CR, SDRAM0_B2CR, SDRAM0_B3CR};
+static unsigned int mbcf[] = {mem_mb0cf, mem_mb1cf, mem_mb2cf, mem_mb3cf};
 #endif
 
 phys_size_t initdram (int board_type)
@@ -573,21 +591,21 @@ phys_size_t initdram (int board_type)
 
 	puts("\nSDRAM configuration:\n");
 
-	mtdcr (SDRAM0_CFGADDR, SDRAM0_CFG);
-	ul1 = mfdcr(SDRAM0_CFGDATA);
+	mtdcr (memcfga, mem_mcopt1);
+	ul1 = mfdcr(memcfgd);
 
 	if (!(ul1 & 0x80000000)) {
 		puts(" Controller disabled\n");
 		return 0;
 	}
 	for (i = 0; i < 4; i++) {
-		mtdcr (SDRAM0_CFGADDR, mbcf[i]);
-		ul1 = mfdcr (SDRAM0_CFGDATA);
+		mtdcr (memcfga, mbcf[i]);
+		ul1 = mfdcr (memcfgd);
 		mems += printSDRAMConfig (i, ul1);
 	}
 
-	mtdcr (SDRAM0_CFGADDR, SDRAM0_TR);
-	ul1 = mfdcr(SDRAM0_CFGDATA);
+	mtdcr (memcfga, mem_sdtr1);
+	ul1 = mfdcr(memcfgd);
 
 	printf ("Timing:\n -CAS latency %lu\n", ((ul1 & 0x1800000) >> 23)+1);
 	printf (" -Precharge %lu (PTA) \n", ((ul1 & 0xC0000) >> 18) + 1);
@@ -596,15 +614,15 @@ phys_size_t initdram (int board_type)
 	printf (" -CAS to RAS %lu\n", ((ul1 & 0x1C) >> 2) + 4);
 	printf (" -RAS to CAS %lu\n", ((ul1 & 0x3) + 1));
 	puts ("Misc:\n");
-	mtdcr (SDRAM0_CFGADDR, SDRAM0_RTR);
-	ul1 = mfdcr(SDRAM0_CFGDATA);
+	mtdcr (memcfga, mem_rtr);
+	ul1 = mfdcr(memcfgd);
 	printf (" -Refresh rate: %luns\n", (ul1 >> 16) * 7);
 
-	mtdcr(SDRAM0_CFGADDR,SDRAM0_PMIT);
-	ul2=mfdcr(SDRAM0_CFGDATA);
+	mtdcr(memcfga,mem_pmit);
+	ul2=mfdcr(memcfgd);
 
-	mtdcr(SDRAM0_CFGADDR,SDRAM0_CFG);
-	ul1=mfdcr(SDRAM0_CFGDATA);
+	mtdcr(memcfga,mem_mcopt1);
+	ul1=mfdcr(memcfgd);
 
 	if (ul1 & 0x20000000)
 		printf(" -Power Down after: %luns\n",
@@ -640,8 +658,8 @@ phys_size_t initdram (int board_type)
 	else
 		puts(" -Memory lines only at write cycles active outputs\n");
 
-	mtdcr (SDRAM0_CFGADDR, SDRAM0_STATUS);
-	ul1 = mfdcr (SDRAM0_CFGDATA);
+	mtdcr (memcfga, mem_status);
+	ul1 = mfdcr (memcfgd);
 	if (ul1 & 0x80000000)
 		puts(" -SDRAM Controller ready\n");
 	else
@@ -652,20 +670,20 @@ phys_size_t initdram (int board_type)
 
 	return (mems * 1024 * 1024);
 #else
-	mtdcr (SDRAM0_CFGADDR, SDRAM0_B0CR);
-	ul1 = mfdcr (SDRAM0_CFGDATA);
+	mtdcr (memcfga, mem_mb0cf);
+	ul1 = mfdcr (memcfgd);
 	mems = printSDRAMConfig (0, ul1);
 
-	mtdcr (SDRAM0_CFGADDR, SDRAM0_B1CR);
-	ul1 = mfdcr (SDRAM0_CFGDATA);
+	mtdcr (memcfga, mem_mb1cf);
+	ul1 = mfdcr (memcfgd);
 	mems += printSDRAMConfig (1, ul1);
 
-	mtdcr (SDRAM0_CFGADDR, SDRAM0_B2CR);
-	ul1 = mfdcr(SDRAM0_CFGDATA);
+	mtdcr (memcfga, mem_mb2cf);
+	ul1 = mfdcr(memcfgd);
 	mems += printSDRAMConfig (2, ul1);
 
-	mtdcr (SDRAM0_CFGADDR, SDRAM0_B3CR);
-	ul1 = mfdcr(SDRAM0_CFGDATA);
+	mtdcr (memcfga, mem_mb3cf);
+	ul1 = mfdcr(memcfgd);
 	mems += printSDRAMConfig (3, ul1);
 
 	return (mems * 1024 * 1024);

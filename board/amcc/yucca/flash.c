@@ -5,7 +5,23 @@
  * (C) Copyright 2002 Jun Gu <jung@artesyncp.com>
  * Add support for Am29F016D and dynamic switch setting.
  *
- * SPDX-License-Identifier:	GPL-2.0+
+ * See file CREDITS for list of people who contributed to this
+ * project.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation; either version 2 of
+ * the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
+ * MA 02111-1307 USA
  */
 
 /*
@@ -16,9 +32,9 @@
  */
 
 #include <common.h>
-#include <asm/ppc4xx.h>
+#include <ppc4xx.h>
 #include <asm/processor.h>
-#include <asm/ppc440.h>
+#include <ppc440.h>
 #include "yucca.h"
 
 #ifdef DEBUG
@@ -406,7 +422,7 @@ int flash_erase(flash_info_t * info, int s_first, int s_last)
 {
 	volatile CONFIG_SYS_FLASH_WORD_SIZE *addr = (CONFIG_SYS_FLASH_WORD_SIZE *) (info->start[0]);
 	volatile CONFIG_SYS_FLASH_WORD_SIZE *addr2;
-	int flag, prot, sect;
+	int flag, prot, sect, l_sect;
 	int i;
 
 	if ((s_first < 0) || (s_first > s_last)) {
@@ -433,6 +449,8 @@ int flash_erase(flash_info_t * info, int s_first, int s_last)
 
 	printf("\n");
 
+	l_sect = -1;
+
 	/* Disable interrupts which might cause a timeout here */
 	flag = disable_interrupts();
 
@@ -458,6 +476,7 @@ int flash_erase(flash_info_t * info, int s_first, int s_last)
 				addr[CONFIG_SYS_FLASH_ADDR1] = (CONFIG_SYS_FLASH_WORD_SIZE) 0x00550055;
 				addr2[0] = (CONFIG_SYS_FLASH_WORD_SIZE) 0x00300030;	/* sector erase */
 			}
+			l_sect = sect;
 			/*
 			 * Wait for each sector to complete, it's more
 			 * reliable.  According to AMD Spec, you must
@@ -812,7 +831,7 @@ static int flash_erase_2(flash_info_t * info, int s_first, int s_last)
 {
 	volatile CONFIG_SYS_FLASH_WORD_SIZE *addr = (CONFIG_SYS_FLASH_WORD_SIZE *) (info->start[0]);
 	volatile CONFIG_SYS_FLASH_WORD_SIZE *addr2;
-	int flag, prot, sect;
+	int flag, prot, sect, l_sect;
 	int i;
 
 	if ((s_first < 0) || (s_first > s_last)) {
@@ -839,6 +858,8 @@ static int flash_erase_2(flash_info_t * info, int s_first, int s_last)
 
 	printf("\n");
 
+	l_sect = -1;
+
 	/* Disable interrupts which might cause a timeout here */
 	flag = disable_interrupts();
 
@@ -864,6 +885,7 @@ static int flash_erase_2(flash_info_t * info, int s_first, int s_last)
 				addr[CONFIG_SYS_FLASH_ADDR1] = (CONFIG_SYS_FLASH_WORD_SIZE) 0x00550055;
 				addr2[0] = (CONFIG_SYS_FLASH_WORD_SIZE) 0x00300030;	/* sector erase */
 			}
+			l_sect = sect;
 			/*
 			 * Wait for each sector to complete, it's more
 			 * reliable.  According to AMD Spec, you must
@@ -892,10 +914,9 @@ static int flash_erase_2(flash_info_t * info, int s_first, int s_last)
 
 static int write_word_2(flash_info_t * info, ulong dest, ulong data)
 {
-	ulong *data_ptr = &data;
-	volatile CONFIG_SYS_FLASH_WORD_SIZE *addr2 = (CONFIG_SYS_FLASH_WORD_SIZE *)(info->start[0]);
-	volatile CONFIG_SYS_FLASH_WORD_SIZE *dest2 = (CONFIG_SYS_FLASH_WORD_SIZE *)dest;
-	volatile CONFIG_SYS_FLASH_WORD_SIZE *data2 = (CONFIG_SYS_FLASH_WORD_SIZE *)data_ptr;
+	volatile CONFIG_SYS_FLASH_WORD_SIZE *addr2 = (CONFIG_SYS_FLASH_WORD_SIZE *) (info->start[0]);
+	volatile CONFIG_SYS_FLASH_WORD_SIZE *dest2 = (CONFIG_SYS_FLASH_WORD_SIZE *) dest;
+	volatile CONFIG_SYS_FLASH_WORD_SIZE *data2 = (CONFIG_SYS_FLASH_WORD_SIZE *) & data;
 	ulong start;
 	int i;
 
@@ -960,7 +981,7 @@ unsigned long flash_init(void)
 		 * Boot Settings in IIC EEprom address 0xA8 or 0xA0
 		 * Read Serial Device Strap Register1 in PPC440SPe
 		 */
-		mfsdr(SDR0_SDSTP1, val);
+		mfsdr(sdr_sdstp1, val);
 		boot_selection  = val & SDR0_SDSTP1_BOOT_SEL_MASK;
 		ebc_boot_size   = val & SDR0_SDSTP1_EBC_ROM_BS_MASK;
 

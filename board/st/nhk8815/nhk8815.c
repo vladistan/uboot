@@ -6,11 +6,26 @@
  * ARM Ltd.
  * Philippe Robin, <philippe.robin@arm.com>
  *
- * SPDX-License-Identifier:	GPL-2.0+
+ * See file CREDITS for list of people who contributed to this
+ * project.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation; either version 2 of
+ * the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
+ * MA 02111-1307 USA
  */
 
 #include <common.h>
-#include <netdev.h>
 #include <asm/io.h>
 #include <asm/arch/gpio.h>
 
@@ -66,27 +81,11 @@ int board_late_init(void)
 
 int dram_init(void)
 {
-	gd->ram_size = get_ram_size(CONFIG_SYS_SDRAM_BASE,
-				    CONFIG_SYS_SDRAM_SIZE);
-	return 0;
-}
-
-void dram_init_banksize(void)
-{
+	/* set dram bank start addr and size */
 	gd->bd->bi_dram[0].start = PHYS_SDRAM_1;
 	gd->bd->bi_dram[0].size = PHYS_SDRAM_1_SIZE;
 
 	gd->bd->bi_dram[1].start = PHYS_SDRAM_2;
 	gd->bd->bi_dram[1].size = PHYS_SDRAM_2_SIZE;
+	return 0;
 }
-
-#ifdef CONFIG_CMD_NET
-int board_eth_init(bd_t *bis)
-{
-	int rc = 0;
-#ifdef CONFIG_SMC91111
-	rc = smc91111_initialize(0, CONFIG_SMC91111_BASE);
-#endif
-	return rc;
-}
-#endif

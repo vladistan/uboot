@@ -25,6 +25,8 @@
 #include <stdio.h>
 #include <string.h>
 
+extern int errno;
+
 #if !defined(__WIN32__) && !defined(__MINGW32__)
 # include <sys/mman.h>
 #endif
@@ -44,15 +46,15 @@
 #ifdef __linux__
 # include <endian.h>
 # include <byteswap.h>
-#elif defined(__MACH__) || defined(__FreeBSD__)
+#elif defined(__MACH__)
 # include <machine/endian.h>
 typedef unsigned long ulong;
+typedef unsigned int  uint;
 #endif
 
 typedef uint8_t __u8;
 typedef uint16_t __u16;
 typedef uint32_t __u32;
-typedef unsigned int uint;
 
 #define uswap_16(x) \
 	((((x) & 0xff00) >> 8) | \
@@ -111,27 +113,13 @@ typedef unsigned int uint;
 #include <linux/types.h>
 #include <asm/byteorder.h>
 
-#if __SIZEOF_LONG__ == 8
-# define __WORDSIZE	64
-#elif __SIZEOF_LONG__ == 4
-# define __WORDSIZE	32
+/* Types for `void *' pointers. */
+#if __WORDSIZE == 64
+typedef unsigned long int       uintptr_t;
 #else
-/*
- * Assume 32-bit for now - only newer toolchains support this feature and
- * this is only required for sandbox support at present.
- */
-#define __WORDSIZE	32
+typedef unsigned int            uintptr_t;
 #endif
 
-/* Type for `void *' pointers. */
-typedef unsigned long int uintptr_t;
-
-#endif /* USE_HOSTCC */
-
-/* compiler options */
-#define uninitialized_var(x)		x = x
-
-#define likely(x)	__builtin_expect(!!(x), 1)
-#define unlikely(x)	__builtin_expect(!!(x), 0)
+#endif
 
 #endif

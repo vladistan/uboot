@@ -5,7 +5,23 @@
  * (C) Copyright 2001-2004
  * Wolfgang Denk, DENX Software Engineering, wd@denx.de.
  *
- * SPDX-License-Identifier:	GPL-2.0+
+ * See file CREDITS for list of people who contributed to this
+ * project.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation; either version 2 of
+ * the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
+ * MA 02111-1307 USA
  */
 
 #include <common.h>
@@ -354,7 +370,7 @@ static unsigned char intel_sector_protected (flash_info_t *info, ushort sector)
 int flash_erase (flash_info_t *info, int s_first, int s_last)
 {
 	int flag, prot, sect;
-	ulong type, start;
+	ulong type, start, last;
 	int rcode = 0;
 
 	if ((s_first < 0) || (s_first > s_last)) {
@@ -388,6 +404,7 @@ int flash_erase (flash_info_t *info, int s_first, int s_last)
 	}
 
 	start = get_timer (0);
+	last = start;
 
 	/* Disable interrupts which might cause a timeout here */
 	flag = disable_interrupts ();
@@ -423,10 +440,6 @@ int flash_erase (flash_info_t *info, int s_first, int s_last)
 			printf (" done\n");
 		}
 	}
-
-	if (flag)
-		enable_interrupts();
-
 	return rcode;
 }
 
@@ -530,7 +543,6 @@ static int write_data (flash_info_t *info, ulong dest, FPW data)
 	ulong status;
 	ulong start;
 	int flag;
-	int rcode = 0;
 
 	/* Check if Flash is (sufficiently) erased */
 	if ((*addr & data) != data) {
@@ -549,17 +561,14 @@ static int write_data (flash_info_t *info, ulong dest, FPW data)
 	/* wait while polling the status register */
 	while (((status = *addr) & (FPW) 0x00800080) != (FPW) 0x00800080) {
 		if (get_timer(start) > CONFIG_SYS_FLASH_WRITE_TOUT) {
-			rcode = 1;
-			break;
+			*addr = (FPW) 0x00FF00FF;	/* restore read mode */
+			return (1);
 		}
 	}
 
 	*addr = (FPW) 0x00FF00FF;	/* restore read mode */
 
-	if (flag)
-		enable_interrupts();
-
-	return rcode;
+	return (0);
 }
 
 void inline spin_wheel (void)

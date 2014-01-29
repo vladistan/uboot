@@ -2,7 +2,19 @@
  * Copyright (c) International Business Machines Corp., 2006
  * Copyright (c) Nokia Corporation, 2006, 2007
  *
- * SPDX-License-Identifier:	GPL-2.0+
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See
+ * the GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  *
  * Author: Artem Bityutskiy (Битюцкий Артём)
  */
@@ -47,11 +59,7 @@
 #define UBI_NAME_STR "ubi"
 
 /* Normal UBI messages */
-#ifdef CONFIG_UBI_SILENCE_MSG
-#define ubi_msg(fmt, ...)
-#else
 #define ubi_msg(fmt, ...) printk(KERN_NOTICE "UBI: " fmt "\n", ##__VA_ARGS__)
-#endif
 /* UBI warning messages */
 #define ubi_warn(fmt, ...) printk(KERN_WARNING "UBI warning: %s: " fmt "\n", \
 				  __func__, ##__VA_ARGS__)
@@ -459,12 +467,7 @@ int ubi_destroy_gluebi(struct ubi_volume *vol);
 void ubi_gluebi_updated(struct ubi_volume *vol);
 #else
 #define ubi_create_gluebi(ubi, vol) 0
-
-static inline int ubi_destroy_gluebi(struct ubi_volume *vol)
-{
-	return 0;
-}
-
+#define ubi_destroy_gluebi(vol) 0
 #define ubi_gluebi_updated(vol)
 #endif
 

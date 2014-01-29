@@ -5,7 +5,23 @@
  * U-Boot configuration for Zephyr Engineering ZPC.1900 board.
  * This port was developed and tested on Revision C board.
  *
- * SPDX-License-Identifier:	GPL-2.0+ 
+ * See file CREDITS for list of people who contributed to this
+ * project.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation; either version 2 of
+ * the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	 See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
+ * MA 02111-1307 USA
  */
 
 #ifndef __CONFIG_H
@@ -13,9 +29,6 @@
 
 #define CONFIG_MPC8260		1	/* This is an MPC8260 CPU      */
 #define CONFIG_ZPC1900		1	/* ...on Zephyr ZPC.1900 board */
-
-#define	CONFIG_SYS_TEXT_BASE	0xFE000000
-
 #define CPU_ID_STR		"MPC8265"
 #define CONFIG_CPM2		1	/* Has a CPM2 */
 
@@ -60,8 +73,8 @@
  * - Select bus for bd/buffers (see 28-13)
  * - Full duplex
  */
-# define CONFIG_SYS_CMXFCR_MASK2	(CMXFCR_FC2 | CMXFCR_RF2CS_MSK | CMXFCR_TF2CS_MSK)
-# define CONFIG_SYS_CMXFCR_VALUE2	(CMXFCR_RF2CS_CLK13 | CMXFCR_TF2CS_CLK14)
+# define CONFIG_SYS_CMXFCR_MASK	(CMXFCR_FC2 | CMXFCR_RF2CS_MSK | CMXFCR_TF2CS_MSK)
+# define CONFIG_SYS_CMXFCR_VALUE	(CMXFCR_RF2CS_CLK13 | CMXFCR_TF2CS_CLK14)
 # define CONFIG_SYS_CPMFCR_RAMTYPE	0
 # define CONFIG_SYS_FCC_PSMR		(FCC_PSMR_FDE | FCC_PSMR_LPB)
 
@@ -73,10 +86,6 @@
  * GPIO pins used for bit-banged MII communications
  */
 #define MDIO_PORT		2	/* Port C */
-#define MDIO_DECLARE		volatile ioport_t *iop = ioport_addr ( \
-					(immap_t *) CONFIG_SYS_IMMR, MDIO_PORT )
-#define MDC_DECLARE		MDIO_DECLARE
-
 #define MDIO_ACTIVE		(iop->pdir |=  0x00400000)
 #define MDIO_TRISTATE		(iop->pdir &= ~0x00400000)
 #define MDIO_READ		((iop->pdat &  0x00400000) != 0)
@@ -138,6 +147,7 @@
  * Miscellaneous configurable options
  */
 #define CONFIG_SYS_HUSH_PARSER
+#define CONFIG_SYS_PROMPT_HUSH_PS2	"> "
 #define CONFIG_SYS_LONGHELP			/* undef to save memory	    */
 #define CONFIG_SYS_PROMPT		"=> "	/* Monitor Command Prompt   */
 #if defined(CONFIG_CMD_KGDB)
@@ -178,8 +188,9 @@
 #define BCSR_PCI_MODE		0x01
 
 #define CONFIG_SYS_INIT_RAM_ADDR	CONFIG_SYS_IMMR
-#define CONFIG_SYS_INIT_RAM_SIZE	0x4000	/* Size of used area in DPRAM	*/
-#define CONFIG_SYS_GBL_DATA_OFFSET	(CONFIG_SYS_INIT_RAM_SIZE - GENERATED_GBL_DATA_SIZE)
+#define CONFIG_SYS_INIT_RAM_END	0x4000	/* End of used area in DPRAM	*/
+#define CONFIG_SYS_GBL_DATA_SIZE	128	/* size in bytes reserved for initial data */
+#define CONFIG_SYS_GBL_DATA_OFFSET	(CONFIG_SYS_INIT_RAM_END - CONFIG_SYS_GBL_DATA_SIZE)
 #define CONFIG_SYS_INIT_SP_OFFSET	CONFIG_SYS_GBL_DATA_OFFSET
 
 /* Hard reset configuration word */
@@ -197,8 +208,10 @@
 #define CONFIG_SYS_HRCW_SLAVE6		0
 #define CONFIG_SYS_HRCW_SLAVE7		0
 
-#define CONFIG_SYS_MONITOR_BASE	CONFIG_SYS_TEXT_BASE
+#define BOOTFLAG_COLD		0x01	/* Normal Power-On: Boot from FLASH */
+#define BOOTFLAG_WARM		0x02	/* Software reboot                  */
 
+#define CONFIG_SYS_MONITOR_BASE	TEXT_BASE
 #if (CONFIG_SYS_MONITOR_BASE < CONFIG_SYS_FLASH_BASE)
 #define CONFIG_SYS_RAMBOOT
 #endif

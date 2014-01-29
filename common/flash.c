@@ -2,7 +2,23 @@
  * (C) Copyright 2000
  * Wolfgang Denk, DENX Software Engineering, wd@denx.de.
  *
- * SPDX-License-Identifier:	GPL-2.0+
+ * See file CREDITS for list of people who contributed to this
+ * project.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation; either version 2 of
+ * the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
+ * MA 02111-1307 USA
  */
 
 /* #define DEBUG */
@@ -11,7 +27,6 @@
 #include <flash.h>
 
 #if !defined(CONFIG_SYS_NO_FLASH)
-#include <mtd/cfi_flash.h>
 
 extern flash_info_t  flash_info[]; /* info for FLASH chips */
 
@@ -28,17 +43,14 @@ extern flash_info_t  flash_info[]; /* info for FLASH chips */
 void
 flash_protect (int flag, ulong from, ulong to, flash_info_t *info)
 {
-	ulong b_end;
-	short s_end;
+	ulong b_end = info->start[0] + info->size - 1;	/* bank end address */
+	short s_end = info->sector_count - 1;	/* index of last sector */
 	int i;
 
 	/* Do nothing if input data is bad. */
-	if (!info || info->sector_count == 0 || info->size == 0 || to < from) {
+	if (info->sector_count == 0 || info->size == 0 || to < from) {
 		return;
 	}
-
-	s_end = info->sector_count - 1;	/* index of last sector */
-	b_end = info->start[0] + info->size - 1;	/* bank end address */
 
 	debug ("flash_protect %s: from 0x%08lX to 0x%08lX\n",
 		(flag & FLAG_PROTECT_SET) ? "ON" :
@@ -133,9 +145,6 @@ flash_write (char *src, ulong addr, ulong cnt)
 	flash_info_t *info_first = addr2info (addr);
 	flash_info_t *info_last  = addr2info (end );
 	flash_info_t *info;
-	__maybe_unused char *src_orig = src;
-	__maybe_unused char *addr_orig = (char *)addr;
-	__maybe_unused ulong cnt_orig = cnt;
 
 	if (cnt == 0) {
 		return (ERR_OK);
@@ -172,14 +181,6 @@ flash_write (char *src, ulong addr, ulong cnt)
 		addr += len;
 		src  += len;
 	}
-
-#if defined(CONFIG_FLASH_VERIFY)
-	if (memcmp(src_orig, addr_orig, cnt_orig)) {
-		printf("\nVerify failed!\n");
-		return ERR_PROG_ERROR;
-	}
-#endif /* CONFIG_SYS_FLASH_VERIFY_AFTER_WRITE */
-
 	return (ERR_OK);
 #endif /* CONFIG_SPD823TS */
 }
@@ -215,9 +216,6 @@ void flash_perror (int err)
 		break;
 	case ERR_PROG_ERROR:
 		puts ("General Flash Programming Error\n");
-		break;
-	case ERR_ABORTED:
-		puts("Flash Programming Aborted\n");
 		break;
 	default:
 		printf ("%s[%d] FIXME: rc=%d\n", __FILE__, __LINE__, err);

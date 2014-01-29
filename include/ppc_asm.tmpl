@@ -2,7 +2,23 @@
  * (C) Copyright 2000-2002
  * Wolfgang Denk, DENX Software Engineering, wd@denx.de.
  *
- * SPDX-License-Identifier:	GPL-2.0+
+ * See file CREDITS for list of people who contributed to this
+ * project.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation; either version 2 of
+ * the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
+ * MA 02111-1307 USA
  */
 
 /*
@@ -19,7 +35,7 @@
  *
  * Stolen from prepboot/bootldr.h, (C) 1998 Gabriel Paubert, paubert@iram.es
  *
- * Uses r12 to access the GOT
+ * Uses r14 to access the GOT
  */
 
 #define START_GOT			\
@@ -34,13 +50,13 @@
 	.text	2		;	\
 0:	.long	.LCTOC1-1f	;	\
 	.text			;	\
-1:	mflr	r12		;	\
-	lwz	r0,0b-1b(r12)	;	\
-	add	r12,r0,r12	;
+1:	mflr	r14		;	\
+	lwz	r0,0b-1b(r14)	;	\
+	add	r14,r0,r14	;
 
 #define GOT_ENTRY(NAME)		.L_ ## NAME = . - .LCTOC1 ; .long NAME
 
-#define GOT(NAME)		.L_ ## NAME (r12)
+#define GOT(NAME)		.L_ ## NAME (r14)
 
 
 /***************************************************************************
@@ -159,7 +175,7 @@
 #define IM_IMMR		(IM_REGBASE+0x01a8)
 #define IM_SCCR		(IM_REGBASE+0x0c80)
 
-#elif defined(CONFIG_MPC5xxx)
+#elif defined(CONFIG_MPC5xxx) || defined(CONFIG_MPC8220)
 
 #define HID0_ICE_BITPOS	16
 #define HID0_DCE_BITPOS	17
@@ -241,43 +257,46 @@
  * OFFSET values only; they must be relocated first before they can
  * be used!
  */
-#define COPY_EE(d, s)		rlwimi d,s,0,16,16
-#define NOCOPY(d, s)
-#define EXC_XFER_TEMPLATE(label, hdlr, msr, copyee)	\
-	bl	1f;					\
-1:	mflr    r20;					\
-	lwz	r20,(.L_ ## label)-1b+8(r20);		\
-	mtlr	r20;					\
-	li	r20,msr;				\
-	copyee(r20,r23);				\
+#define STD_EXCEPTION(n, label, hdlr)			\
+	. = n;						\
+label:							\
+	EXCEPTION_PROLOG(SRR0, SRR1);			\
+	lwz	r3,GOT(transfer_to_handler);		\
+	mtlr	r3;					\
+	addi	r3,r1,STACK_FRAME_OVERHEAD;		\
+	li	r20,MSR_KERNEL;				\
 	rlwimi	r20,r23,0,25,25;			\
 	blrl;						\
 .L_ ## label :						\
 	.long	hdlr - _start + _START_OFFSET;		\
-	.long	int_return - _start + _START_OFFSET;	\
-	.long	transfer_to_handler - _start + _START_OFFSET
-
-#define STD_EXCEPTION(n, label, hdlr)				\
-	. = n;							\
-label:								\
-	EXCEPTION_PROLOG(SRR0, SRR1);				\
-	addi	r3,r1,STACK_FRAME_OVERHEAD;			\
-	EXC_XFER_TEMPLATE(label, hdlr, MSR_KERNEL, NOCOPY)	\
+	.long	int_return - _start + _START_OFFSET
 
 #define CRIT_EXCEPTION(n, label, hdlr)				\
 	. = n;							\
 label:								\
 	EXCEPTION_PROLOG(CSRR0, CSRR1);				\
+	lwz	r3,GOT(transfer_to_handler);			\
+	mtlr	r3;						\
 	addi	r3,r1,STACK_FRAME_OVERHEAD;			\
-	EXC_XFER_TEMPLATE(label, hdlr,				\
-	MSR_KERNEL & ~(MSR_ME|MSR_DE|MSR_CE), NOCOPY)		\
+	li	r20,(MSR_KERNEL & ~(MSR_ME|MSR_DE|MSR_CE));	\
+	rlwimi	r20,r23,0,25,25;				\
+	blrl;							\
+.L_ ## label :							\
+	.long	hdlr - _start + _START_OFFSET;			\
+	.long	crit_return - _start + _START_OFFSET
 
 #define MCK_EXCEPTION(n, label, hdlr)				\
 	. = n;							\
 label:								\
 	EXCEPTION_PROLOG(MCSRR0, MCSRR1);			\
+	lwz	r3,GOT(transfer_to_handler);			\
+	mtlr	r3;						\
 	addi	r3,r1,STACK_FRAME_OVERHEAD;			\
-	EXC_XFER_TEMPLATE(label, hdlr,				\
-	MSR_KERNEL & ~(MSR_ME|MSR_DE|MSR_CE), NOCOPY)		\
+	li	r20,(MSR_KERNEL & ~(MSR_ME|MSR_DE|MSR_CE));	\
+	rlwimi	r20,r23,0,25,25;				\
+	blrl;							\
+.L_ ## label :							\
+	.long	hdlr - _start + _START_OFFSET;			\
+	.long	mck_return - _start + _START_OFFSET
 
 #endif	/* __PPC_ASM_TMPL__ */

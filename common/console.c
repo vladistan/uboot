@@ -2,82 +2,35 @@
  * (C) Copyright 2000
  * Paolo Scaffardi, AIRVENT SAM s.p.a - RIMINI(ITALY), arsenio@tin.it
  *
- * SPDX-License-Identifier:	GPL-2.0+
+ * See file CREDITS for list of people who contributed to this
+ * project.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation; either version 2 of
+ * the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
+ * MA 02111-1307 USA
  */
 
 #include <common.h>
 #include <stdarg.h>
 #include <malloc.h>
-#include <serial.h>
 #include <stdio_dev.h>
 #include <exports.h>
-#include <environment.h>
 
 DECLARE_GLOBAL_DATA_PTR;
 
-static int on_console(const char *name, const char *value, enum env_op op,
-	int flags)
-{
-	int console = -1;
-
-	/* Check for console redirection */
-	if (strcmp(name, "stdin") == 0)
-		console = stdin;
-	else if (strcmp(name, "stdout") == 0)
-		console = stdout;
-	else if (strcmp(name, "stderr") == 0)
-		console = stderr;
-
-	/* if not actually setting a console variable, we don't care */
-	if (console == -1 || (gd->flags & GD_FLG_DEVINIT) == 0)
-		return 0;
-
-	switch (op) {
-	case env_op_create:
-	case env_op_overwrite:
-
-#ifdef CONFIG_CONSOLE_MUX
-		if (iomux_doenv(console, value))
-			return 1;
-#else
-		/* Try assigning specified device */
-		if (console_assign(console, value) < 0)
-			return 1;
-#endif /* CONFIG_CONSOLE_MUX */
-		return 0;
-
-	case env_op_delete:
-		if ((flags & H_FORCE) == 0)
-			printf("Can't delete \"%s\"\n", name);
-		return 1;
-
-	default:
-		return 0;
-	}
-}
-U_BOOT_ENV_CALLBACK(console, on_console);
-
-#ifdef CONFIG_SILENT_CONSOLE
-static int on_silent(const char *name, const char *value, enum env_op op,
-	int flags)
-{
-#ifndef CONFIG_SILENT_CONSOLE_UPDATE_ON_SET
-	if (flags & H_INTERACTIVE)
-		return 0;
-#endif
-#ifndef CONFIG_SILENT_CONSOLE_UPDATE_ON_RELOC
-	if ((flags & H_INTERACTIVE) == 0)
-		return 0;
-#endif
-
-	if (value != NULL)
-		gd->flags |= GD_FLG_SILENT;
-	else
-		gd->flags &= ~GD_FLG_SILENT;
-
-	return 0;
-}
-U_BOOT_ENV_CALLBACK(silent, on_silent);
+#ifdef CONFIG_AMIGAONEG3SE
+int console_changed = 0;
 #endif
 
 #ifdef CONFIG_SYS_CONSOLE_IS_IN_ENV
@@ -252,7 +205,7 @@ static inline void console_doenv(int file, struct stdio_dev *dev)
 
 /** U-Boot INITIAL CONSOLE-NOT COMPATIBLE FUNCTIONS *************************/
 
-int serial_printf(const char *fmt, ...)
+void serial_printf(const char *fmt, ...)
 {
 	va_list args;
 	uint i;
@@ -263,11 +216,10 @@ int serial_printf(const char *fmt, ...)
 	/* For this to work, printbuffer must be larger than
 	 * anything we ever want to print.
 	 */
-	i = vscnprintf(printbuffer, sizeof(printbuffer), fmt, args);
+	i = vsprintf(printbuffer, fmt, args);
 	va_end(args);
 
 	serial_puts(printbuffer);
-	return i;
 }
 
 int fgetc(int file)
@@ -321,7 +273,7 @@ void fputs(int file, const char *s)
 		console_puts(file, s);
 }
 
-int fprintf(int file, const char *fmt, ...)
+void fprintf(int file, const char *fmt, ...)
 {
 	va_list args;
 	uint i;
@@ -332,12 +284,11 @@ int fprintf(int file, const char *fmt, ...)
 	/* For this to work, printbuffer must be larger than
 	 * anything we ever want to print.
 	 */
-	i = vscnprintf(printbuffer, sizeof(printbuffer), fmt, args);
+	i = vsprintf(printbuffer, fmt, args);
 	va_end(args);
 
 	/* Send to desired file */
 	fputs(file, printbuffer);
-	return i;
 }
 
 /** U-Boot INITIAL CONSOLE-COMPATIBLE FUNCTION *****************************/
@@ -348,9 +299,6 @@ int getc(void)
 	if (gd->flags & GD_FLG_DISABLE_CONSOLE)
 		return 0;
 #endif
-
-	if (!gd->have_console)
-		return 0;
 
 	if (gd->flags & GD_FLG_DEVINIT) {
 		/* Get from the standard input */
@@ -368,9 +316,6 @@ int tstc(void)
 		return 0;
 #endif
 
-	if (!gd->have_console)
-		return 0;
-
 	if (gd->flags & GD_FLG_DEVINIT) {
 		/* Test the standard input */
 		return ftstc(stdin);
@@ -379,39 +324,6 @@ int tstc(void)
 	/* Send directly to the handler */
 	return serial_tstc();
 }
-
-#ifdef CONFIG_PRE_CONSOLE_BUFFER
-#define CIRC_BUF_IDX(idx) ((idx) % (unsigned long)CONFIG_PRE_CON_BUF_SZ)
-
-static void pre_console_putc(const char c)
-{
-	char *buffer = (char *)CONFIG_PRE_CON_BUF_ADDR;
-
-	buffer[CIRC_BUF_IDX(gd->precon_buf_idx++)] = c;
-}
-
-static void pre_console_puts(const char *s)
-{
-	while (*s)
-		pre_console_putc(*s++);
-}
-
-static void print_pre_console_buffer(void)
-{
-	unsigned long i = 0;
-	char *buffer = (char *)CONFIG_PRE_CON_BUF_ADDR;
-
-	if (gd->precon_buf_idx > CONFIG_PRE_CON_BUF_SZ)
-		i = gd->precon_buf_idx - CONFIG_PRE_CON_BUF_SZ;
-
-	while (i < gd->precon_buf_idx)
-		putc(buffer[CIRC_BUF_IDX(i++)]);
-}
-#else
-static inline void pre_console_putc(const char c) {}
-static inline void pre_console_puts(const char *s) {}
-static inline void print_pre_console_buffer(void) {}
-#endif
 
 void putc(const char c)
 {
@@ -424,9 +336,6 @@ void putc(const char c)
 	if (gd->flags & GD_FLG_DISABLE_CONSOLE)
 		return;
 #endif
-
-	if (!gd->have_console)
-		return pre_console_putc(c);
 
 	if (gd->flags & GD_FLG_DEVINIT) {
 		/* Send to the standard output */
@@ -449,9 +358,6 @@ void puts(const char *s)
 		return;
 #endif
 
-	if (!gd->have_console)
-		return pre_console_puts(s);
-
 	if (gd->flags & GD_FLG_DEVINIT) {
 		/* Send to the standard output */
 		fputs(stdout, s);
@@ -461,48 +367,36 @@ void puts(const char *s)
 	}
 }
 
-int printf(const char *fmt, ...)
+void printf(const char *fmt, ...)
 {
 	va_list args;
 	uint i;
 	char printbuffer[CONFIG_SYS_PBSIZE];
-
-#ifndef CONFIG_PRE_CONSOLE_BUFFER
-	if (!gd->have_console)
-		return 0;
-#endif
 
 	va_start(args, fmt);
 
 	/* For this to work, printbuffer must be larger than
 	 * anything we ever want to print.
 	 */
-	i = vscnprintf(printbuffer, sizeof(printbuffer), fmt, args);
+	i = vsprintf(printbuffer, fmt, args);
 	va_end(args);
 
 	/* Print the string */
 	puts(printbuffer);
-	return i;
 }
 
-int vprintf(const char *fmt, va_list args)
+void vprintf(const char *fmt, va_list args)
 {
 	uint i;
 	char printbuffer[CONFIG_SYS_PBSIZE];
 
-#ifndef CONFIG_PRE_CONSOLE_BUFFER
-	if (!gd->have_console)
-		return 0;
-#endif
-
 	/* For this to work, printbuffer must be larger than
 	 * anything we ever want to print.
 	 */
-	i = vscnprintf(printbuffer, sizeof(printbuffer), fmt, args);
+	i = vsprintf(printbuffer, fmt, args);
 
 	/* Print the string */
 	puts(printbuffer);
-	return i;
 }
 
 /* test if ctrl-c was pressed */
@@ -565,7 +459,7 @@ inline void dbg(const char *fmt, ...)
 	/* For this to work, printbuffer must be larger than
 	 * anything we ever want to print.
 	 */
-	i = vsnprintf(printbuffer, sizeof(printbuffer), fmt, args);
+	i = vsprintf(printbuffer, fmt, args);
 	va_end(args);
 
 	if ((screen + sizeof(screen) - 1 - cursor)
@@ -585,7 +479,7 @@ inline void dbg(const char *fmt, ...)
 
 /** U-Boot INIT FUNCTIONS *************************************************/
 
-struct stdio_dev *search_device(int flags, const char *name)
+struct stdio_dev *search_device(int flags, char *name)
 {
 	struct stdio_dev *dev;
 
@@ -597,7 +491,7 @@ struct stdio_dev *search_device(int flags, const char *name)
 	return NULL;
 }
 
-int console_assign(int file, const char *devname)
+int console_assign(int file, char *devname)
 {
 	int flag;
 	struct stdio_dev *dev;
@@ -635,13 +529,12 @@ int console_init_f(void)
 		gd->flags |= GD_FLG_SILENT;
 #endif
 
-	print_pre_console_buffer();
-
 	return 0;
 }
 
 void stdio_print_current_devices(void)
 {
+#ifndef CONFIG_SYS_CONSOLE_INFO_QUIET
 	/* Print information */
 	puts("In:    ");
 	if (stdio_devices[stdin] == NULL) {
@@ -663,6 +556,7 @@ void stdio_print_current_devices(void)
 	} else {
 		printf ("%s\n", stdio_devices[stderr]->name);
 	}
+#endif /* CONFIG_SYS_CONSOLE_INFO_QUIET */
 }
 
 #ifdef CONFIG_SYS_CONSOLE_IS_IN_ENV
@@ -732,9 +626,9 @@ int console_init_r(void)
 done:
 #endif
 
-#ifndef CONFIG_SYS_CONSOLE_INFO_QUIET
+	gd->flags |= GD_FLG_DEVINIT;	/* device initialization completed */
+
 	stdio_print_current_devices();
-#endif /* CONFIG_SYS_CONSOLE_INFO_QUIET */
 
 #ifdef CONFIG_SYS_CONSOLE_ENV_OVERWRITE
 	/* set the environment variables (will overwrite previous env settings) */
@@ -742,8 +636,6 @@ done:
 		setenv(stdio_names[i], stdio_devices[i]->name);
 	}
 #endif /* CONFIG_SYS_CONSOLE_ENV_OVERWRITE */
-
-	gd->flags |= GD_FLG_DEVINIT;	/* device initialization completed */
 
 #if 0
 	/* If nothing usable installed, use only the initial console */
@@ -767,14 +659,10 @@ int console_init_r(void)
 #ifdef CONFIG_SPLASH_SCREEN
 	/*
 	 * suppress all output if splash screen is enabled and we have
-	 * a bmp to display. We redirect the output from frame buffer
-	 * console to serial console in this case or suppress it if
-	 * "silent" mode was requested.
+	 * a bmp to display
 	 */
-	if (getenv("splashimage") != NULL) {
-		if (!(gd->flags & GD_FLG_SILENT))
-			outputdev = search_device (DEV_FLAGS_OUTPUT, "serial");
-	}
+	if (getenv("splashimage") != NULL)
+		gd->flags |= GD_FLG_SILENT;
 #endif
 
 	/* Scan devices looking for input and output devices */
@@ -809,16 +697,14 @@ int console_init_r(void)
 #endif
 	}
 
-#ifndef CONFIG_SYS_CONSOLE_INFO_QUIET
+	gd->flags |= GD_FLG_DEVINIT;	/* device initialization completed */
+
 	stdio_print_current_devices();
-#endif /* CONFIG_SYS_CONSOLE_INFO_QUIET */
 
 	/* Setting environment variables */
 	for (i = 0; i < 3; i++) {
 		setenv(stdio_names[i], stdio_devices[i]->name);
 	}
-
-	gd->flags |= GD_FLG_DEVINIT;	/* device initialization completed */
 
 #if 0
 	/* If nothing usable installed, use only the initial console */
