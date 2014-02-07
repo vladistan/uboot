@@ -401,9 +401,6 @@ void start_armboot (void)
 	serial_initialize();
 #endif
 
-	/* IP Address */
-	gd->bd->bi_ip_addr = getenv_IPaddr ("ipaddr");
-
 #if defined CONFIG_SPLASH_SCREEN && defined CONFIG_VIDEO_MX5
 	setup_splash_image();
 #endif

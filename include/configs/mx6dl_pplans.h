@@ -117,8 +117,6 @@
 #define CONFIG_BOOTCOMMAND      "bootm 0x10800000 0x10c00000"
 
 #define	CONFIG_EXTRA_ENV_SETTINGS					\
-		"netdev=eth0\0"						\
-		"ethprime=FEC0\0"					\
 		"uboot=u-boot.bin\0"			\
 		"kernel=uImage\0"				\
 
@@ -146,21 +144,6 @@
 #define CONFIG_SYS_HZ			1000
 
 #define CONFIG_CMDLINE_EDITING
-
-#define CONFIG_FEC0_IOBASE	ENET_BASE_ADDR
-#define CONFIG_FEC0_PINMUX	-1
-#define CONFIG_FEC0_MIIBASE	-1
-#define CONFIG_GET_FEC_MAC_ADDR_FROM_IIM
-#define CONFIG_MXC_FEC
-#define CONFIG_FEC0_PHY_ADDR		1
-#define CONFIG_ETH_PRIME
-#define CONFIG_RMII
-#define CONFIG_CMD_MII
-#define CONFIG_CMD_DHCP
-#define CONFIG_CMD_PING
-#define CONFIG_IPADDR			192.168.1.103
-#define CONFIG_SERVERIP			192.168.1.101
-#define CONFIG_NETMASK			255.255.255.0
 
 /*
  * OCOTP Configs
