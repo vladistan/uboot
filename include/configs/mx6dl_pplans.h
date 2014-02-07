@@ -27,6 +27,7 @@
  /* High Level Configuration Options */
 #define CONFIG_MFG
 #define CONFIG_ARMV7	/* This is armv7 Cortex-A9 CPU core */
+
 #define CONFIG_MXC
 #define CONFIG_MX6DL
 #define CONFIG_MX6DL_DDR3
@@ -37,13 +38,13 @@
 #define CONFIG_MX6_CLK32	   32768
 
 #define CONFIG_SKIP_RELOCATE_UBOOT
+#define CONFIG_L2_OFF  /* disable L2 cache first*/
 
 #define CONFIG_ARCH_CPU_INIT
 #undef CONFIG_ARCH_MMU /* disable MMU first */
-#define CONFIG_L2_OFF  /* disable L2 cache first*/
+
 
 #define CONFIG_MX6_HCLK_FREQ	24000000
-
 #define CONFIG_DISPLAY_CPUINFO
 #define CONFIG_DISPLAY_BOARDINFO
 
