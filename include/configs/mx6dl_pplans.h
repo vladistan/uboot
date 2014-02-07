@@ -83,17 +83,12 @@
  * Command definition
  ***********************************************************/
 
-#include <config_cmd_default.h>
+#define CONFIG_CMD_BDI		/* bdinfo			*/
+#define CONFIG_CMD_BOOTD	/* bootd			*/
+#define CONFIG_CMD_CONSOLE	/* coninfo			*/
+#define CONFIG_CMD_RUN		/* run command in env variable	*/
 
-#define CONFIG_CMD_PING
-#define CONFIG_CMD_DHCP
-#define CONFIG_CMD_MII
-#define CONFIG_CMD_NET
-#define CONFIG_NET_RETRY_COUNT  100
-#define CONFIG_NET_MULTI 1
-#define CONFIG_BOOTP_SUBNETMASK
-#define CONFIG_BOOTP_GATEWAY
-#define CONFIG_BOOTP_DNS
+
 
 #define CONFIG_CMD_SPI
 #define CONFIG_CMD_I2C
