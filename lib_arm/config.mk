@@ -37,13 +37,13 @@ PLATFORM_CPPFLAGS += $(call cc-option,-marm,)
 # - with ELDK 3.1 (gcc 3.x), use:
 #	-mapcs-32 -mno-thumb-interwork
 PLATFORM_CPPFLAGS += $(call cc-option,\
-				-mabi=aapcs-linux -mno-thumb-interwork,\
+				-mabi=aapcs-linux ,\
 				$(call cc-option,\
 					-mapcs-32,\
 					$(call cc-option,\
 						-mabi=apcs-gnu,\
 					)\
-				) $(call cc-option,-mno-thumb-interwork,)\
+				) \
 			)
 
 # For EABI, make sure to provide raise()

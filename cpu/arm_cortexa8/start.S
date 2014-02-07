@@ -96,6 +96,41 @@ FIQ_STACK_START:
 	.word 0x0badc0de
 #endif
 
+/* 
+    Thumb start 
+*/
+      .thumb
+      .align 2
+	.word  0x0BADBEEF
+thumb_out:
+	mov r0, #0
+	mov r0, #0
+	mov r0, #0
+	mov r1, #0
+	mov r0, r15
+	mvn r1, r1
+	lsl r1, #12
+	and r0, r1
+	mov r1, #6
+	mov r2, #0x80
+	mul r1, r2
+	add r1, #0x64
+	add r0, r1
+	
+	bx  r0
+	mov r1,#1
+	mov r1,#1
+	mov r1,#1
+	mov r1,#1
+loop:
+	mov r0,#1
+	add r0,r1,r0
+	b   loop
+      .arm
+      .align 4
+      .word  0xDAC0FFEE
+
+
 /*
  * the actual reset code
  */
