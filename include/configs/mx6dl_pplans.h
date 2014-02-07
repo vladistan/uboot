@@ -94,7 +94,6 @@
 /* Enable below configure when supporting nand */
 #define CONFIG_CMD_REGUL
 
-#define CONFIG_CMD_CLOCK
 #define CONFIG_REF_CLK_FREQ CONFIG_MX6_HCLK_FREQ
 
 #undef CONFIG_CMD_IMLS
@@ -194,7 +193,6 @@
 #define CONFIG_ENV_SECT_SIZE    (128 * 1024)
 #define CONFIG_ENV_SIZE         CONFIG_ENV_SECT_SIZE
 #define CONFIG_ENV_IS_NOWHERE   1
-#define CONFIG_ENV_IS_EMBEDDED   1
 
 #ifdef CONFIG_SPLASH_SCREEN
 	/*

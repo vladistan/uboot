@@ -354,19 +354,6 @@ static int bootm_load_os(image_info_t os, ulong *load_end, int boot_progress)
 		*load_end = load + image_len;
 		puts("OK\n");
 		break;
-	case IH_COMP_GZIP:
-		printf ("   Uncompressing %s ... ", type_name);
-		if (gunzip ((void *)load, unc_len,
-					(uchar *)image_start, &image_len) != 0) {
-			puts ("GUNZIP: uncompress, out-of-mem or overwrite error "
-				"- must RESET board to recover\n");
-			if (boot_progress)
-				show_boot_progress (-6);
-			return BOOTM_ERR_RESET;
-		}
-
-		*load_end = load + image_len;
-		break;
 #ifdef CONFIG_BZIP2
 	case IH_COMP_BZIP2:
 		printf ("   Uncompressing %s ... ", type_name);
