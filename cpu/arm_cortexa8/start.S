@@ -139,6 +139,18 @@ reset:
 	/*
 	 * set the cpu to SVC32 mode
 	 */
+	mov 	r1, #0x1
+	mov 	r1, #0x1
+	mov 	r2, #0x2
+	mov 	r3, #0x3
+	mov 	r4, #0x4
+	mov 	r5, #0x5
+	mov 	r6, #0x6
+	add	r0, r1,r2
+	add	r7, r4,r5
+
+	b	reset
+
 	mrs	r0, cpsr
 	bic	r0, r0, #0x1f
 	orr	r0, r0, #0xd3
