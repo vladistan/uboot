@@ -110,7 +110,7 @@
 
 #undef CONFIG_CMD_IMLS
 
-#define CONFIG_BOOTDELAY 0
+#define CONFIG_BOOTDELAY 3
 
 #define CONFIG_PRIME	"FEC0"
 
