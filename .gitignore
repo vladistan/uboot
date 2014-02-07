@@ -18,6 +18,8 @@
 *.cfgtmp
 *.dts.tmp
 
+config.tmp
+
 # Build tree
 /build-*
 
@@ -49,7 +51,7 @@
 /u-boot.sb
 /u-boot.bd
 /u-boot.geany
-
+/u-boot-s.bin.dump
 #
 # Generated files
 #

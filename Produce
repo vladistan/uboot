@@ -1,0 +1,2 @@
+dd if=u-boot.bin of=u-boot-s.bin bs=512 skip=2 count=40
+od -x u-boot-s.bin > u-boot-s.bin.dump
