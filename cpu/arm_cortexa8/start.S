@@ -135,7 +135,6 @@ loop:
  * the actual reset code
  */
 
-reset:
 	/*
 	 * set the cpu to SVC32 mode
 	 */
@@ -151,6 +150,7 @@ reset:
 
 	b	reset
 
+reset:
 	mrs	r0, cpsr
 	bic	r0, r0, #0x1f
 	orr	r0, r0, #0xd3
