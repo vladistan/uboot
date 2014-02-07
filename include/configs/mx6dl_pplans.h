@@ -96,7 +96,6 @@
 
 /* Enable below configure when supporting nand */
 #define CONFIG_CMD_SF
-#define CONFIG_CMD_MMC
 #define CONFIG_CMD_ENV
 #define CONFIG_CMD_REGUL
 
@@ -185,52 +184,6 @@
 	#define CONFIG_PERIPH_REGULATOR_NAME "vdd1p1"
 #endif
 
-/*
- * MMC Configs
- */
-#ifdef CONFIG_CMD_MMC
-	#define CONFIG_MMC
-	#define CONFIG_GENERIC_MMC
-	#define CONFIG_IMX_MMC
-	#define CONFIG_SYS_FSL_USDHC_NUM        4
-	#define CONFIG_SYS_FSL_ESDHC_ADDR       0
-	#define CONFIG_SYS_MMC_ENV_DEV  2
-	#define CONFIG_DOS_PARTITION	1
-	#define CONFIG_CMD_FAT		1
-	#define CONFIG_CMD_EXT2		1
-
-	/* detect whether SD1, 2, 3, or 4 is boot device */
-	#define CONFIG_DYNAMIC_MMC_DEVNO
-
-	/* SD3 and SD4 are 8 bit */
-	#define CONFIG_MMC_8BIT_PORTS   0xC
-	/* Setup target delay in DDR mode for each SD port */
-	#define CONFIG_GET_DDR_TARGET_DELAY
-#endif
-
-/*
- * GPMI Nand Configs
- */
-/* #define CONFIG_CMD_NAND */
-
-#ifdef CONFIG_CMD_NAND
-	#define CONFIG_NAND_GPMI
-	#define CONFIG_GPMI_NFC_SWAP_BLOCK_MARK
-	#define CONFIG_GPMI_NFC_V2
-
-	#define CONFIG_GPMI_REG_BASE	GPMI_BASE_ADDR
-	#define CONFIG_BCH_REG_BASE	BCH_BASE_ADDR
-
-	#define NAND_MAX_CHIPS		8
-	#define CONFIG_SYS_NAND_BASE		0x40000000
-	#define CONFIG_SYS_MAX_NAND_DEVICE	1
-
-	/* NAND is the unique module invoke APBH-DMA */
-	#define CONFIG_APBH_DMA
-	#define CONFIG_APBH_DMA_V2
-	#define CONFIG_MXS_DMA_REG_BASE	ABPHDMA_BASE_ADDR
-#endif
-
 /*-----------------------------------------------------------------------
  * Stack sizes
  *
@@ -253,9 +206,9 @@
 #define CONFIG_SYS_NO_FLASH
 
 /* Monitor at beginning of flash */
+/* #define CONFIG_FSL_ENV_IN_SF
+*/
 /* #define CONFIG_FSL_ENV_IN_MMC */
-/* #define CONFIG_FSL_ENV_IN_NAND */
-/* #define CONFIG_FSL_ENV_IN_SATA */
 
 #define CONFIG_ENV_SECT_SIZE    (128 * 1024)
 #define CONFIG_ENV_SIZE         CONFIG_ENV_SECT_SIZE
