@@ -25,6 +25,7 @@
 # error "Must define the offset of flash header"
 #endif
 
+/********************DCD mode***********************/
 #define CPU_2_BE_32(l) \
        ((((l) & 0x000000FF) << 24) | \
 	(((l) & 0x0000FF00) << 8)  | \
