@@ -402,6 +402,7 @@ static void setFecDuplexSpeed(volatile fec_t *fecp, unsigned char addr,
 		/* set default mode to 100M full duplex */
 		dup_spd = _100BASET | (FULL << 16);
 	} else {
+		printf ( "We are checking the link\n");
 		if (val & PHY_BMSR_LS) {
 			printf("FEC: Link is Up %x\n", val);
 		} else {
@@ -553,6 +554,7 @@ int fec_send(struct eth_device *dev, volatile void *packet, int length)
 
 	__fec_mii_read(fecp, info->phy_addr, PHY_BMSR, &phyStatus);
 
+	printf ( "We are checking the link\n");
 	if (!(phyStatus & PHY_BMSR_LS)) {
 		printf("FEC: Link is down %x\n", phyStatus);
 		return -1;
