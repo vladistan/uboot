@@ -54,7 +54,6 @@ void show_boot_progress (int val) __attribute__((weak, alias("__show_boot_progre
 extern int do_reset (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[]);		/* for do_reset() prototype */
 #endif
 
-extern int do_bootd (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[]);
 
 #if defined(CONFIG_UPDATE_TFTP)
 void update_tftp (void);
@@ -1379,22 +1378,6 @@ int run_command (const char *cmd, int flag)
 			rc = -1;
 			continue;
 		}
-
-#if defined(CONFIG_CMD_BOOTD)
-		/* avoid "bootd" recursion */
-		if (cmdtp->cmd == do_bootd) {
-#ifdef DEBUG_PARSER
-			printf ("[%s]\n", finaltoken);
-#endif
-			if (flag & CMD_FLAG_BOOTD) {
-				puts ("'bootd' recursion detected\n");
-				rc = -1;
-				continue;
-			} else {
-				flag |= CMD_FLAG_BOOTD;
-			}
-		}
-#endif
 
 		/* OK - call function to do the command */
 		if ((cmdtp->cmd) (cmdtp, flag, argc, argv) != 0) {
