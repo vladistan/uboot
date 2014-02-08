@@ -458,10 +458,6 @@ extern void davinci_eth_set_mac_addr (const u_int8_t *addr);
 	enc_set_mac_addr ();
 #endif /* CONFIG_ENC28J60_ETH && !CONFIG_ETHADDR*/
 
-	/* Initialize from environment */
-	if ((s = getenv ("loadaddr")) != NULL) {
-		load_addr = simple_strtoul (s, NULL, 16);
-	}
 #if defined(CONFIG_CMD_NET)
 	if ((s = getenv ("bootfile")) != NULL) {
 		copy_filename (BootFile, s, sizeof (BootFile));

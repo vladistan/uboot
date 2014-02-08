@@ -375,10 +375,6 @@ int _do_setenv (int flag, int argc, char *argv[])
 		bd->bi_ip_addr = htonl(addr);
 		return 0;
 	}
-	if (strcmp(argv[1],"loadaddr") == 0) {
-		load_addr = simple_strtoul(argv[2], NULL, 16);
-		return 0;
-	}
 #if defined(CONFIG_CMD_NET)
 	if (strcmp(argv[1],"bootfile") == 0) {
 		copy_filename (BootFile, argv[2], sizeof(BootFile));
