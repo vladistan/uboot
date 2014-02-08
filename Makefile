@@ -3327,6 +3327,7 @@ mx6solo_sabresd_config			\
 mx6solo_sabresd_mfg_config		\
 mx6dl_sabresd_config			\
 mx6dl_pplans_config             \
+mx6dl_pplans_iram_config             \
 mx6dl_sabresd_mfg_config		\
 mx6dl_sabresd_android_config			\
 mx6q_sabresd_config			\
