@@ -111,11 +111,11 @@ thumb_out:
 	mvn r1, r1
 	lsl r1, #12
 	and r0, r1
-	mov r1, #6
-	mov r2, #0x80
-	mul r1, r2
-	add r1, #0x64
-	add r0, r1
+//	mov r1, #0xe
+//	mov r2, #0x80
+//	mul r1, r2
+//	add r1, #0x64
+//	add r0, r1
 	
 	bx  r0
 	mov r1,#1
