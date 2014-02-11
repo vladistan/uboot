@@ -80,6 +80,8 @@ void i2c_init(int speed, int unused)
 	int freq;
 	int i;
 
+	DPRINTF("%s: I2C base addr %x\n", __func__, I2C_BASE );
+
 #ifdef CONFIG_MX31
 	freq = mx31_get_ipg_clk();
 #else
