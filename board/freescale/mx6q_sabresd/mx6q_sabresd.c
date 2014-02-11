@@ -749,6 +749,8 @@ int i2c_bus_recovery(void)
 static int setup_pmic_voltages(void)
 {
 	unsigned char value, rev_id = 0 ;
+
+	printf ("Setting up PMIC voltages");
 	i2c_init(CONFIG_SYS_I2C_SPEED, CONFIG_SYS_I2C_SLAVE);
 	if (!i2c_probe(0x8)) {
 		if (i2c_read(0x8, 0, 1, &value, 1)) {
@@ -760,22 +762,33 @@ static int setup_pmic_voltages(void)
 			return -1;
 		}
 		printf("Found PFUZE100! deviceid=%x,revid=%x\n", value, rev_id);
-		/*For camera streaks issue,swap VGEN5 and VGEN3 to power camera.
-		*sperate VDDHIGH_IN and camera 2.8V power supply, after switch:
-		*VGEN5 for VDDHIGH_IN and increase to 3V to align with datasheet
-		*VGEN3 for camera 2.8V power supply
-		*/
-		/*increase VGEN3 from 2.5 to 2.8V*/
-		if (i2c_read(0x8, 0x6e, 1, &value, 1)) {
-			printf("Read VGEN3 error!\n");
+
+
+		value = 0x1E;
+		if (i2c_write(0x8, 0x6D, 1, &value, 1)) {
+			printf("Set VGEN2 error!\n");
 			return -1;
 		}
-		value &= ~0xf;
-		value |= 0xa;
-		if (i2c_write(0x8, 0x6e, 1, &value, 1)) {
+
+		value = 0x10;
+		if (i2c_write(0x8, 0x6E, 1, &value, 1)) {
 			printf("Set VGEN3 error!\n");
 			return -1;
 		}
+
+
+		value = 0x1D;
+		if (i2c_write(0x8, 0x6F, 1, &value, 1)) {
+			printf("Set VGEN4 error!\n");
+			return -1;
+		}
+
+		value = 0x1A;
+		if (i2c_write(0x8, 0x71, 1, &value, 1)) {
+			printf("Set VGEN6 error!\n");
+			return -1;
+		}
+
 		/*increase VGEN5 from 2.8 to 3V*/
 		if (i2c_read(0x8, 0x70, 1, &value, 1)) {
 			printf("Read VGEN5 error!\n");
