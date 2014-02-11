@@ -189,6 +189,8 @@
 */
 /* #define CONFIG_FSL_ENV_IN_MMC */
 
+#define DEBUG 1
+
 #define CONFIG_ENV_SECT_SIZE    (1 * 1024)
 #define CONFIG_ENV_SIZE         CONFIG_ENV_SECT_SIZE
 #define CONFIG_ENV_IS_NOWHERE   1
