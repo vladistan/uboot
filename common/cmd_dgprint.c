@@ -13,7 +13,7 @@
 
 int do_dgprint(cmd_tbl_t *cmdtp, int flag, int argc, char * argv[])
 {
-	printf("Hi This is a test\n");
+	printf("Hi This is a test that the card reader is good.\n");
 
 	gpio_direction_output(IMX_GPIO_NR(1,8),1);
 	gpio_direction_output(IMX_GPIO_NR(1,7),1);
