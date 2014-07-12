@@ -87,6 +87,8 @@
 #define CONFIG_CMD_BOOTD	/* bootd			*/
 #define CONFIG_CMD_CONSOLE	/* coninfo			*/
 #define CONFIG_CMD_RUN		/* run command in env variable	*/
+#define CONFIG_CMD_LEDSET       /* ledset -- allows user to change debug leds */
+
 
 #define CONFIG_CMD_I2C
 #define CONFIG_CMD_IMXOTP

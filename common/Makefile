@@ -172,6 +172,8 @@ COBJS-$(CONFIG_USB_KEYBOARD) += usb_kbd.o
 COBJS-$(CONFIG_FASTBOOT) += cmd_fastboot.o
 COBJS-$(CONFIG_CMD_IMXOTP) += cmd_imxotp.o
 
+COBJS-$(CONFIG_CMD_LEDSET) += cmd_ledset.o
+
 COBJS	:= $(sort $(COBJS-y))
 SRCS	:= $(AOBJS:.o=.S) $(COBJS:.o=.c)
 OBJS	:= $(addprefix $(obj),$(AOBJS) $(COBJS))
