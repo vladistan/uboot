@@ -91,3 +91,15 @@ GTAGS
 
 # spl ais files
 /spl/*.ais
+
+/tests/test
+
+*.gcn*
+
+*.gcda
+
+*.swo
+
+/tests/bob.lib.c.html
+/tests/bob.html
+/tests/bob.cmd_ledset.c.html
