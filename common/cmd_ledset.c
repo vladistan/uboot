@@ -49,8 +49,8 @@ int do_ledset(cmd_tbl_t *cmdtp, int flag, int argc, char * argv[])
 		return 1;
 	}
 
-	led   = simple_strtoul(argv[1], NULL, 10);
-	state = simple_strtoul(argv[2], NULL, 10);
+	led   = simple_strtoul(argv[1], NULL, 0);
+	state = simple_strtoul(argv[2], NULL, 0);
 
 	state = (state)? 1 : 0;
 
