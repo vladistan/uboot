@@ -42,6 +42,10 @@ TEST_GROUP(LedSetArgs)
 {
 };
 
+TEST_GROUP(SetDebugLED)
+{
+};
+
 
 TEST(TestLib, VerifyReset)
 {
@@ -192,6 +196,16 @@ TEST(LedSetArgs, LedBank7Pin13SholdBeOff_ForLED50)
    CHECK(verify_gpio_direction_output(0x70D,0));
 }
 
+TEST(SetDebugLED, LedBankShouldSetupImxGpioNrCorrectly)
+{
+
+   reset_verify();
+   set_debug_led(0x5,0x1);
+
+   CHECK(verify_IMX_GPIO_NR(7,13));
+   CHECK(verify_gpio_direction_output(0x70D,1));
+
+}
 
 
 int main(int ac, char** av)
