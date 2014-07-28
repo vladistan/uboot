@@ -40,10 +40,21 @@ TEST_GROUP(InitialTest)
 
 TEST_GROUP(LedSetArgs)
 {
+    void setup()
+    {
+	reset_verify();
+    }
+
+
 };
 
 TEST_GROUP(SetDebugLED)
 {
+    void setup()
+    {
+	reset_verify();
+    }
+
 };
 
 
@@ -63,7 +74,6 @@ TEST(TestLib, VerifyReset)
 
 TEST(LedSetArgs, NotEnoughArgs)
 {
-   reset_verify();
 
    void * cmd_ptr = (void*)12;
    int rv = do_ledset(cmd_ptr,0,0,NULL);
@@ -75,7 +85,6 @@ TEST(LedSetArgs, NotEnoughArgs)
 
 TEST(LedSetArgs, LedArgsParsedCorrectly)
 {
-   reset_verify();
 
    void * cmd_ptr = (void*)12;
    const char * args[] = {"ledset","4","0"};
@@ -91,7 +100,6 @@ TEST(LedSetArgs, LedArgsParsedCorrectly)
 
 TEST(LedSetArgs, LedArgsParsedCorrectlyWithHexArg)
 {
-   reset_verify();
 
    void * cmd_ptr = (void*)12;
    const char * args[] = {"ledset","0x4","0"};
@@ -108,10 +116,11 @@ TEST(LedSetArgs, LedArgsParsedCorrectlyWithHexArg)
 
 TEST(LedSetArgs, LedArgsParsedCorrectlyWithOctArg)
 {
-   reset_verify();
 
    void * cmd_ptr = (void*)12;
    const char * args[] = {"ledset","04","0"};
+
+   CHECK(verify_IMX_GPIO_NR(0,0));
 
    int rv = do_ledset(cmd_ptr,0,3,(char**)args);
 
@@ -124,7 +133,6 @@ TEST(LedSetArgs, LedArgsParsedCorrectlyWithOctArg)
 
 TEST(LedSetArgs, LedFunctionCorrectlyForOverflow)
 {
-   reset_verify();
 
    void * cmd_ptr = (void*)12;
    const char * args[] = {"ledset","0xAE","5"};
@@ -140,7 +148,6 @@ TEST(LedSetArgs, LedFunctionCorrectlyForOverflow)
 
 TEST(LedSetArgs, LedBank1Pin6SholdBeOn_ForLED11)
 {
-   reset_verify();
 
    void * cmd_ptr = (void*)12;
    const char * args[] = {"ledset","1","1"};
@@ -154,7 +161,6 @@ TEST(LedSetArgs, LedBank1Pin6SholdBeOn_ForLED11)
 
 TEST(LedSetArgs, LedBank7Pin12SholdBeOff_ForLED20)
 {
-   reset_verify();
 
    void * cmd_ptr = (void*)12;
    const char * args[] = {"ledset","2","0"};
@@ -169,7 +175,6 @@ TEST(LedSetArgs, LedBank7Pin12SholdBeOff_ForLED20)
 
 TEST(LedSetArgs, LedBank1Pin8SholdBeOn_ForLED31)
 {
-   reset_verify();
 
    void * cmd_ptr = (void*)12;
    const char * args[] = {"ledset","3","1"};
@@ -184,7 +189,6 @@ TEST(LedSetArgs, LedBank1Pin8SholdBeOn_ForLED31)
 
 TEST(LedSetArgs, LedBank7Pin13SholdBeOff_ForLED50)
 {
-   reset_verify();
 
    void * cmd_ptr = (void*)12;
    const char * args[] = {"ledset","5","0"};
@@ -199,7 +203,6 @@ TEST(LedSetArgs, LedBank7Pin13SholdBeOff_ForLED50)
 TEST(SetDebugLED, LedBankShouldSetupImxGpioNrCorrectly)
 {
 
-   reset_verify();
    set_debug_led(0x5,0x1);
 
    CHECK(verify_IMX_GPIO_NR(7,13));
