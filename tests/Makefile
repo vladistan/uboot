@@ -14,6 +14,9 @@ clean:
 	-rm *.o
 
 
-test: ledset_test.o ../common/cmd_ledset.o lib.o
+cmd_ledset.c:../common/cmd_ledset.c
+	cp $^ $@
+
+test: ledset_test.o cmd_ledset.o lib.o
 	$(CXX) -o $@ $^  $(LDLIBS)  -lCppUTest --coverage
 
