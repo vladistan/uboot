@@ -671,6 +671,7 @@ void	fputs(int file, const char *s);
 void	fputc(int file, const char c);
 int	ftstc(int file);
 int	fgetc(int file);
+void set_debug_led( int led,  int state );
 
 /*
  * CONSOLE multiplexing.

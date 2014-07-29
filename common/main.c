@@ -213,11 +213,16 @@ static int menukey = 0;
 static __inline__ int abortboot(int bootdelay)
 {
 	int abort = 0;
+	int i;
 
 #ifdef CONFIG_MENUPROMPT
 	printf(CONFIG_MENUPROMPT);
 #else
 	printf("Hit any key to stop autoboot: %2d ", bootdelay);
+	for ( i = 1 ; i < 6 ; i ++ )
+	{
+	   set_debug_led ( i, bootdelay == i ? 1 : 0 );
+	}
 #endif
 
 #if defined CONFIG_ZERO_BOOTDELAY_CHECK
@@ -253,6 +258,10 @@ static __inline__ int abortboot(int bootdelay)
 			udelay(10000);
 		}
 
+		for ( i = 1 ; i < 6 ; i ++ )
+		{
+		   set_debug_led ( i, bootdelay == i ? 1 : 0 );
+		}
 		printf("\b\b\b%2d ", bootdelay);
 	}
 
