@@ -30,9 +30,11 @@
 
 #define CONFIG_MXC
 #define CONFIG_MX6DL
-#define CONFIG_MX6DL_DDR3
+// #define CONFIG_MX6DL_DDR3
+#define CONFIG_MX6DL_LPDDR2
 #define CONFIG_MX6DL_SABRESD
-#define CONFIG_DDR_64BIT /* for DDR 64bit */
+//#define CONFIG_DDR_64BIT /* for DDR 64bit */
+#define CONFIG_DDR_32BIT /* for DDR 32bit */
 #define CONFIG_FLASH_HEADER
 #define CONFIG_FLASH_HEADER_OFFSET 0x400
 #define CONFIG_MX6_CLK32	   32768
@@ -87,8 +89,9 @@
 #define CONFIG_CMD_BOOTD	/* bootd			*/
 #define CONFIG_CMD_CONSOLE	/* coninfo			*/
 #define CONFIG_CMD_RUN		/* run command in env variable	*/
-#define CONFIG_CMD_DGPRINT  /* dgprint -- test cmd */
+// #define CONFIG_CMD_DGPRINT  /* dgprint -- test cmd */
 #define CONFIG_CMD_LEDSET   /* ledset -- allows user to change debug leds */
+#define CONFIG_CMD_MEMORY   /* ledset -- allows user to change debug leds */
 
 
 #define CONFIG_CMD_I2C
@@ -129,7 +132,7 @@
 #define CONFIG_SYS_BARGSIZE CONFIG_SYS_CBSIZE /* Boot Argument Buffer Size */
 
 #define CONFIG_SYS_MEMTEST_START	0x10000000	/* memtest works on */
-#define CONFIG_SYS_MEMTEST_END		0x10010000
+#define CONFIG_SYS_MEMTEST_END		0x20000000
 
 #undef	CONFIG_SYS_CLKS_IN_HZ		/* everything, incl board info, in Hz */
 
@@ -178,7 +181,8 @@
  */
 #define CONFIG_NR_DRAM_BANKS	1
 #define PHYS_SDRAM_1		CSD0_DDR_BASE_ADDR
-#define PHYS_SDRAM_1_SIZE	(1u * 1024 * 1024 * 1024)
+#define PHYS_SDRAM_1_SIZE	(1u * 1024 * 1024 * 512)
+// #define PHYS_SDRAM_1_SIZE	(1u * 1024 * 1024 * 1024)
 #define iomem_valid_addr(addr, size) \
 	(addr >= PHYS_SDRAM_1 && addr <= (PHYS_SDRAM_1 + PHYS_SDRAM_1_SIZE))
 
