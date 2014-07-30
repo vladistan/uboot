@@ -47,6 +47,6 @@ int do_ledset(cmd_tbl_t *cmdtp, int flag, int argc, char * argv[])
 
 U_BOOT_CMD(
 	ledset, NUM_ARGS, 1, do_ledset,
-	"ledset allows the user to change the state of one LED on the PPL board.\nledset [0=off, 1=on] [LED to change {1,2,3,4,5}",
+	"ledset allows the user to change the state of one LED on the PPL board.",
 	"ledset allows the user to change the state of one LED on the PPL board.\nledset [0=off, 1=on] [LED to change {1,2,3,4,5}"
 	);
