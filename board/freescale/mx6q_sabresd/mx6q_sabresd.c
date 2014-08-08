@@ -833,18 +833,6 @@ static int setup_pmic_voltages(void)
 		// 	printf("Set OTP Load Mask: restart pmic error!\n");
 		// 	return -1;
 		// }
-
-		/*increase VGEN5 from 2.8 to 3V*/
-		if (i2c_read(0x8, 0x70, 1, &value, 1)) {
-			printf("Read VGEN5 error!\n");
-			return -1;
-		}
-		value &= ~0xf;
-		value |= 0xc;
-		if (i2c_write(0x8, 0x70, 1, &value, 1)) {
-			printf("Set VGEN5 error!\n");
-			return -1;
-		}
 	}
 }
 #endif
