@@ -821,6 +821,12 @@ static int setup_pmic_voltages(void)
 			return -1;
 		}
 
+		value = 0x80;
+		if (i2c_write(0x8, 0xE4, 1, &value, 1)) {
+			printf("Set OTP Fuse POR: set TBB_POR, try-before-buy mode error!\n");
+			return -1;
+		}
+
 		/*increase VGEN5 from 2.8 to 3V*/
 		if (i2c_read(0x8, 0x70, 1, &value, 1)) {
 			printf("Read VGEN5 error!\n");
