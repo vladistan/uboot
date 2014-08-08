@@ -827,6 +827,13 @@ static int setup_pmic_voltages(void)
 			return -1;
 		}
 
+		// Might create infinite restart loop. Wait for test results.
+		// value = 0xF0;
+		// if (i2c_write(0x8, 0x84, 1, &value, 1)) {
+		// 	printf("Set OTP Load Mask: restart pmic error!\n");
+		// 	return -1;
+		// }
+
 		/*increase VGEN5 from 2.8 to 3V*/
 		if (i2c_read(0x8, 0x70, 1, &value, 1)) {
 			printf("Read VGEN5 error!\n");
