@@ -815,12 +815,6 @@ static int setup_pmic_voltages(void)
 			return -1;
 		}
 
-		value = 0x01;
-		if (i2c_write(0x8, 0x7F, 1, &value, 1)) {
-			printf("Set Access Extended Reg 1 error!\n");
-			return -1;
-		}
-
 		value = 0x03;
 		if (i2c_write(0x8, 0xB6, 1, &value, 1)) {
 			printf("Set SW3B -> Independent error!\n");
