@@ -87,3 +87,4 @@ GTAGS
 .idea
 tests/command.h
 tests/asm
+tests/cmd_ledset.c
