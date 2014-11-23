@@ -50,10 +50,11 @@ clean:
 	-rm -f *.gcda
 	-rm -f *.gcno
 	-rm -f *.o
-	-rm -f ../common/cmd_ledset.o
+	-rm -f cmd_ledset.c
 
 
-../common/cmd_ledset.o: ../common/cmd_ledset.c common.h command.h asm/arch-mx6/gpio.h asm/io.h asm/arch/mx6.h asm/arch/imx-regs.h asm/arch/mx6dl_pins.h asm/arch/gpio.h asm/gpio.h asm/arch/iomux.h
+cmd_ledset.o: ../common/cmd_ledset.c common.h command.h asm/arch-mx6/gpio.h asm/io.h asm/arch/mx6.h asm/arch/imx-regs.h asm/arch/mx6dl_pins.h asm/arch/gpio.h asm/gpio.h asm/arch/iomux.h asm/arch/gpio.h
+
 
 cmd_ledset.c:../common/cmd_ledset.c
 	cp $^ $@
