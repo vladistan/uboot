@@ -21,3 +21,5 @@
  * MA 02111-1307 USA
  */
 
+
+void set_debug_led( int led,  int state );
