@@ -5,7 +5,6 @@
 #
 # Normal rules
 #
-
 *.rej
 *.orig
 *.a
@@ -17,16 +16,12 @@
 *.bin
 *.cfgtmp
 *.dts.tmp
-
 config.tmp
-
 # Build tree
 /build-*
-
 #
 # Top-level generic files
 #
-
 /MLO*
 /SPL
 /System.map
@@ -55,39 +50,40 @@ config.tmp
 #
 # Generated files
 #
-
 *.depend*
 /LOG
 /errlog
 /reloc_off
-
 /include/generated/
 asm-offsets.s
-
 # stgit generated dirs
 patches-*
 .stgit-edit.txt
-
 # quilt's files
 patches
 series
-
 # gdb files
 .gdb_history
-
 # cscope files
 cscope.*
-
 # tags files
 /tags
 /ctags
 /etags
-
 # gnu global files
 GPATH
 GRTAGS
 GSYMS
 GTAGS
-
 # spl ais files
 /spl/*.ais
+/tests/test
+*.gcn*
+*.gcda
+*.swo
+/tests/bob.lib.c.html
+/tests/bob.html
+/tests/bob.cmd_ledset.c.html
+.idea
+tests/command.h
+tests/asm
