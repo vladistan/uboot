@@ -97,7 +97,7 @@
 #define CONFIG_BOOTP_GATEWAY
 #define CONFIG_BOOTP_DNS
 #define CONFIG_CMD_LEDSET   /* ledset -- allows user to change debug leds */
-#define CONFIG_CMD_MEMORY   /* ledset -- allows user to change debug leds */
+#define CONFIG_CMD_MEMORY
 
 #define CONFIG_CMD_SPI
 #define CONFIG_CMD_BDI		/* bdinfo			*/

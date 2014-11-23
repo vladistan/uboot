@@ -22,7 +22,7 @@
 
 #ifdef	CONFIG_FLASH_HEADER
 #ifndef CONFIG_FLASH_HEADER_OFFSET
-// error "Must define the offset of flash header"
+# error "Must define the offset of flash header"
 #endif
 
 #define CPU_2_BE_32(l) \
