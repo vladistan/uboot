@@ -25,6 +25,7 @@ int verify_cmd_usage(void *);
 
 
 /* Components under test */
+void set_debug_led( int led,  int state );
 int do_ledset(cmd_tbl_t *cmdtp, int flag, int argc, char * argv[]);
 
 

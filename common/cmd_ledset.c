@@ -18,35 +18,49 @@
 
 #define NUM_ARGS (2 + 1)
 
+
+void set_debug_led( int led,  int state )
+{
+
+   int bank;
+   int pin;
+
+   switch (led)
+   {
+	case 1: 	bank = 1;	 pin = 6;	break;
+	case 2: 	bank = 7;	 pin = 12;	break;
+	case 3: 	bank = 1;	 pin = 8;	break;
+	case 4: 	bank = 1;	 pin = 7;	break;
+	case 5: 	bank = 7;	 pin = 13;	break;
+	default: 	bank = 1;	 pin = 6;	break;
+   }
+
+   gpio_direction_output(IMX_GPIO_NR(bank, pin), state);
+
+
+}
+
+
 int do_ledset(cmd_tbl_t *cmdtp, int flag, int argc, char * argv[])
 {
-	uint state, led, bank;
+	uint state, led;
 	if (argc < NUM_ARGS) {
 		cmd_usage(cmdtp);
 		return 1;
 	}
 
-	led = simple_strtoul(argv[1], NULL, 10);
-	state   = simple_strtoul(argv[2], NULL, 10);
-
-	printf("Turning %s  LED %u.\n", (state)? "on" : "off", led);
-	switch (led)
-	{
-		case 1: 	bank = 1;	 led = 6;	break;
-		case 2: 	bank = 7;	 led = 12;	break;
-		case 3: 	bank = 1;	 led = 8;	break;
-		case 4: 	bank = 1;	 led = 7;	break;
-		case 5: 	bank = 7;	 led = 13;	break;
-		default: 	bank = 1;	 led = 6;	break;
-	}
+	led   = simple_strtoul(argv[1], NULL, 10);
+	state = simple_strtoul(argv[2], NULL, 10);
 
 	state = (state)? 1 : 0;
-	gpio_direction_output(IMX_GPIO_NR(bank, led), state);
+
+	set_debug_led(led, state);
+
 	return 0;
 }
 
 U_BOOT_CMD(
 	ledset, NUM_ARGS, 1, do_ledset,
 	"ledset allows the user to change the state of one LED on the PPL board.",
-	"ledset allows the user to change the state of one LED on the PPL board.\nledset [0=off, 1=on] [LED to change {1,2,3,4,5}"
+	"ledset allows the user to change the state of one LED on the PPL board.\nledset [LED to change {1,2,3,4,5} [0=off 1=on]"
 	);
