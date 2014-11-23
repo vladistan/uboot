@@ -88,3 +88,5 @@ GTAGS
 tests/command.h
 tests/asm
 tests/cmd_ledset.c
+tests/pplans_dbgled.c
+tests/pplans_dbgled.h

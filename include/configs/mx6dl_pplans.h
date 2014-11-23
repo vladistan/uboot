@@ -61,6 +61,8 @@
 #define CONFIG_INITRD_TAG
 
 #define CONFIG_MXC_GPIO
+     
+#define CONFIG_PPLANS_DEBUG_LED
 
 /*
  * Size of malloc() pool
