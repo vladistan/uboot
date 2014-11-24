@@ -23,7 +23,7 @@
 #include <pplans_pmic.h>
 
 
-int probe_pfuze100()
+int probe_pfuze100(void)
 {
     unsigned char value, dev_id = 0 ;
 

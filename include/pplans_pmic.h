@@ -22,4 +22,4 @@
  */
 
 
-int probe_pfuze100();
+int probe_pfuze100(void);
