@@ -58,7 +58,8 @@
 
 void set_debug_led_bank(int pattern)
 {
-    for ( int i = 0; i < 5; i ++)
+    int i;
+    for (  i = 0; i < 5; i ++)
     {
 
         set_debug_led(i+1, pattern & 1 );
