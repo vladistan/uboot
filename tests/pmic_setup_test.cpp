@@ -188,6 +188,18 @@ TEST(PMIC_Setup, TestIntialPMICSetup )
     LONGS_EQUAL(0, rv);
 }
 
+TEST(PMIC_Setup, TestPMICSW3Setup )
+{
+
+    MockIO_Expect_i2c_write (0x8, 0x3c, 0x20 );
+    MockIO_Expect_i2c_write (0x8, 0x43, 0x20 );
+
+    int rv = pplans_pmic_sw3_reg_setup ();
+
+    LONGS_EQUAL(0, rv);
+}
+
+
 
 
 

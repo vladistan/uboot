@@ -767,11 +767,7 @@ static int setup_pmic_voltages(void)
 	    }
 
 	    rv = pplans_pmic_basic_reg_setup(); PMIC_CHK;
-
-
-
-        rv = pplans_pmic_write(0x3C, 0x20, "Set SW3A Voltage"  ); PMIC_CHK
-        rv = pplans_pmic_write(0x43, 0x20, "Set SW3B Voltage"  ); PMIC_CHK
+	    rv = pplans_pmic_sw3_reg_setup(); PMIC_CHK;
 
         rv = pplans_pmic_write(0x7F, 0x01, "Open Extended Reg 1"  ); PMIC_CHK
         rv = pplans_pmic_write(0xB2, 0x0D, "SW3A : Independent, 2MHZ"  ); PMIC_CHK

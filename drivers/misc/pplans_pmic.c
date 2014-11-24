@@ -80,3 +80,14 @@ int pplans_pmic_basic_reg_setup() {
     return 0;
 
 }
+
+int pplans_pmic_sw3_reg_setup() {
+
+    int rv;
+
+    rv = pplans_pmic_write(0x3c, 0x20, "Set SW3A Voltage "); PMIC_CHK;
+    rv = pplans_pmic_write(0x43, 0x20, "Set SW3B Voltage "); PMIC_CHK;
+
+    return 0;
+
+}
