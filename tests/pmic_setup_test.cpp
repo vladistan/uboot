@@ -215,3 +215,41 @@ TEST(PMIC_Setup, TestPMICSW3IndependentOpSetup )
 
 
 
+TEST(PMIC_Setup, TestPMICSW3IndependentOpCheckShouldPass )
+{
+
+    MockIO_Expect_i2c_write (0x8, 0x7F, 0x01 );
+    MockIO_Expect_i2c_read (0x8, 0xB2, 0x0D );
+    MockIO_Expect_i2c_read (0x8, 0xB6, 0x03 );
+
+    int rv = pplans_pmic_sw3_independent_op_check ();
+
+    LONGS_EQUAL(0, rv);
+}
+
+
+TEST(PMIC_Setup, TestPMICSW3IndependentOpCheckShouldFailWhenB2IsNotSet )
+{
+
+    MockIO_Expect_i2c_write (0x8, 0x7F, 0x01 );
+    MockIO_Expect_i2c_read (0x8, 0xB2, 0x00 );
+
+    int rv = pplans_pmic_sw3_independent_op_check ();
+
+    LONGS_EQUAL(-1, rv);
+}
+
+TEST(PMIC_Setup, TestPMICSW3IndependentOpCheckShouldFailWhenB6IsNotSet )
+{
+
+    MockIO_Expect_i2c_write (0x8, 0x7F, 0x01 );
+    MockIO_Expect_i2c_read (0x8, 0xB2, 0x0D );
+    MockIO_Expect_i2c_read (0x8, 0xB6, 0x00 );
+
+    int rv = pplans_pmic_sw3_independent_op_check ();
+
+    LONGS_EQUAL(-1, rv);
+}
+
+
+

@@ -115,3 +115,29 @@ int pplans_pmic_sw3_independent_op_setup() {
     return 0;
 
 }
+
+int pplans_pmic_sw3_independent_op_check() {
+
+    int rv;
+    unsigned char value;
+
+
+    rv = pplans_pmic_write(0x7F, 1, "Open extended page 1"); PMIC_CHK;
+
+    rv = pplans_pmic_read(0xB2, &value, "SW3A : Independent, 2MHZ"  ); PMIC_CHK;
+    if ( value != 0x0D ) {
+        printf ("SW3A: Independent Not Set. NEED RESTART!!");
+        return -1;
+    }
+
+
+    rv = pplans_pmic_read(0xB6, &value, "SW3B : Independent, 2MHZ"  ); PMIC_CHK;
+    if ( value != 0x03 ) {
+        printf ("SW3B: Independent Not Set. NEED RESTART!!");
+        return -1;
+    }
+
+
+    return 0;
+
+}
