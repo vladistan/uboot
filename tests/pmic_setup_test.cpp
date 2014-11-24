@@ -201,5 +201,17 @@ TEST(PMIC_Setup, TestPMICSW3Setup )
 
 
 
+TEST(PMIC_Setup, TestPMICSW3IndependentOpSetup )
+{
+
+    MockIO_Expect_i2c_write (0x8, 0x7F, 0x01 );
+    MockIO_Expect_i2c_write (0x8, 0xB2, 0x0D );
+    MockIO_Expect_i2c_write (0x8, 0xB6, 0x03 );
+
+    int rv = pplans_pmic_sw3_independent_op_setup ();
+
+    LONGS_EQUAL(0, rv);
+}
+
 
 

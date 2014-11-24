@@ -91,3 +91,18 @@ int pplans_pmic_sw3_reg_setup() {
     return 0;
 
 }
+
+
+int pplans_pmic_sw3_independent_op_setup() {
+
+    int rv;
+
+    rv = pplans_pmic_write(0x7F, 0x01, "Open extended page 1"); PMIC_CHK;
+    rv = pplans_pmic_write(0xB2, 0x0D, "SW3A : Independent, 2MHZ"  ); PMIC_CHK;
+    rv = pplans_pmic_write(0xB6, 0x03, "SW3B : Independent, 2MHZ"  ); PMIC_CHK;
+
+
+
+    return 0;
+
+}
