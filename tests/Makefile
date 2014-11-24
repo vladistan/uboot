@@ -68,6 +68,6 @@ pplans_dbgled.c: ../drivers/misc/pplans_dbgled.c
 	cp $^ $@
 
 
-test: pplans_dbgled_test.o ledset_test.o cmd_ledset.o  pplans_dbgled.o mockio.o lib.o
+test: pplans_dbgled_test.o ledset_test.o pmic_setup_test.o cmd_ledset.o  pplans_dbgled.o mockio.o lib.o
 	$(CXX)  -o $@ $^  $(LDLIBS)  -lCppUTest --coverage
 
