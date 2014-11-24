@@ -33,7 +33,7 @@
 
 enum
 {
-    FLASH_READ, FLASH_WRITE, GPIO_NR, GPIO_OUTPUT, I2C_READ, I2C_WRITE,  NoExpectedValue = -1
+    FLASH_READ, FLASH_WRITE, GPIO_NR, GPIO_OUTPUT, I2C_READ, I2C_WRITE, I2C_READ_FAILURE,  NoExpectedValue = -1
 };
 
 typedef struct Expectation
@@ -195,6 +195,14 @@ void recordI2cReadExpectation (uint8_t chip, unsigned int addr, uint8_t rv)
     setExpectationCount++;
 }
 
+void recordI2cReadFailureExpectation (uint8_t chip, unsigned int addr)
+{
+    expectations[setExpectationCount].kind = I2C_READ_FAILURE;
+    expectations[setExpectationCount].chip = chip;
+    expectations[setExpectationCount].addr = addr;
+    setExpectationCount++;
+}
+
 void recordI2cWriteExpectation (uint8_t chip, unsigned int addr, uint8_t rv)
 {
     expectations[setExpectationCount].kind = I2C_WRITE;
@@ -237,6 +245,12 @@ void MockIO_Expect_i2c_read(uint8_t chip, unsigned int addr, uint8_t rv)
     failWhenNoRoomForExpectations(report_too_many_expectations);
 
     recordI2cReadExpectation(chip, addr, rv);
+}
+
+void MockIO_Expect_i2c_read_failure(uint8_t chip, unsigned int addr)
+{
+    failWhenNoRoomForExpectations(report_too_many_expectations);
+    recordI2cReadFailureExpectation(chip, addr);
 }
 
 static void failWhenNoUnusedExpectations(const char * format)
@@ -388,6 +402,9 @@ static void failExpectationGPIO(int condition, const char * expectationFailMessa
 
 static int expectationIsNot(int kind)
 {
+    if ( kind == I2C_READ && expectations[getExpectationCount].kind == I2C_READ_FAILURE  )
+        return 0;
+
     return kind != expectations[getExpectationCount].kind;
 }
 
@@ -459,6 +476,11 @@ int i2c_read(uint8_t chip, unsigned int addr, int alen, uint8_t *buffer, int len
     failForIncorrectAddrLen(addrLenIsNotOne(alen), report_incorrect_addr_len, alen);
     failForIncorrectBufLen(bufferLenIsNotOne(len), report_incorrect_buf_len, alen);
     failWhenWrongChipAddr(expectedChipAddrIsNot(chip, addr), report_wrong_chipaddr);
+
+    if (expected.kind == I2C_READ_FAILURE ) {
+        getExpectationCount++;
+        return -1;
+    }
 
     buffer[0] = expected.rv;
     getExpectationCount++;
