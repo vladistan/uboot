@@ -24,6 +24,7 @@
 
 int probe_pfuze100(void);
 int pplans_pmic_write (unsigned char reg, unsigned char value, const char * msg );
+int pplans_pmic_read (unsigned char reg, unsigned char  *value, const char * msg );
 int pplans_pmic_basic_reg_setup();
 int pplans_pmic_sw3_reg_setup();
 int pplans_pmic_sw3_independent_op_setup();

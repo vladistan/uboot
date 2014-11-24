@@ -22,16 +22,17 @@
 #include <common.h>
 #include <pplans_pmic.h>
 
+#define PMIC_CHK if(rv == - 1) {return -1;}
+
 
 int probe_pfuze100(void)
 {
-    unsigned char value, dev_id = 0 ;
+    unsigned char value;
+    int rv;
 
 
-    if (i2c_read(0x8, 0, 1, &value, 1)) {
-        printf("Read device ID error!\n");
-        return -1;
-    }
+    rv = pplans_pmic_read(0, &value, "device ID"); PMIC_CHK;
+
 
     if(value != 0x10 )
     {
@@ -39,10 +40,8 @@ int probe_pfuze100(void)
         return -1;
     }
 
-    if (i2c_read(0x8, 3, 1, &value, 1)) {
-        printf("Read device revision error!\n");
-        return -1;
-    }
+    rv = pplans_pmic_read(3, &value, "device revision"); PMIC_CHK;
+    
 
     if(value != 0x11 )
     {
@@ -67,7 +66,17 @@ int pplans_pmic_write (unsigned char reg, unsigned char value, const char * msg 
     return 0;
 }
 
-#define PMIC_CHK if(rv == - 1) {return -1;}
+int pplans_pmic_read (unsigned char reg, unsigned char * value, const char * msg )
+{
+
+    if (i2c_read(0x8, reg, 1, value, 1)) {
+        printf("Read %s error!\n", msg );
+        return -1;
+    }
+
+    return 0;
+}
+
 
 int pplans_pmic_basic_reg_setup() {
     int rv;
