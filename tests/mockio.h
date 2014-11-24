@@ -38,6 +38,7 @@ void MockIO_Expect_gpio_output(int port, int state);
 void MockIO_Expect_i2c_write(uint8_t chip, unsigned int addr,  uint8_t rv);
 void MockIO_Expect_i2c_read(uint8_t chip, unsigned int addr,  uint8_t rv);
 void MockIO_Expect_i2c_read_failure(uint8_t chip, unsigned int addr );
+void MockIO_Expect_i2c_write_failure(uint8_t chip, unsigned int addr, uint8_t rv  );
 void MockIO_Verify_Complete(void);
 
 #ifdef __cplusplus

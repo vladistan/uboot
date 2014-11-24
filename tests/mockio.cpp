@@ -33,7 +33,8 @@
 
 enum
 {
-    FLASH_READ, FLASH_WRITE, GPIO_NR, GPIO_OUTPUT, I2C_READ, I2C_WRITE, I2C_READ_FAILURE,  NoExpectedValue = -1
+    FLASH_READ, FLASH_WRITE, GPIO_NR, GPIO_OUTPUT, I2C_READ, I2C_WRITE, I2C_READ_FAILURE,
+    I2C_WRITE_FAILURE,  NoExpectedValue = -1
 };
 
 typedef struct Expectation
@@ -203,6 +204,16 @@ void recordI2cReadFailureExpectation (uint8_t chip, unsigned int addr)
     setExpectationCount++;
 }
 
+void recordI2cWriteFailureExpectation (uint8_t chip, unsigned int addr, uint8_t rv)
+{
+    expectations[setExpectationCount].kind = I2C_WRITE_FAILURE;
+    expectations[setExpectationCount].chip = chip;
+    expectations[setExpectationCount].addr = addr;
+    expectations[setExpectationCount].rv = rv;
+
+    setExpectationCount++;
+}
+
 void recordI2cWriteExpectation (uint8_t chip, unsigned int addr, uint8_t rv)
 {
     expectations[setExpectationCount].kind = I2C_WRITE;
@@ -251,6 +262,12 @@ void MockIO_Expect_i2c_read_failure(uint8_t chip, unsigned int addr)
 {
     failWhenNoRoomForExpectations(report_too_many_expectations);
     recordI2cReadFailureExpectation(chip, addr);
+}
+
+void MockIO_Expect_i2c_write_failure(uint8_t chip, unsigned int addr, uint8_t rv)
+{
+    failWhenNoRoomForExpectations(report_too_many_expectations);
+    recordI2cWriteFailureExpectation(chip, addr, rv);
 }
 
 static void failWhenNoUnusedExpectations(const char * format)
@@ -405,6 +422,9 @@ static int expectationIsNot(int kind)
     if ( kind == I2C_READ && expectations[getExpectationCount].kind == I2C_READ_FAILURE  )
         return 0;
 
+    if ( kind == I2C_WRITE && expectations[getExpectationCount].kind == I2C_WRITE_FAILURE  )
+        return 0;
+
     return kind != expectations[getExpectationCount].kind;
 }
 
@@ -499,6 +519,11 @@ int i2c_write(uint8_t chip, unsigned int addr, int alen, uint8_t *buffer, int le
     failForIncorrectAddrLen(addrLenIsNotOne(alen), report_incorrect_addr_len, alen);
     failForIncorrectBufLen(bufferLenIsNotOne(len), report_incorrect_buf_len, alen);
     failWhenWrongChipAddrValue(expectedChipAddrValueIsNot(chip, addr, buffer[0]), report_wrong_chipaddrvalue);
+
+    if (expected.kind == I2C_WRITE_FAILURE ) {
+        getExpectationCount++;
+        return -1;
+    }
 
     getExpectationCount++;
 
