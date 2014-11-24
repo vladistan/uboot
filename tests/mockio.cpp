@@ -70,6 +70,9 @@ static const char * report_expect_wrong_func_gpio_out =
 static const char * report_expect_wrong_func_i2c_read =
         "Expected I2C_READ(0x%x)\n"
                 "\t        But was ( 0x%x)";
+static const char * report_expect_wrong_func_i2c_write =
+        "Expected I2C_WRITE(0x%x)\n"
+                "\t        But was ( 0x%x)";
 static const char * report_expect_wrong_func_gpionr =
         "Expected GPIONR(0x%x)\n"
                 "\t        But was ( 0x%x)";
@@ -82,6 +85,9 @@ static const char * report_wrong_portstate =
 static const char * report_wrong_chipaddr =
         "Expected ChipAddr(0x%x, 0x%x)\n"
                 "\t        But was (0x%x, 0x%x)\n";
+static const char * report_wrong_chipaddrvalue =
+        "Expected ChipAddr(0x%x, 0x%x, 0x%x)\n"
+                "\t        But was (0x%x, 0x%x, 0x%x)\n";
 static const char * report_too_many_expectations =
     "MockIO_Expect: Too many expectations";
 static const char * report_MockIO_not_initialized =
@@ -180,9 +186,18 @@ void recordGpioOutputExpectation(int port, int state)
     setExpectationCount++;
 }
 
-void recordI2cReadExpectation (uint8_t chip, unsigned int addr, int alen, uint8_t rv)
+void recordI2cReadExpectation (uint8_t chip, unsigned int addr, uint8_t rv)
 {
     expectations[setExpectationCount].kind = I2C_READ;
+    expectations[setExpectationCount].chip = chip;
+    expectations[setExpectationCount].addr = addr;
+    expectations[setExpectationCount].rv = rv;
+    setExpectationCount++;
+}
+
+void recordI2cWriteExpectation (uint8_t chip, unsigned int addr, uint8_t rv)
+{
+    expectations[setExpectationCount].kind = I2C_WRITE;
     expectations[setExpectationCount].chip = chip;
     expectations[setExpectationCount].addr = addr;
     expectations[setExpectationCount].rv = rv;
@@ -211,14 +226,17 @@ static int bufferLenIsNotOne(int blen)
     return blen != 1;
 }
 
-
-
-void MockIO_Expect_i2c_read(uint8_t chip, unsigned int addr, int alen, uint8_t rv)
+void MockIO_Expect_i2c_write(uint8_t chip, unsigned int addr, uint8_t rv)
 {
     failWhenNoRoomForExpectations(report_too_many_expectations);
-    failForIncorrectAddrLen(addrLenIsNotOne(alen), report_incorrect_addr_len, alen);
+    recordI2cWriteExpectation(chip, addr, rv);
+}
 
-    recordI2cReadExpectation(chip, addr, alen, rv);
+void MockIO_Expect_i2c_read(uint8_t chip, unsigned int addr, uint8_t rv)
+{
+    failWhenNoRoomForExpectations(report_too_many_expectations);
+
+    recordI2cReadExpectation(chip, addr, rv);
 }
 
 static void failWhenNoUnusedExpectations(const char * format)
@@ -264,10 +282,24 @@ static void i2c_read_setExpectedAndActual(int chip, int addr) {
     expected.addr  = expectations[getExpectationCount].addr;
     expected.rv  = expectations[getExpectationCount].rv;
 
-    
+
     actual.kind = I2C_READ;
     actual.chip = chip;
     actual.addr = addr;
+}
+
+static void i2c_write_setExpectedAndActual(int chip, int addr, uint8_t rv) {
+
+    expected.kind = expectations[getExpectationCount].kind;
+    expected.chip = expectations[getExpectationCount].chip;
+    expected.addr  = expectations[getExpectationCount].addr;
+    expected.rv  = expectations[getExpectationCount].rv;
+
+
+    actual.kind = I2C_WRITE;
+    actual.chip = chip;
+    actual.addr = addr;
+    actual.rv   = rv;
 }
 
 
@@ -319,6 +351,22 @@ static void failWhenWrongChipAddr(int condition, const char * expectationFailMes
     fail(message);
 }
 
+static void failWhenWrongChipAddrValue(int condition, const char * expectationFailMessage) {
+
+    char message[100];
+    int size = sizeof message - 1;
+
+    if (!condition)
+        return;
+
+    int offset = snprintf(message, size,
+            report_expectation_number, getExpectationCount + 1);
+    snprintf(message + offset, size - offset,
+            expectationFailMessage, expected.chip, expected.addr, expected.rv,
+            actual.chip, actual.addr, actual.rv );
+    fail(message);
+}
+
 
 
 
@@ -360,6 +408,13 @@ static int expectedChipAddrIsNot(int chip, int addr)
 {
     return chip != expectations[getExpectationCount].chip ||
             addr != expectations[getExpectationCount].addr;
+}
+
+static int expectedChipAddrValueIsNot(int chip, int addr, uint8_t value)
+{
+    return chip != expectations[getExpectationCount].chip ||
+            addr != expectations[getExpectationCount].addr ||
+            value != expectations[getExpectationCount].rv;
 }
 
 
@@ -406,6 +461,23 @@ int i2c_read(uint8_t chip, unsigned int addr, int alen, uint8_t *buffer, int len
     failWhenWrongChipAddr(expectedChipAddrIsNot(chip, addr), report_wrong_chipaddr);
 
     buffer[0] = expected.rv;
+    getExpectationCount++;
+
+    return 0;
+}
+
+
+int i2c_write(uint8_t chip, unsigned int addr, int alen, uint8_t *buffer, int len)
+{
+    failWhenNotInitialized();
+    i2c_write_setExpectedAndActual(chip, addr, buffer[0]);
+
+    failWhenNoUnusedExpectations(report_i2c_read_but_out_of_expectations);
+    failExpectationGPIO(expectationIsNot(I2C_WRITE), report_expect_wrong_func_i2c_read);
+    failForIncorrectAddrLen(addrLenIsNotOne(alen), report_incorrect_addr_len, alen);
+    failForIncorrectBufLen(bufferLenIsNotOne(len), report_incorrect_buf_len, alen);
+    failWhenWrongChipAddrValue(expectedChipAddrValueIsNot(chip, addr, buffer[0]), report_wrong_chipaddrvalue);
+
     getExpectationCount++;
 
     return 0;
