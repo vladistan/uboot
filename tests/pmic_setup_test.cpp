@@ -31,24 +31,24 @@ extern "C" {
 
 
 
-TEST_GROUP(PMIC_Setup)
+TEST_GROUP(I2C_Mock)
 {
-    void setup()
-    {
-        reset_verify();
-        MockIO_Create(20);
-    }
+        void setup()
+        {
+            reset_verify();
+            MockIO_Create(20);
+        }
 
-    void teardown()
-    {
-        MockIO_Destroy();
-        MockIO_Verify_Complete();
-    }
+        void teardown()
+        {
+            MockIO_Destroy();
+            MockIO_Verify_Complete();
+        }
 
 };
 
 
-TEST(PMIC_Setup, I2CRead_Works)
+TEST(I2C_Mock, I2CRead_Works)
 {
 
    MockIO_Expect_i2c_read(0x8, 0, 23 );
@@ -63,7 +63,7 @@ TEST(PMIC_Setup, I2CRead_Works)
 
 }
 
-TEST(PMIC_Setup, I2CWrite_Works)
+TEST(I2C_Mock, I2CWrite_Works)
 {
 
     MockIO_Expect_i2c_write(0x8, 0, 23 );
@@ -75,7 +75,27 @@ TEST(PMIC_Setup, I2CWrite_Works)
 
     LONGS_EQUAL(0, rv);
 
-
 }
+
+
+
+TEST_GROUP(PMIC_Setup)
+{
+        void setup()
+        {
+            reset_verify();
+            MockIO_Create(20);
+        }
+
+        void teardown()
+        {
+            MockIO_Destroy();
+            MockIO_Verify_Complete();
+        }
+
+};
+
+
+
 
 
