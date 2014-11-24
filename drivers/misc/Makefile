@@ -38,6 +38,7 @@ COBJS-$(CONFIG_PMIC) += pmic_core.o
 COBJS-$(CONFIG_PMIC_I2C) += pmic_i2c.o
 COBJS-$(CONFIG_PMIC_SPI) += pmic_spi.o
 COBJS-$(CONFIG_PPLANS_DEBUG_LED) += pplans_dbgled.o
+COBJS-$(CONFIG_PPLANS_PMIC) += pplans_pmic.o
 
 COBJS	:= $(COBJS-y)
 SRCS	:= $(COBJS:.o=.c)

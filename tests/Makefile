@@ -47,6 +47,8 @@ asm/arch/iomux.h:
 pplans_dbgled.h: ../include/pplans_dbgled.h 
 	cp $^ $@
 
+pplans_pmic.h: ../include/pplans_pmic.h 
+	cp $^ $@
 
 clean:
 	-rm -f coverage.xml
@@ -61,13 +63,19 @@ cmd_ledset.o: cmd_ledset.c common.h command.h asm/arch-mx6/gpio.h asm/io.h asm/a
 
 pplans_dbgled.o: pplans_dbgled.c pplans_dbgled.h
 
+pplans_pmic.o: pplans_pmic.c pplans_pmic.h
+
+
 cmd_ledset.c: ../common/cmd_ledset.c
 	cp $^ $@
     
 pplans_dbgled.c: ../drivers/misc/pplans_dbgled.c
 	cp $^ $@
 
+pplans_pmic.c: ../drivers/misc/pplans_pmic.c
+	cp $^ $@
 
-test: pplans_dbgled_test.o ledset_test.o pmic_setup_test.o cmd_ledset.o  pplans_dbgled.o mockio.o lib.o
+test: pplans_pmic.o pplans_dbgled_test.o ledset_test.o pmic_setup_test.o cmd_ledset.o  \
+      pplans_dbgled.o mockio.o lib.o
 	$(CXX)  -o $@ $^  $(LDLIBS)  -lCppUTest --coverage
 

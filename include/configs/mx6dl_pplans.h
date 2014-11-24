@@ -63,6 +63,7 @@
 #define CONFIG_MXC_GPIO
      
 #define CONFIG_PPLANS_DEBUG_LED
+#define CONFIG_PPLANS_PMIC
 
 /*
  * Size of malloc() pool

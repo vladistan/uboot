@@ -90,3 +90,5 @@ tests/asm
 tests/cmd_ledset.c
 tests/pplans_dbgled.c
 tests/pplans_dbgled.h
+tests/pplans_pmic.c
+tests/pplans_pmic.h
