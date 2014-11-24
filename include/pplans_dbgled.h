@@ -23,3 +23,4 @@
 
 
 void set_debug_led( int led,  int state );
+void set_debug_led_bank(int pattern);

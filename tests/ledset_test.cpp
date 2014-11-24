@@ -97,14 +97,21 @@ TEST(LedSetArgs, NotEnoughArgs)
    CHECK(verify_cmd_usage((void*)12));
 }
 
+void MockIO_ExpectLEDIO(int led, int bank, int val)
+{
+    MockIO_Expect_GPIONR(led, bank);
+    MockIO_Expect_gpio_output( (led << 8) | bank, val);
+
+}
+
+
 TEST(LedSetArgs, LedArgsParsedCorrectly)
 {
 
    void * cmd_ptr = (void*)12;
    const char * args[] = {"ledset","4","0"};
 
-   MockIO_Expect_GPIONR(1,7);
-   MockIO_Expect_gpio_output(0x107, 0);
+   MockIO_ExpectLEDIO(1, 7 , 0);
 
    int rv = do_ledset(cmd_ptr,0,3,(char**)args);
 
@@ -119,8 +126,8 @@ TEST(LedSetArgs, LedArgsParsedCorrectlyWithHexArg)
    void * cmd_ptr = (void*)12;
    const char * args[] = {"ledset","0x4","0"};
 
-   MockIO_Expect_GPIONR(1,7);
-   MockIO_Expect_gpio_output(0x107, 0);
+   MockIO_ExpectLEDIO(1, 7 , 0);
+
 
    int rv = do_ledset(cmd_ptr,0,3,(char**)args);
 
@@ -136,9 +143,7 @@ TEST(LedSetArgs, LedArgsParsedCorrectlyWithOctArg)
    void * cmd_ptr = (void*)12;
    const char * args[] = {"ledset","04","0"};
 
-   MockIO_Expect_GPIONR(1,7);
-   MockIO_Expect_gpio_output(0x107, 0);
-
+   MockIO_ExpectLEDIO(1, 7 , 0);
 
    int rv = do_ledset(cmd_ptr,0,3,(char**)args);
 
@@ -153,8 +158,8 @@ TEST(LedSetArgs, LedFunctionCorrectlyForOverflow)
    void * cmd_ptr = (void*)12;
    const char * args[] = {"ledset","0xAE","5"};
 
-   MockIO_Expect_GPIONR(1,6);
-   MockIO_Expect_gpio_output(0x106, 1);
+   MockIO_ExpectLEDIO(1, 6 , 1);
+
 
    int rv = do_ledset(cmd_ptr,0,3,(char**)args);
 
@@ -169,9 +174,7 @@ TEST(LedSetArgs, LedBank1Pin6SholdBeOn_ForLED11)
    void * cmd_ptr = (void*)12;
    const char * args[] = {"ledset","1","1"};
 
-    MockIO_Expect_GPIONR(1,6);
-    MockIO_Expect_gpio_output(0x106, 1);
-
+   MockIO_ExpectLEDIO(1, 6 , 1);
 
    int rv = do_ledset(cmd_ptr,0,3,(char**)args);
 
@@ -256,6 +259,75 @@ TEST(SetDebugLED, LedBankShouldSetupImxGpioNrCorrectly)
    set_debug_led(0x5,0x1);
 
 }
+
+
+TEST(SetDebugLED,  LedBankShouldGoZeroWhenZeroPatternRequested  )
+{
+
+    MockIO_ExpectLEDIO(1, 0x6 , 0);
+    MockIO_ExpectLEDIO(7, 0xC , 0);
+    MockIO_ExpectLEDIO(1, 0x8 , 0);
+    MockIO_ExpectLEDIO(1, 0x7 , 0);
+    MockIO_ExpectLEDIO(7, 0xD , 0);
+
+    set_debug_led_bank(0x0);
+
+}
+
+TEST(SetDebugLED,  PatternOfOneShouldTurnFirstLedOnly  )
+{
+
+    MockIO_ExpectLEDIO(1, 0x6 , 1);
+    MockIO_ExpectLEDIO(7, 0xC , 0);
+    MockIO_ExpectLEDIO(1, 0x8 , 0);
+    MockIO_ExpectLEDIO(1, 0x7 , 0);
+    MockIO_ExpectLEDIO(7, 0xD , 0);
+
+    set_debug_led_bank(0x1);
+
+}
+
+
+TEST(SetDebugLED,  PatternOf15ShouldTurnEveryOtherOne  )
+{
+
+    MockIO_ExpectLEDIO(1, 0x6 , 1);
+    MockIO_ExpectLEDIO(7, 0xC , 0);
+    MockIO_ExpectLEDIO(1, 0x8 , 1);
+    MockIO_ExpectLEDIO(1, 0x7 , 0);
+    MockIO_ExpectLEDIO(7, 0xD , 1);
+
+    set_debug_led_bank(0x15);
+
+}
+
+TEST(SetDebugLED,  PatternOf0AShouldTurnEveryOtherOne  )
+{
+
+    MockIO_ExpectLEDIO(1, 0x6 , 0);
+    MockIO_ExpectLEDIO(7, 0xC , 1);
+    MockIO_ExpectLEDIO(1, 0x8 , 0);
+    MockIO_ExpectLEDIO(1, 0x7 , 1);
+    MockIO_ExpectLEDIO(7, 0xD , 0);
+
+    set_debug_led_bank(0xA);
+
+}
+
+
+TEST(SetDebugLED,  PatternOf1FShouldTurnAllOfThemOn  )
+{
+
+    MockIO_ExpectLEDIO(1, 0x6 , 1);
+    MockIO_ExpectLEDIO(7, 0xC , 1);
+    MockIO_ExpectLEDIO(1, 0x8 , 1);
+    MockIO_ExpectLEDIO(1, 0x7 , 1);
+    MockIO_ExpectLEDIO(7, 0xD , 1);
+
+    set_debug_led_bank(0x1F);
+
+}
+
 
 
 int main(int ac, char** av)
