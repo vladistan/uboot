@@ -153,4 +153,27 @@ TEST(PMIC_Setup, FindPFuzeFailsIfCantReadRegister0 )
      LONGS_EQUAL(-1, rv);
 }
 
+TEST(PMIC_Setup, TestWriteToPMIC )
+{
+
+     MockIO_Expect_i2c_write (0x8, 0x6d, 0x1e );
+
+     int rv = pplans_pmic_write (0x6d, 0x1e, "Set VGEN2");
+
+     LONGS_EQUAL(0, rv);
+}
+
+
+TEST(PMIC_Setup, TestWriteToPMICwithFailure )
+{
+
+    MockIO_Expect_i2c_write_failure(0x8, 0x6d, 0x1e );
+
+    int rv = pplans_pmic_write (0x6d, 0x1e, "Set VGEN2");
+
+    LONGS_EQUAL(-1, rv);
+}
+
+
+
 

@@ -55,3 +55,14 @@ int probe_pfuze100(void)
 
     return 0;
 }
+
+int pplans_pmic_write (unsigned char reg, unsigned char value, const char * msg )
+{
+
+    if (i2c_write(0x8, reg, 1, &value, 1)) {
+        printf("%s error!\n", msg );
+        return -1;
+    }
+
+    return 0;
+}
