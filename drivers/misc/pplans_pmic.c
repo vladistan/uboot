@@ -22,3 +22,36 @@
 #include <common.h>
 #include <pplans_pmic.h>
 
+
+int probe_pfuze100()
+{
+    unsigned char value, dev_id = 0 ;
+
+
+    if (i2c_read(0x8, 0, 1, &value, 1)) {
+        printf("Read device ID error!\n");
+        return -1;
+    }
+
+    if(value != 0x10 )
+    {
+        printf("PMIC device id at addr 0x8  [%x]\n", value );
+        return -1;
+    }
+
+    if (i2c_read(0x8, 3, 1, &value, 1)) {
+        printf("Read device revision error!\n");
+        return -1;
+    }
+
+    if(value != 0x11 )
+    {
+        printf("PMIC Revison [%x] expected Rev 0x11\n", value );
+        return -1;
+    }
+
+
+    printf("PFUZE100 Device: ID: 0x10  REV: 0x11 \n" );
+
+    return 0;
+}

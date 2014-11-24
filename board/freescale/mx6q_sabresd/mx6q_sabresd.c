@@ -87,6 +87,10 @@
 #include <ahci.h>
 #endif
 
+#ifdef CONFIG_PPLANS_PMIC
+#include <pplans_pmic.h>
+#endif
+
 DECLARE_GLOBAL_DATA_PTR;
 
 static enum boot_device boot_dev;
@@ -750,18 +754,16 @@ static int setup_pmic_voltages(void)
 {
 	unsigned char value, rev_id = 0 ;
 
-	printf ("Setting up PMIC voltages");
+	printf ("Setting up PMIC voltages\n");
 	i2c_init(CONFIG_SYS_I2C_SPEED, CONFIG_SYS_I2C_SLAVE);
 	if (!i2c_probe(0x8)) {
-		if (i2c_read(0x8, 0, 1, &value, 1)) {
-			printf("Read device ID error!\n");
-			return -1;
-		}
-		if (i2c_read(0x8, 3, 1, &rev_id, 1)) {
-			printf("Read Rev ID error!\n");
-			return -1;
-		}
-		printf("Found PFUZE100! deviceid=%x,revid=%x\n", value, rev_id);
+
+	    if (probe_pfuze100())
+	    {
+	       printf ("PFUZER100 Device not found.\n");
+	       return -1;
+	    }
+
 
 
 		value = 0x1E;

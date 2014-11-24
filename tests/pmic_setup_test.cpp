@@ -26,7 +26,8 @@
 
 
 extern "C" { 
-#include <common.h> 
+#include <common.h>
+#include <pplans_pmic.h>
 }
 
 
@@ -60,6 +61,21 @@ TEST(I2C_Mock, I2CRead_Works)
 
    LONGS_EQUAL(0, rv);
    LONGS_EQUAL(23, value);
+
+}
+
+
+TEST(I2C_Mock, I2CReadFailure_Works)
+{
+
+    MockIO_Expect_i2c_read_failure(0x8, 0 );
+
+    uint8_t value = 0;
+
+    int rv = i2c_read( 0x8, 0, 1, &value,  1 );
+
+    LONGS_EQUAL(-1, rv);
+    LONGS_EQUAL(0, value);
 
 }
 
@@ -97,5 +113,44 @@ TEST_GROUP(PMIC_Setup)
 
 
 
+TEST(PMIC_Setup, FindPFuzeWhenItIsThere )
+{
+     MockIO_Expect_i2c_read(0x8, 0, 0x10 );
+     MockIO_Expect_i2c_read(0x8, 3, 0x11 );
+
+     int rv = probe_pfuze100();
+
+     LONGS_EQUAL(0, rv);
+}
+
+TEST(PMIC_Setup, FindPFuzeWhenItIsThereButWrongPMICVersion )
+{
+    MockIO_Expect_i2c_read(0x8, 0, 0x15 );
+
+    int rv = probe_pfuze100();
+
+    LONGS_EQUAL(-1, rv);
+}
+
+TEST(PMIC_Setup, FindPFuzeWhenItIsThereButWrongRevision)
+{
+    MockIO_Expect_i2c_read(0x8, 0, 0x10 );
+    MockIO_Expect_i2c_read(0x8, 3, 0x19 );
+
+    int rv = probe_pfuze100();
+
+    LONGS_EQUAL(-1, rv);
+}
+
+
+TEST(PMIC_Setup, FindPFuzeFailsIfCantReadRegister0 )
+{
+
+     MockIO_Expect_i2c_read_failure(0x8, 0 );
+
+     int rv = probe_pfuze100();
+
+     LONGS_EQUAL(-1, rv);
+}
 
 
