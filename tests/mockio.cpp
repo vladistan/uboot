@@ -27,7 +27,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
-#include "MockIO.h"
+#include "mockio.h"
 #include "CppUTest/TestHarness_c.h"
 
 
