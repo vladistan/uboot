@@ -175,5 +175,19 @@ TEST(PMIC_Setup, TestWriteToPMICwithFailure )
 }
 
 
+TEST(PMIC_Setup, TestIntialPMICSetup )
+{
+
+    MockIO_Expect_i2c_write (0x8, 0x6d, 0x1e );
+    MockIO_Expect_i2c_write (0x8, 0x6E, 0x10 );
+    MockIO_Expect_i2c_write (0x8, 0x6f, 0x1d );
+    MockIO_Expect_i2c_write (0x8, 0x71, 0x1a );
+
+    int rv = pplans_pmic_basic_reg_setup ();
+
+    LONGS_EQUAL(0, rv);
+}
+
+
 
 

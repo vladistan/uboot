@@ -749,7 +749,7 @@ int i2c_bus_recovery(void)
 	return result;
 }
 
-#define PMIC_CHK if(rv == - 1) {return;}
+#define PMIC_CHK if(rv == - 1) {return -1;}
 
 static int setup_pmic_voltages(void)
 {
@@ -766,11 +766,8 @@ static int setup_pmic_voltages(void)
 	       return -1;
 	    }
 
+	    rv = pplans_pmic_basic_reg_setup(); PMIC_CHK;
 
-        rv = pplans_pmic_write(0x6D, 0x1E, "Set VGEN2"  ); PMIC_CHK
-        rv = pplans_pmic_write(0x6E, 0x10, "Set VGEN3"  ); PMIC_CHK
-        rv = pplans_pmic_write(0x6F, 0x1D, "Set VGEN4"  ); PMIC_CHK
-        rv = pplans_pmic_write(0x71, 0x1A, "Set VGEN6"  ); PMIC_CHK
 
 
         rv = pplans_pmic_write(0x3C, 0x20, "Set SW3A Voltage"  ); PMIC_CHK

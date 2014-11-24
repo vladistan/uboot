@@ -66,3 +66,17 @@ int pplans_pmic_write (unsigned char reg, unsigned char value, const char * msg 
 
     return 0;
 }
+
+#define PMIC_CHK if(rv == - 1) {return -1;}
+
+int pplans_pmic_basic_reg_setup() {
+    int rv;
+
+    rv = pplans_pmic_write(0x6D, 0x1E, "Set VGEN2"); PMIC_CHK;
+    rv = pplans_pmic_write(0x6E, 0x10, "Set VGEN3"); PMIC_CHK;
+    rv = pplans_pmic_write(0x6F, 0x1D, "Set VGEN4"); PMIC_CHK;
+    rv = pplans_pmic_write(0x71, 0x1A, "Set VGEN6"); PMIC_CHK;
+
+    return 0;
+
+}
