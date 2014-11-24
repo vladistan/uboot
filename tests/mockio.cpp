@@ -33,7 +33,7 @@
 
 enum
 {
-    FLASH_READ, FLASH_WRITE, GPIO_NR, GPIO_OUTPUT,  NoExpectedValue = -1
+    FLASH_READ, FLASH_WRITE, GPIO_NR, GPIO_OUTPUT, I2C_READ, I2C_WRITE,  NoExpectedValue = -1
 };
 
 typedef struct Expectation
@@ -43,7 +43,11 @@ typedef struct Expectation
     int led;
     int port;
     int state;
+    uint8_t chip;
+    unsigned int addr;
+    uint8_t rv;
 } Expectation;
+
 
 static Expectation * expectations = 0;
 static int setExpectationCount;
@@ -55,8 +59,16 @@ static Expectation expected;
 static Expectation actual;
 
 
+static const char * report_incorrect_addr_len =
+        "Mock I2C does not support alen of 0x%x\n";
+static const char * report_incorrect_buf_len =
+        "Mock I2C does not support buffer len of 0x%x\n";
+
 static const char * report_expect_wrong_func_gpio_out =
         "Expected GPPIO_OUT(0x%x)\n"
+                "\t        But was ( 0x%x)";
+static const char * report_expect_wrong_func_i2c_read =
+        "Expected I2C_READ(0x%x)\n"
                 "\t        But was ( 0x%x)";
 static const char * report_expect_wrong_func_gpionr =
         "Expected GPIONR(0x%x)\n"
@@ -67,6 +79,9 @@ static const char * report_wrong_bank_led =
 static const char * report_wrong_portstate =
         "Expected PortState(0x%x, 0x%x)\n"
                 "\t        But was (0x%x, 0x%x)\n";
+static const char * report_wrong_chipaddr =
+        "Expected ChipAddr(0x%x, 0x%x)\n"
+                "\t        But was (0x%x, 0x%x)\n";
 static const char * report_too_many_expectations =
     "MockIO_Expect: Too many expectations";
 static const char * report_MockIO_not_initialized =
@@ -75,10 +90,13 @@ static const char * report_GPIO_NR_but_out_of_expectations =
         "GPIONR(0x%x)";
 static const char * report_GPIO_OUTPUT_but_out_of_expectations =
         "GPIOOUT(0x%x)";
+static const char * report_i2c_read_but_out_of_expectations =
+        "I2CREAD(0x%x)";
 static const char * report_no_more_expectations =
     "Exp %d: No more expectations but was ";
 static const char * report_expectation_number =
     "Exp %d: ";
+
 
 void MockIO_Create(int maxExpectations)
 {
@@ -115,6 +133,36 @@ static void failWhenNoRoomForExpectations(const char * message)
         fail(message);
 }
 
+static void failForIncorrectAddrLen(int condition, const char * expectationFailMessage, int alen)
+{
+    char message[100];
+
+    if (!condition)
+        return;
+
+    int size = sizeof message - 1;
+
+    snprintf(message, size,
+            expectationFailMessage, alen );
+    fail(message);
+}
+
+static void failForIncorrectBufLen(int condition, const char * expectationFailMessage, int blen)
+{
+    char message[100];
+
+    if (!condition)
+        return;
+
+    int size = sizeof message - 1;
+
+    snprintf(message, size,
+            expectationFailMessage, blen );
+    fail(message);
+}
+
+
+
 
 void recordGPIONRExpectation(int bank, int led)
 {
@@ -132,6 +180,14 @@ void recordGpioOutputExpectation(int port, int state)
     setExpectationCount++;
 }
 
+void recordI2cReadExpectation (uint8_t chip, unsigned int addr, int alen, uint8_t rv)
+{
+    expectations[setExpectationCount].kind = I2C_READ;
+    expectations[setExpectationCount].chip = chip;
+    expectations[setExpectationCount].addr = addr;
+    expectations[setExpectationCount].rv = rv;
+    setExpectationCount++;
+}
 
 void MockIO_Expect_GPIONR(int led, int bank)
 {
@@ -145,6 +201,25 @@ void MockIO_Expect_gpio_output(int port, int state)
     recordGpioOutputExpectation(port, state);
 }
 
+static int addrLenIsNotOne(int alen)
+{
+    return alen != 1;
+}
+
+static int bufferLenIsNotOne(int blen)
+{
+    return blen != 1;
+}
+
+
+
+void MockIO_Expect_i2c_read(uint8_t chip, unsigned int addr, int alen, uint8_t rv)
+{
+    failWhenNoRoomForExpectations(report_too_many_expectations);
+    failForIncorrectAddrLen(addrLenIsNotOne(alen), report_incorrect_addr_len, alen);
+
+    recordI2cReadExpectation(chip, addr, alen, rv);
+}
 
 static void failWhenNoUnusedExpectations(const char * format)
 {
@@ -182,6 +257,19 @@ static void gpio_out_setExpectedAndActual(int port, int state) {
     actual.state = state;
 }
 
+static void i2c_read_setExpectedAndActual(int chip, int addr) {
+
+    expected.kind = expectations[getExpectationCount].kind;
+    expected.chip = expectations[getExpectationCount].chip;
+    expected.addr  = expectations[getExpectationCount].addr;
+    expected.rv  = expectations[getExpectationCount].rv;
+
+    
+    actual.kind = I2C_READ;
+    actual.chip = chip;
+    actual.addr = addr;
+}
+
 
 static void failWhenWrongBankOrLed(int condition, const char * expectationFailMessage) {
 
@@ -212,6 +300,22 @@ static void failWhenWrongPortState(int condition, const char * expectationFailMe
     snprintf(message + offset, size - offset,
             expectationFailMessage, expected.port, expected.state,
             actual.port, actual.state );
+    fail(message);
+}
+
+static void failWhenWrongChipAddr(int condition, const char * expectationFailMessage) {
+
+    char message[100];
+    int size = sizeof message - 1;
+
+    if (!condition)
+        return;
+
+    int offset = snprintf(message, size,
+            report_expectation_number, getExpectationCount + 1);
+    snprintf(message + offset, size - offset,
+            expectationFailMessage, expected.chip, expected.addr,
+            actual.chip, actual.addr );
     fail(message);
 }
 
@@ -252,6 +356,12 @@ static int expectedPortStateIsNot(int port, int state)
             state != expectations[getExpectationCount].state;
 }
 
+static int expectedChipAddrIsNot(int chip, int addr)
+{
+    return chip != expectations[getExpectationCount].chip ||
+            addr != expectations[getExpectationCount].addr;
+}
+
 
 
 
@@ -282,6 +392,26 @@ void gpio_direction_output(int port, int state)
     getExpectationCount++;
 
 }
+
+
+int i2c_read(uint8_t chip, unsigned int addr, int alen, uint8_t *buffer, int len)
+{
+    failWhenNotInitialized();
+    i2c_read_setExpectedAndActual(chip, addr);
+
+    failWhenNoUnusedExpectations(report_i2c_read_but_out_of_expectations);
+    failExpectationGPIO(expectationIsNot(I2C_READ), report_expect_wrong_func_i2c_read);
+    failForIncorrectAddrLen(addrLenIsNotOne(alen), report_incorrect_addr_len, alen);
+    failForIncorrectBufLen(bufferLenIsNotOne(len), report_incorrect_buf_len, alen);
+    failWhenWrongChipAddr(expectedChipAddrIsNot(chip, addr), report_wrong_chipaddr);
+
+    buffer[0] = expected.rv;
+    getExpectationCount++;
+
+    return 0;
+}
+
+
 
 static void failWhenNotAllExpectationsUsed(void)
 {
