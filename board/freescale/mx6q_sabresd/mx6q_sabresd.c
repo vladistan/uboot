@@ -749,10 +749,12 @@ int i2c_bus_recovery(void)
 	return result;
 }
 
+#define PMIC_CHK if(rv == - 1) {return;}
 
 static int setup_pmic_voltages(void)
 {
 	unsigned char value, rev_id = 0 ;
+	int rv;
 
 	printf ("Setting up PMIC voltages\n");
 	i2c_init(CONFIG_SYS_I2C_SPEED, CONFIG_SYS_I2C_SLAVE);
@@ -765,67 +767,20 @@ static int setup_pmic_voltages(void)
 	    }
 
 
-
-		value = 0x1E;
-		if (i2c_write(0x8, 0x6D, 1, &value, 1)) {
-			printf("Set VGEN2 error!\n");
-			return -1;
-		}
-
-		value = 0x10;
-		if (i2c_write(0x8, 0x6E, 1, &value, 1)) {
-			printf("Set VGEN3 error!\n");
-			return -1;
-		}
+        rv = pplans_pmic_write(0x6D, 0x1E, "Set VGEN2"  ); PMIC_CHK
+        rv = pplans_pmic_write(0x6E, 0x10, "Set VGEN3"  ); PMIC_CHK
+        rv = pplans_pmic_write(0x6F, 0x1D, "Set VGEN4"  ); PMIC_CHK
+        rv = pplans_pmic_write(0x71, 0x1A, "Set VGEN6"  ); PMIC_CHK
 
 
-		value = 0x1D;
-		if (i2c_write(0x8, 0x6F, 1, &value, 1)) {
-			printf("Set VGEN4 error!\n");
-			return -1;
-		}
+        rv = pplans_pmic_write(0x3C, 0x20, "Set SW3A Voltage"  ); PMIC_CHK
+        rv = pplans_pmic_write(0x43, 0x20, "Set SW3B Voltage"  ); PMIC_CHK
 
-		value = 0x1A;
-		if (i2c_write(0x8, 0x71, 1, &value, 1)) {
-			printf("Set VGEN6 error!\n");
-			return -1;
-		}
+        rv = pplans_pmic_write(0x7F, 0x01, "Open Extended Reg 1"  ); PMIC_CHK
+        rv = pplans_pmic_write(0xB2, 0x0D, "SW3A : Independent, 2MHZ"  ); PMIC_CHK
+        rv = pplans_pmic_write(0xB6, 0x03, "SW3A : Independent, 2MHZ"  ); PMIC_CHK
+        rv = pplans_pmic_write(0xE4, 0x80, "OTP Fuse POR: set TBB_POR"  ); PMIC_CHK
 
-		value = 0x20;
-		if (i2c_write(0x8, 0x3C, 1, &value, 1)) {
-			printf("Set SW3A error!\n");
-			return -1;
-		}
-
-		value = 0x20;
-		if (i2c_write(0x8, 0x43, 1, &value, 1)) {
-			printf("Set SW3B error!\n");
-			return -1;
-		}
-
-		value = 0x01;
-		if (i2c_write(0x8, 0x7F, 1, &value, 1)) {
-			printf("Set Access Extended Reg 1 error!\n");
-			return -1;
-		}
-
-		value = 0x0D;
-		if (i2c_write(0x8, 0xB2, 1, &value, 1)) {
-			printf("Set SW3A Config: Independent, 2MHz error!\n");
-			return -1;
-		}
-
-		value = 0x03;
-		if (i2c_write(0x8, 0xB6, 1, &value, 1)) {
-			printf("Set SW3B Config: Independent error!\n");
-			return -1;
-		}
-
-		value = 0x80;
-		if (i2c_write(0x8, 0xE4, 1, &value, 1)) {
-			printf("Set OTP Fuse POR: set TBB_POR, try-before-buy mode error!\n");
-			return -1;
-		}
 
 		// Might create infinite restart loop. Wait for test results.
 		// value = 0xF0;
