@@ -157,10 +157,11 @@ int pplans_pmic_handle_sw3 ()
         set_debug_led_bank(0x1f);
         rv = pplans_pmic_sw3_independent_op_setup(); PMIC_CHK;
 
-        udelay(500);
+        udelay(1500);
         set_debug_led_bank(0x15);
-        udelay(500);
+        udelay(1500);
         set_debug_led_bank(0xA);
+        udelay(1500);
 
         printf("Restarting");
 
