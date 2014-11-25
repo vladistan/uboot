@@ -40,6 +40,8 @@ void MockIO_Expect_i2c_read(uint8_t chip, unsigned int addr,  uint8_t rv);
 void MockIO_Expect_i2c_read_failure(uint8_t chip, unsigned int addr );
 void MockIO_Expect_i2c_write_failure(uint8_t chip, unsigned int addr, uint8_t rv  );
 void MockIO_Verify_Complete(void);
+void MockIO_ExpectLEDIO(int led, int bank, int val);
+
 
 #ifdef __cplusplus
 extern "C" {
@@ -50,6 +52,7 @@ int IMX_GPIO_NR(int bank, int led);
 void gpio_direction_output(int port, int state);
 int i2c_read(uint8_t chip, unsigned int addr, int alen, uint8_t *buffer, int len);
 int i2c_write(uint8_t chip, unsigned int addr, int alen, uint8_t *buffer, int len);
+void udelay(int msec);
 
 
 #ifdef __cplusplus

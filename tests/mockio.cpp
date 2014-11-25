@@ -531,6 +531,11 @@ int i2c_write(uint8_t chip, unsigned int addr, int alen, uint8_t *buffer, int le
 }
 
 
+void udelay(int msec)
+{
+
+}
+
 
 static void failWhenNotAllExpectationsUsed(void)
 {

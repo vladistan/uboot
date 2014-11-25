@@ -30,6 +30,7 @@ void set_debug_led_bank(int pattern);
 int do_ledset(cmd_tbl_t *cmdtp, int flag, int argc, char * argv[]);
 int i2c_read(uint8_t chip, unsigned int addr, int alen, uint8_t *buffer, int len);
 int i2c_write(uint8_t chip, unsigned int addr, int alen, uint8_t *buffer, int len);
+void udelay(int msec);
 
 
 #include <stdlib.h>

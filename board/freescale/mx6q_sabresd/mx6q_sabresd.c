@@ -769,26 +769,7 @@ static int setup_pmic_voltages(void)
 	    rv = pplans_pmic_basic_reg_setup(); PMIC_CHK;
 	    rv = pplans_pmic_sw3_reg_setup(); PMIC_CHK;
 
-        rv = pplans_pmic_sw3_independent_op_check();
-
-        if (rv )
-        {
-            printf ("PMIC NOT PROGRAMMED!!\n");
-            printf ("******************************\n");
-            printf ("****   Restart Required   ****\n");
-            printf ("******************************\n");
-        }
-
-        rv = pplans_pmic_sw3_independent_op_setup(); PMIC_CHK;
-
-        // rv = pplans_pmic_write(0xE4, 0x80, "OTP Fuse POR: set TBB_POR"  ); PMIC_CHK;
-
-		// Might create infinite restart loop. Wait for test results.
-		// value = 0xF0;
-		// if (i2c_write(0x8, 0x84, 1, &value, 1)) {
-		// 	printf("Set OTP Load Mask: restart pmic error!\n");
-		// 	return -1;
-		// }
+        rv = pplans_pmic_handle_sw3(); PMIC_CHK;
 	}
 }
 #endif

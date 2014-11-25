@@ -29,3 +29,4 @@ int pplans_pmic_basic_reg_setup();
 int pplans_pmic_sw3_reg_setup();
 int pplans_pmic_sw3_independent_op_setup();
 int pplans_pmic_sw3_independent_op_check();
+int pplans_pmic_handle_sw3 ();

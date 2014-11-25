@@ -253,3 +253,69 @@ TEST(PMIC_Setup, TestPMICSW3IndependentOpCheckShouldFailWhenB6IsNotSet )
 
 
 
+
+TEST_GROUP(PMIC_SW3Programming)
+{
+        void setup()
+        {
+            reset_verify();
+            MockIO_Create(90);
+        }
+
+        void teardown()
+        {
+            MockIO_Destroy();
+            MockIO_Verify_Complete();
+        }
+
+};
+
+
+TEST(PMIC_SW3Programming, TestWhenSW3CIsProgrammedWeShouldNotRestart )
+{
+    MockIO_Expect_i2c_write (0x8, 0x7F, 0x01 );
+    MockIO_Expect_i2c_read (0x8, 0xB2, 0x0D );
+    MockIO_Expect_i2c_read (0x8, 0xB6, 0x03 );
+
+    pplans_pmic_handle_sw3 ();
+
+}
+
+
+
+TEST(PMIC_SW3Programming, TestWhenSW3CIsProgrammedWeShouldRestartAfterProgramming )
+{
+
+    MockIO_Expect_i2c_write (0x8, 0x7F, 0x01 );
+    MockIO_Expect_i2c_read (0x8, 0xB2, 0x0D );
+    MockIO_Expect_i2c_read (0x8, 0xB6, 0x00 );
+
+    MockIO_ExpectLEDIO(1, 0x6 , 1);
+    MockIO_ExpectLEDIO(7, 0xC , 1);
+    MockIO_ExpectLEDIO(1, 0x8 , 1);
+    MockIO_ExpectLEDIO(1, 0x7 , 1);
+    MockIO_ExpectLEDIO(7, 0xD , 1);
+
+    MockIO_Expect_i2c_write (0x8, 0x7F, 0x01 );
+    MockIO_Expect_i2c_write (0x8, 0xB2, 0x0D );
+    MockIO_Expect_i2c_write (0x8, 0xB6, 0x03 );
+
+    MockIO_ExpectLEDIO(1, 0x6 , 1);
+    MockIO_ExpectLEDIO(7, 0xC , 0);
+    MockIO_ExpectLEDIO(1, 0x8 , 1);
+    MockIO_ExpectLEDIO(1, 0x7 , 0);
+    MockIO_ExpectLEDIO(7, 0xD , 1);
+
+    MockIO_ExpectLEDIO(1, 0x6 , 0);
+    MockIO_ExpectLEDIO(7, 0xC , 1);
+    MockIO_ExpectLEDIO(1, 0x8 , 0);
+    MockIO_ExpectLEDIO(1, 0x7 , 1);
+    MockIO_ExpectLEDIO(7, 0xD , 0);
+
+    MockIO_Expect_i2c_write (0x8, 0xE4, 0x80 );
+    MockIO_Expect_i2c_write (0x8, 0x84, 0xF0 );
+
+
+    pplans_pmic_handle_sw3 ();
+
+}

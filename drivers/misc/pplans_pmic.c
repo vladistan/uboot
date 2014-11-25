@@ -141,3 +141,37 @@ int pplans_pmic_sw3_independent_op_check() {
     return 0;
 
 }
+
+int pplans_pmic_handle_sw3 ()
+{
+    int rv;
+
+    rv = pplans_pmic_sw3_independent_op_check();
+    if (rv)
+    {
+        printf ("PMIC NOT PROGRAMMED!!\n");
+        printf ("******************************\n");
+        printf ("****   Restart Required   ****\n");
+        printf ("******************************\n");
+
+        set_debug_led_bank(0x1f);
+        rv = pplans_pmic_sw3_independent_op_setup(); PMIC_CHK;
+
+        udelay(500);
+        set_debug_led_bank(0x15);
+        udelay(500);
+        set_debug_led_bank(0xA);
+
+        printf("Restarting");
+
+        rv = pplans_pmic_write(0xE4, 0x80, "OTP Fuse POR: set TBB_POR"  ); PMIC_CHK;
+        rv = pplans_pmic_write(0x84, 0xF0, "OTP Fuse POR: set TBB_POR"  ); PMIC_CHK;
+
+
+    }
+
+
+
+
+    return  0;
+}
