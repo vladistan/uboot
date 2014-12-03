@@ -549,7 +549,7 @@ int i2c_bus_recovery(void)
 {
 	int i, bus, result = 0;
 
-	for (bus = 1; bus <= 4; bus++) {
+	for (bus = 1; bus <= 3; bus++) {
         
         if ( bus == 2 || bus == 3 ) 
             continue;
