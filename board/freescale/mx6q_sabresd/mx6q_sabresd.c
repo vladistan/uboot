@@ -415,6 +415,15 @@ void setup_lvds_poweron(void)
 #define I2C3_SCL_GPIO1_3_BIT_MASK   (1 << 3)
 #define I2C3_SDA_GPIO1_6_BIT_MASK   (1 << 6)
 
+void mx6dl_iomux_setup_i2c1(){
+	mxc_iomux_v3_setup_pad(MX6DL_PAD_CSI0_DAT8__I2C1_SDA); // I2C1_SDA -- CSI0_DATA08 (0x0398)
+	mxc_iomux_v3_setup_pad(MX6DL_PAD_CSI0_DAT9__I2C1_SCL); // I2C1_SCL -- CSI0_DATA09 (0x039C)
+}
+
+void mx6dl_iomux_setup_i2c4(){
+	mxc_iomux_v3_setup_pad(MX6DL_PAD_NANDF_CS3__I2C4_SDA); // I2C4_SDA -- NAND_CS3_B (0x0668)
+	mxc_iomux_v3_setup_pad(MX6DL_PAD_NANDF_WP_B__I2C4_SCL); // I2C4_SCL -- NAND_WP_B (0x0690)
+}
 
 static void setup_i2c(unsigned int module_base)
 {
@@ -423,38 +432,11 @@ static void setup_i2c(unsigned int module_base)
 	switch (module_base) {
 	case I2C1_BASE_ADDR:
 
-		/* i2c1 SDA */
-		mxc_iomux_v3_setup_pad(MX6DL_PAD_CSI0_DAT8__I2C1_SDA);
-		/* i2c1 SCL */
-		mxc_iomux_v3_setup_pad(MX6DL_PAD_CSI0_DAT9__I2C1_SCL);
+		mx6dl_iomux_setup_i2c1();
 
 		/* Enable i2c clock */
 		reg = readl(CCM_BASE_ADDR + CLKCTL_CCGR2);
 		reg |= 0xC0;
-		writel(reg, CCM_BASE_ADDR + CLKCTL_CCGR2);
-
-		break;
-	case I2C2_BASE_ADDR:
-		/* i2c2 SDA */
-		mxc_iomux_v3_setup_pad(MX6DL_PAD_KEY_ROW3__I2C2_SDA);
-
-		/* i2c2 SCL */
-		mxc_iomux_v3_setup_pad(MX6DL_PAD_KEY_COL3__I2C2_SCL);
-
-		/* Enable i2c clock */
-		reg = readl(CCM_BASE_ADDR + CLKCTL_CCGR2);
-		reg |= 0x300;
-		writel(reg, CCM_BASE_ADDR + CLKCTL_CCGR2);
-
-		break;
-	case I2C3_BASE_ADDR:
-		/* GPIO_3 for I2C3_SCL */
-		mxc_iomux_v3_setup_pad(MX6DL_PAD_GPIO_3__I2C3_SCL);
-		/* GPIO_6 for I2C3_SDA */
-		mxc_iomux_v3_setup_pad(MX6DL_PAD_GPIO_6__I2C3_SDA);
-		/* Enable i2c clock */
-		reg = readl(CCM_BASE_ADDR + CLKCTL_CCGR2);
-		reg |= 0xC00;
 		writel(reg, CCM_BASE_ADDR + CLKCTL_CCGR2);
 
 		break;
@@ -478,24 +460,6 @@ static void mx6q_i2c_gpio_scl_direction(int bus, int output)
 			reg &= ~I2C1_SCL_GPIO5_27_BIT_MASK;
 		writel(reg, GPIO5_BASE_ADDR + GPIO_GDIR);
 		break;
-	case 2:
-		mxc_iomux_v3_setup_pad(MX6DL_PAD_KEY_COL3__GPIO_4_12);
-		reg = readl(GPIO4_BASE_ADDR + GPIO_GDIR);
-		if (output)
-			reg |= I2C2_SCL_GPIO4_12_BIT_MASK;
-		else
-			reg &= ~I2C2_SCL_GPIO4_12_BIT_MASK;
-		writel(reg, GPIO4_BASE_ADDR + GPIO_GDIR);
-		break;
-	case 3:
-		mxc_iomux_v3_setup_pad(MX6DL_PAD_GPIO_3__GPIO_1_3);
-		reg = readl(GPIO1_BASE_ADDR + GPIO_GDIR);
-		if (output)
-			reg |= I2C3_SCL_GPIO1_3_BIT_MASK;
-		else
-			reg &= I2C3_SCL_GPIO1_3_BIT_MASK;
-		writel(reg, GPIO1_BASE_ADDR + GPIO_GDIR);
-		break;
 	}
 }
 
@@ -514,22 +478,6 @@ static void mx6q_i2c_gpio_sda_direction(int bus, int output)
 			reg &= ~I2C1_SDA_GPIO5_26_BIT_MASK;
 		writel(reg, GPIO5_BASE_ADDR + GPIO_GDIR);
 		break;
-	case 2:
-		mxc_iomux_v3_setup_pad(MX6DL_PAD_KEY_ROW3__GPIO_4_13);
-		reg = readl(GPIO4_BASE_ADDR + GPIO_GDIR);
-		if (output)
-			reg |= I2C2_SDA_GPIO4_13_BIT_MASK;
-		else
-			reg &= ~I2C2_SDA_GPIO4_13_BIT_MASK;
-		writel(reg, GPIO4_BASE_ADDR + GPIO_GDIR);
-	case 3:
-		mxc_iomux_v3_setup_pad(MX6DL_PAD_GPIO_6__GPIO_1_6);
-		reg = readl(GPIO1_BASE_ADDR + GPIO_GDIR);
-		if (output)
-			reg |= I2C3_SDA_GPIO1_6_BIT_MASK;
-		else
-			reg &= ~I2C3_SDA_GPIO1_6_BIT_MASK;
-		writel(reg, GPIO1_BASE_ADDR + GPIO_GDIR);
 	default:
 		break;
 	}
@@ -549,22 +497,6 @@ static void mx6q_i2c_gpio_scl_set_level(int bus, int high)
 			reg &= ~I2C1_SCL_GPIO5_27_BIT_MASK;
 		writel(reg, GPIO5_BASE_ADDR + GPIO_DR);
 		break;
-	case 2:
-		reg = readl(GPIO4_BASE_ADDR + GPIO_DR);
-		if (high)
-			reg |= I2C2_SCL_GPIO4_12_BIT_MASK;
-		else
-			reg &= ~I2C2_SCL_GPIO4_12_BIT_MASK;
-		writel(reg, GPIO4_BASE_ADDR + GPIO_DR);
-		break;
-	case 3:
-		reg = readl(GPIO1_BASE_ADDR + GPIO_DR);
-		if (high)
-			reg |= I2C3_SCL_GPIO1_3_BIT_MASK;
-		else
-			reg &= ~I2C3_SCL_GPIO1_3_BIT_MASK;
-		writel(reg, GPIO1_BASE_ADDR + GPIO_DR);
-		break;
 	}
 }
 
@@ -582,22 +514,6 @@ static void mx6q_i2c_gpio_sda_set_level(int bus, int high)
 			reg &= ~I2C1_SDA_GPIO5_26_BIT_MASK;
 		writel(reg, GPIO5_BASE_ADDR + GPIO_DR);
 		break;
-	case 2:
-		reg = readl(GPIO4_BASE_ADDR + GPIO_DR);
-		if (high)
-			reg |= I2C2_SDA_GPIO4_13_BIT_MASK;
-		else
-			reg &= ~I2C2_SDA_GPIO4_13_BIT_MASK;
-		writel(reg, GPIO4_BASE_ADDR + GPIO_DR);
-		break;
-	case 3:
-		reg = readl(GPIO1_BASE_ADDR + GPIO_DR);
-		if (high)
-			reg |= I2C3_SDA_GPIO1_6_BIT_MASK;
-		else
-			reg &= ~I2C3_SDA_GPIO1_6_BIT_MASK;
-		writel(reg, GPIO1_BASE_ADDR + GPIO_DR);
-		break;
 	}
 }
 
@@ -611,17 +527,9 @@ static int mx6q_i2c_gpio_check_sda(int bus)
 		reg = readl(GPIO5_BASE_ADDR + GPIO_PSR);
 		result = !!(reg & I2C1_SDA_GPIO5_26_BIT_MASK);
 		break;
-	case 2:
-		reg = readl(GPIO4_BASE_ADDR + GPIO_PSR);
-		result = !!(reg & I2C2_SDA_GPIO4_13_BIT_MASK);
-		break;
-	case 3:
-		reg = readl(GPIO1_BASE_ADDR + GPIO_PSR);
-		result = !!(reg & I2C3_SDA_GPIO1_6_BIT_MASK);
-		break;
-	}
 
 	return result;
+	}
 }
 
  /* Random reboot cause i2c SDA low issue:
@@ -693,12 +601,6 @@ int i2c_bus_recovery(void)
 		switch (bus) {
 		case 1:
 			setup_i2c(I2C1_BASE_ADDR);
-			break;
-		case 2:
-			setup_i2c(I2C2_BASE_ADDR);
-			break;
-		case 3:
-			setup_i2c(I2C3_BASE_ADDR);
 			break;
 		}
 	}
