@@ -688,7 +688,11 @@ int i2c_bus_recovery(void)
 {
 	int i, bus, result = 0;
 
-	for (bus = 1; bus <= 3; bus++) {
+	for (bus = 1; bus <= 4; bus++) {
+        
+        if ( bus == 2 || bus == 3 ) 
+            continue;
+        
 		mx6q_i2c_gpio_sda_direction(bus, 0);
 
 		if (mx6q_i2c_gpio_check_sda(bus) == 0) {
