@@ -422,18 +422,11 @@ static void setup_i2c(unsigned int module_base)
 
 	switch (module_base) {
 	case I2C1_BASE_ADDR:
-#if defined CONFIG_MX6Q
-		/* i2c1 SDA */
-		mxc_iomux_v3_setup_pad(MX6Q_PAD_CSI0_DAT8__I2C1_SDA);
 
-		/* i2c1 SCL */
-		mxc_iomux_v3_setup_pad(MX6Q_PAD_CSI0_DAT9__I2C1_SCL);
-#elif defined CONFIG_MX6DL
 		/* i2c1 SDA */
 		mxc_iomux_v3_setup_pad(MX6DL_PAD_CSI0_DAT8__I2C1_SDA);
 		/* i2c1 SCL */
 		mxc_iomux_v3_setup_pad(MX6DL_PAD_CSI0_DAT9__I2C1_SCL);
-#endif
 
 		/* Enable i2c clock */
 		reg = readl(CCM_BASE_ADDR + CLKCTL_CCGR2);
@@ -442,19 +435,11 @@ static void setup_i2c(unsigned int module_base)
 
 		break;
 	case I2C2_BASE_ADDR:
-#if defined CONFIG_MX6Q
-		/* i2c2 SDA */
-		mxc_iomux_v3_setup_pad(MX6Q_PAD_KEY_ROW3__I2C2_SDA);
-
-		/* i2c2 SCL */
-		mxc_iomux_v3_setup_pad(MX6Q_PAD_KEY_COL3__I2C2_SCL);
-#elif defined CONFIG_MX6DL
 		/* i2c2 SDA */
 		mxc_iomux_v3_setup_pad(MX6DL_PAD_KEY_ROW3__I2C2_SDA);
 
 		/* i2c2 SCL */
 		mxc_iomux_v3_setup_pad(MX6DL_PAD_KEY_COL3__I2C2_SCL);
-#endif
 
 		/* Enable i2c clock */
 		reg = readl(CCM_BASE_ADDR + CLKCTL_CCGR2);
@@ -463,18 +448,10 @@ static void setup_i2c(unsigned int module_base)
 
 		break;
 	case I2C3_BASE_ADDR:
-#if defined CONFIG_MX6Q
-		/* GPIO_3 for I2C3_SCL */
-		mxc_iomux_v3_setup_pad(MX6Q_PAD_GPIO_3__I2C3_SCL);
-		/* GPIO_6 for I2C3_SDA */
-		mxc_iomux_v3_setup_pad(MX6Q_PAD_GPIO_6__I2C3_SDA);
-
-#elif defined CONFIG_MX6DL
 		/* GPIO_3 for I2C3_SCL */
 		mxc_iomux_v3_setup_pad(MX6DL_PAD_GPIO_3__I2C3_SCL);
 		/* GPIO_6 for I2C3_SDA */
 		mxc_iomux_v3_setup_pad(MX6DL_PAD_GPIO_6__I2C3_SDA);
-#endif
 		/* Enable i2c clock */
 		reg = readl(CCM_BASE_ADDR + CLKCTL_CCGR2);
 		reg |= 0xC00;
@@ -493,11 +470,7 @@ static void mx6q_i2c_gpio_scl_direction(int bus, int output)
 
 	switch (bus) {
 	case 1:
-#if defined CONFIG_MX6Q
-		mxc_iomux_v3_setup_pad(MX6Q_PAD_CSI0_DAT9__GPIO_5_27);
-#elif defined CONFIG_MX6DL
 		mxc_iomux_v3_setup_pad(MX6DL_PAD_CSI0_DAT9__GPIO_5_27);
-#endif
 		reg = readl(GPIO5_BASE_ADDR + GPIO_GDIR);
 		if (output)
 			reg |= I2C1_SCL_GPIO5_27_BIT_MASK;
@@ -506,11 +479,7 @@ static void mx6q_i2c_gpio_scl_direction(int bus, int output)
 		writel(reg, GPIO5_BASE_ADDR + GPIO_GDIR);
 		break;
 	case 2:
-#if defined CONFIG_MX6Q
-		mxc_iomux_v3_setup_pad(MX6Q_PAD_KEY_COL3__GPIO_4_12);
-#elif defined CONFIG_MX6DL
 		mxc_iomux_v3_setup_pad(MX6DL_PAD_KEY_COL3__GPIO_4_12);
-#endif
 		reg = readl(GPIO4_BASE_ADDR + GPIO_GDIR);
 		if (output)
 			reg |= I2C2_SCL_GPIO4_12_BIT_MASK;
@@ -519,11 +488,7 @@ static void mx6q_i2c_gpio_scl_direction(int bus, int output)
 		writel(reg, GPIO4_BASE_ADDR + GPIO_GDIR);
 		break;
 	case 3:
-#if defined CONFIG_MX6Q
-		mxc_iomux_v3_setup_pad(MX6Q_PAD_GPIO_3__GPIO_1_3);
-#elif defined CONFIG_MX6DL
 		mxc_iomux_v3_setup_pad(MX6DL_PAD_GPIO_3__GPIO_1_3);
-#endif
 		reg = readl(GPIO1_BASE_ADDR + GPIO_GDIR);
 		if (output)
 			reg |= I2C3_SCL_GPIO1_3_BIT_MASK;
@@ -541,11 +506,7 @@ static void mx6q_i2c_gpio_sda_direction(int bus, int output)
 
 	switch (bus) {
 	case 1:
-#if defined CONFIG_MX6Q
-		mxc_iomux_v3_setup_pad(MX6Q_PAD_CSI0_DAT8__GPIO_5_26);
-#elif defined CONFIG_MX6DL
 		mxc_iomux_v3_setup_pad(MX6DL_PAD_CSI0_DAT8__GPIO_5_26);
-#endif
 		reg = readl(GPIO5_BASE_ADDR + GPIO_GDIR);
 		if (output)
 			reg |= I2C1_SDA_GPIO5_26_BIT_MASK;
@@ -554,11 +515,7 @@ static void mx6q_i2c_gpio_sda_direction(int bus, int output)
 		writel(reg, GPIO5_BASE_ADDR + GPIO_GDIR);
 		break;
 	case 2:
-#if defined CONFIG_MX6Q
-		mxc_iomux_v3_setup_pad(MX6Q_PAD_KEY_ROW3__GPIO_4_13);
-#elif defined CONFIG_MX6DL
 		mxc_iomux_v3_setup_pad(MX6DL_PAD_KEY_ROW3__GPIO_4_13);
-#endif
 		reg = readl(GPIO4_BASE_ADDR + GPIO_GDIR);
 		if (output)
 			reg |= I2C2_SDA_GPIO4_13_BIT_MASK;
@@ -566,11 +523,7 @@ static void mx6q_i2c_gpio_sda_direction(int bus, int output)
 			reg &= ~I2C2_SDA_GPIO4_13_BIT_MASK;
 		writel(reg, GPIO4_BASE_ADDR + GPIO_GDIR);
 	case 3:
-#if defined CONFIG_MX6Q
-		mxc_iomux_v3_setup_pad(MX6Q_PAD_GPIO_6__GPIO_1_6);
-#elif defined CONFIG_MX6DL
 		mxc_iomux_v3_setup_pad(MX6DL_PAD_GPIO_6__GPIO_1_6);
-#endif
 		reg = readl(GPIO1_BASE_ADDR + GPIO_GDIR);
 		if (output)
 			reg |= I2C3_SDA_GPIO1_6_BIT_MASK;
