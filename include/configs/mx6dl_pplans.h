@@ -102,7 +102,7 @@
 #define CONFIG_CMD_LEDSET   /* ledset -- allows user to change debug leds */
 #define CONFIG_CMD_MEMORY
 
-#define CONFIG_CMD_SPI
+// #define CONFIG_CMD_SPI
 #define CONFIG_CMD_BDI		/* bdinfo			*/
 #define CONFIG_CMD_BOOTD	/* bootd			*/
 #define CONFIG_CMD_CONSOLE	/* coninfo			*/
@@ -113,10 +113,10 @@
 #define CONFIG_CMD_IMXOTP
 
 /* Enable below configure when supporting nand */
-#define CONFIG_CMD_SF
+// #define CONFIG_CMD_SF
 #define CONFIG_CMD_MMC
 #define CONFIG_CMD_ENV
-#define CONFIG_CMD_REGUL
+// #define CONFIG_CMD_REGUL
 
 #define CONFIG_CMD_CLOCK
 #define CONFIG_REF_CLK_FREQ CONFIG_MX6_HCLK_FREQ
@@ -165,20 +165,20 @@
 
 #define CONFIG_CMDLINE_EDITING
 
-#define CONFIG_FEC0_IOBASE	ENET_BASE_ADDR
-#define CONFIG_FEC0_PINMUX	-1
-#define CONFIG_FEC0_MIIBASE	-1
-#define CONFIG_GET_FEC_MAC_ADDR_FROM_IIM
-#define CONFIG_MXC_FEC
-#define CONFIG_FEC0_PHY_ADDR		1
-#define CONFIG_ETH_PRIME
-#define CONFIG_RMII
-#define CONFIG_CMD_MII
-#define CONFIG_CMD_DHCP
-#define CONFIG_CMD_PING
-#define CONFIG_IPADDR			192.168.1.103
-#define CONFIG_SERVERIP			192.168.1.101
-#define CONFIG_NETMASK			255.255.255.0
+//#define CONFIG_FEC0_IOBASE	ENET_BASE_ADDR
+//#define CONFIG_FEC0_PINMUX	-1
+//#define CONFIG_FEC0_MIIBASE	-1
+//#define CONFIG_GET_FEC_MAC_ADDR_FROM_IIM
+//#define CONFIG_MXC_FEC
+//#define CONFIG_FEC0_PHY_ADDR		1
+//#define CONFIG_ETH_PRIME
+//#define CONFIG_RMII
+//#define CONFIG_CMD_MII
+//#define CONFIG_CMD_DHCP
+//#define CONFIG_CMD_PING
+//#define CONFIG_IPADDR			192.168.1.103
+//#define CONFIG_SERVERIP			192.168.1.101
+//#define CONFIG_NETMASK			255.255.255.0
 
 /*
  * OCOTP Configs
@@ -204,14 +204,14 @@
 /*
  * SPI Configs
  */
-#ifdef CONFIG_CMD_SF
-	#define CONFIG_FSL_SF		1
-	#define CONFIG_SPI_FLASH_IMX_M25PXX	1
-	#define CONFIG_SPI_FLASH_CS	1
-	#define CONFIG_IMX_ECSPI
-	#define IMX_CSPI_VER_2_3	1
-	#define MAX_SPI_BYTES		(64 * 4)
-#endif
+//#ifdef CONFIG_CMD_SF
+//	#define CONFIG_FSL_SF		1
+//	#define CONFIG_SPI_FLASH_IMX_M25PXX	1
+//	#define CONFIG_SPI_FLASH_CS	1
+//	#define CONFIG_IMX_ECSPI
+//	#define IMX_CSPI_VER_2_3	1
+//	#define MAX_SPI_BYTES		(64 * 4)
+//#endif
 
 /* Regulator Configs */
 #ifdef CONFIG_CMD_REGUL

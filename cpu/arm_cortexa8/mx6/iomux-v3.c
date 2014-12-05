@@ -30,7 +30,7 @@ static void *base;
 /*
  * configures a single pad in the iomuxer
  */
-int mxc_iomux_v3_setup_pad(iomux_v3_cfg_t pad)
+int x_mxc_iomux_v3_setup_pad(iomux_v3_cfg_t pad)
 {
 	u32 mux_ctrl_ofs = (pad & MUX_CTRL_OFS_MASK) >> MUX_CTRL_OFS_SHIFT;
 	u32 mux_mode = (pad & MUX_MODE_MASK) >> MUX_MODE_SHIFT;
@@ -60,14 +60,14 @@ int mxc_iomux_v3_setup_pad(iomux_v3_cfg_t pad)
 	return 0;
 }
 
-int mxc_iomux_v3_setup_multiple_pads(iomux_v3_cfg_t *pad_list, unsigned count)
+int x_mxc_iomux_v3_setup_multiple_pads(iomux_v3_cfg_t *pad_list, unsigned count)
 {
 	iomux_v3_cfg_t *p = pad_list;
 	int i;
 	int ret;
 
 	for (i = 0; i < count; i++) {
-		ret = mxc_iomux_v3_setup_pad(*p);
+		ret = x_mxc_iomux_v3_setup_pad(*p);
 		if (ret)
 			return ret;
 		p++;
@@ -75,7 +75,7 @@ int mxc_iomux_v3_setup_multiple_pads(iomux_v3_cfg_t *pad_list, unsigned count)
 	return 0;
 }
 
-void mxc_iomux_set_gpr_register(int group, int start_bit, int num_bits, int value)
+void x_mxc_iomux_set_gpr_register(int group, int start_bit, int num_bits, int value)
 {
 	int i = 0;
 	u32 reg;

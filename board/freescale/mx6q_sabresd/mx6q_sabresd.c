@@ -369,21 +369,23 @@ int dram_init(void)
 	return 0;
 }
 
+void setup_uart1(){
+	x_mxc_iomux_v3_setup_pad(MX6DL_PAD_CSI0_DAT10__UART1_RXD); // UART1_TX_DATA -- CSI0_DATA10 (0x0360)
+	x_mxc_iomux_v3_setup_pad(MX6DL_PAD_CSI0_DAT11__UART1_RXD); // UART1_RX_DATA -- CSI0_DATA11 (0x0364)
+}
+
+void setup_uart5(){
+	x_mxc_iomux_v3_setup_pad(MX6DL_PAD_KEY_COL1__UART5_RXD); // UART5_TX_DATA -- KEY_COL1 (0x0630)
+	x_mxc_iomux_v3_setup_pad(MX6DL_PAD_KEY_COL4__UART5_RTS); // UART5_RTS_B -- KEY_COL4 (0x063C)
+	x_mxc_iomux_v3_setup_pad(MX6DL_PAD_KEY_ROW1__UART5_RXD); // UART5_RX_DATA -- KEY_ROW1 (0x0644)
+	x_mxc_iomux_v3_setup_pad(MX6DL_PAD_KEY_ROW4__UART5_RTS); // UART5_CTS_B -- KEY_ROW4 (0x0650)
+}
+
 static void setup_uart(void)
 {
-#if defined CONFIG_MX6Q
-	/* UART1 TXD */
-	mxc_iomux_v3_setup_pad(MX6Q_PAD_CSI0_DAT10__UART1_TXD);
+	setup_uart1();
+	setup_uart5();
 
-	/* UART1 RXD */
-	mxc_iomux_v3_setup_pad(MX6Q_PAD_CSI0_DAT11__UART1_RXD);
-#elif defined CONFIG_MX6DL
-	/* UART1 TXD */
-	mxc_iomux_v3_setup_pad(MX6DL_PAD_CSI0_DAT10__UART1_TXD);
-
-	/* UART1 RXD */
-	mxc_iomux_v3_setup_pad(MX6DL_PAD_CSI0_DAT11__UART1_RXD);
-#endif
 }
 
 #ifdef CONFIG_VIDEO_MX5
@@ -391,11 +393,7 @@ void setup_lvds_poweron(void)
 {
 	int reg;
 	/* AUX_5V_EN: GPIO(6, 10) */
-#ifdef CONFIG_MX6DL
 	mxc_iomux_v3_setup_pad(MX6DL_PAD_NANDF_RB0__GPIO_6_10);
-#else
-	mxc_iomux_v3_setup_pad(MX6Q_PAD_NANDF_RB0__GPIO_6_10);
-#endif
 
 	reg = readl(GPIO6_BASE_ADDR + GPIO_GDIR);
 	reg |= (1 << 10);
@@ -416,13 +414,13 @@ void setup_lvds_poweron(void)
 #define I2C3_SDA_GPIO1_6_BIT_MASK   (1 << 6)
 
 void mx6dl_iomux_setup_i2c1(){
-	mxc_iomux_v3_setup_pad(MX6DL_PAD_CSI0_DAT8__I2C1_SDA); // I2C1_SDA -- CSI0_DATA08 (0x0398)
-	mxc_iomux_v3_setup_pad(MX6DL_PAD_CSI0_DAT9__I2C1_SCL); // I2C1_SCL -- CSI0_DATA09 (0x039C)
+	x_mxc_iomux_v3_setup_pad(MX6DL_PAD_CSI0_DAT8__I2C1_SDA); // I2C1_SDA -- CSI0_DATA08 (0x0398)
+	x_mxc_iomux_v3_setup_pad(MX6DL_PAD_CSI0_DAT9__I2C1_SCL); // I2C1_SCL -- CSI0_DATA09 (0x039C)
 }
 
 void mx6dl_iomux_setup_i2c4(){
-	mxc_iomux_v3_setup_pad(MX6DL_PAD_NANDF_CS3__I2C4_SDA); // I2C4_SDA -- NAND_CS3_B (0x0668)
-	mxc_iomux_v3_setup_pad(MX6DL_PAD_NANDF_WP_B__I2C4_SCL); // I2C4_SCL -- NAND_WP_B (0x0690)
+	x_mxc_iomux_v3_setup_pad(MX6DL_PAD_NANDF_CS3__I2C4_SDA); // I2C4_SDA -- NAND_CS3_B (0x0668)
+	x_mxc_iomux_v3_setup_pad(MX6DL_PAD_NANDF_WP_B__I2C4_SCL); // I2C4_SCL -- NAND_WP_B (0x0690)
 }
 
 static void setup_i2c(unsigned int module_base)
@@ -452,7 +450,7 @@ static void mx6q_i2c_gpio_scl_direction(int bus, int output)
 
 	switch (bus) {
 	case 1:
-		mxc_iomux_v3_setup_pad(MX6DL_PAD_CSI0_DAT9__GPIO_5_27);
+		x_mxc_iomux_v3_setup_pad(MX6DL_PAD_CSI0_DAT9__GPIO_5_27);
 		reg = readl(GPIO5_BASE_ADDR + GPIO_GDIR);
 		if (output)
 			reg |= I2C1_SCL_GPIO5_27_BIT_MASK;
@@ -470,7 +468,7 @@ static void mx6q_i2c_gpio_sda_direction(int bus, int output)
 
 	switch (bus) {
 	case 1:
-		mxc_iomux_v3_setup_pad(MX6DL_PAD_CSI0_DAT8__GPIO_5_26);
+		x_mxc_iomux_v3_setup_pad(MX6DL_PAD_CSI0_DAT8__GPIO_5_26);
 		reg = readl(GPIO5_BASE_ADDR + GPIO_GDIR);
 		if (output)
 			reg |= I2C1_SDA_GPIO5_26_BIT_MASK;
@@ -673,18 +671,6 @@ void spi_io_init(struct imx_spi_dev_t *dev)
 		reg |= 0x3;
 		writel(reg, CCM_BASE_ADDR + CLKCTL_CCGR1);
 
-#if defined CONFIG_MX6Q
-		/* SCLK */
-		mxc_iomux_v3_setup_pad(MX6Q_PAD_KEY_COL0__ECSPI1_SCLK);
-
-		/* MISO */
-		mxc_iomux_v3_setup_pad(MX6Q_PAD_KEY_COL1__ECSPI1_MISO);
-
-		/* MOSI */
-		mxc_iomux_v3_setup_pad(MX6Q_PAD_KEY_ROW0__ECSPI1_MOSI);
-
-		mxc_iomux_v3_setup_pad(MX6Q_PAD_KEY_ROW1__ECSPI1_SS0);
-#elif defined CONFIG_MX6DL
 		/* SCLK */
 		mxc_iomux_v3_setup_pad(MX6DL_PAD_KEY_COL0__ECSPI1_SCLK);
 
@@ -695,7 +681,6 @@ void spi_io_init(struct imx_spi_dev_t *dev)
 		mxc_iomux_v3_setup_pad(MX6DL_PAD_KEY_ROW0__ECSPI1_MOSI);
 
 		mxc_iomux_v3_setup_pad(MX6DL_PAD_KEY_ROW1__ECSPI1_SS0);
-#endif
 		break;
 	case ECSPI2_BASE_ADDR:
 	case ECSPI3_BASE_ADDR:
@@ -782,95 +767,50 @@ struct fsl_esdhc_cfg usdhc_cfg[4] = {
 	{USDHC4_BASE_ADDR, 1, 1, 1, 0},
 };
 
-#if defined CONFIG_MX6Q
-iomux_v3_cfg_t usdhc1_pads[] = {
-	MX6Q_PAD_SD1_CLK__USDHC1_CLK,
-	MX6Q_PAD_SD1_CMD__USDHC1_CMD,
-	MX6Q_PAD_SD1_DAT0__USDHC1_DAT0,
-	MX6Q_PAD_SD1_DAT1__USDHC1_DAT1,
-	MX6Q_PAD_SD1_DAT2__USDHC1_DAT2,
-	MX6Q_PAD_SD1_DAT3__USDHC1_DAT3,
-};
 
-iomux_v3_cfg_t usdhc2_pads[] = {
-	MX6Q_PAD_SD2_CLK__USDHC2_CLK,
-	MX6Q_PAD_SD2_CMD__USDHC2_CMD,
-	MX6Q_PAD_SD2_DAT0__USDHC2_DAT0,
-	MX6Q_PAD_SD2_DAT1__USDHC2_DAT1,
-	MX6Q_PAD_SD2_DAT2__USDHC2_DAT2,
-	MX6Q_PAD_SD2_DAT3__USDHC2_DAT3,
-};
 
-iomux_v3_cfg_t usdhc3_pads[] = {
-	MX6Q_PAD_SD3_CLK__USDHC3_CLK,
-	MX6Q_PAD_SD3_CMD__USDHC3_CMD,
-	MX6Q_PAD_SD3_DAT0__USDHC3_DAT0,
-	MX6Q_PAD_SD3_DAT1__USDHC3_DAT1,
-	MX6Q_PAD_SD3_DAT2__USDHC3_DAT2,
-	MX6Q_PAD_SD3_DAT3__USDHC3_DAT3,
-	MX6Q_PAD_SD3_DAT4__USDHC3_DAT4,
-	MX6Q_PAD_SD3_DAT5__USDHC3_DAT5,
-	MX6Q_PAD_SD3_DAT6__USDHC3_DAT6,
-	MX6Q_PAD_SD3_DAT7__USDHC3_DAT7,
-};
+void setup_usdhc1(){
+	x_mxc_iomux_v3_setup_pad(MX6DL_PAD_GPIO_1__USDHC1_CD); // SD1_CD_B -- GPIO01 (0x05E0)
+	x_mxc_iomux_v3_setup_pad(MX6DL_PAD_SD1_CLK__USDHC1_CLK); // SD1_CLK -- SD1_CLK (0x06C4)
+	x_mxc_iomux_v3_setup_pad(MX6DL_PAD_SD1_CMD__USDHC1_CMD); // SD1_CMD -- SD1_CMD (0x06C8)
+	x_mxc_iomux_v3_setup_pad(MX6DL_PAD_SD1_DAT0__USDHC1_DAT0); // SD1_DATA0 -- SD1_DATA0 (0x06CC)
+	x_mxc_iomux_v3_setup_pad(MX6DL_PAD_SD1_DAT1__USDHC1_DAT1); // SD1_DATA1 -- SD1_DATA1 (0x06D0)
+	x_mxc_iomux_v3_setup_pad(MX6DL_PAD_SD1_DAT2__USDHC1_DAT2); // SD1_DATA2 -- SD1_DATA2 (0x06D4)
+	x_mxc_iomux_v3_setup_pad(MX6DL_PAD_SD1_DAT3__USDHC1_DAT3); // SD1_DATA3 -- SD1_DATA3 (0x06D8)
+}
 
-iomux_v3_cfg_t usdhc4_pads[] = {
-	MX6Q_PAD_SD4_CLK__USDHC4_CLK,
-	MX6Q_PAD_SD4_CMD__USDHC4_CMD,
-	MX6Q_PAD_SD4_DAT0__USDHC4_DAT0,
-	MX6Q_PAD_SD4_DAT1__USDHC4_DAT1,
-	MX6Q_PAD_SD4_DAT2__USDHC4_DAT2,
-	MX6Q_PAD_SD4_DAT3__USDHC4_DAT3,
-	MX6Q_PAD_SD4_DAT4__USDHC4_DAT4,
-	MX6Q_PAD_SD4_DAT5__USDHC4_DAT5,
-	MX6Q_PAD_SD4_DAT6__USDHC4_DAT6,
-	MX6Q_PAD_SD4_DAT7__USDHC4_DAT7,
-};
-#elif defined CONFIG_MX6DL
-iomux_v3_cfg_t usdhc1_pads[] = {
-	MX6DL_PAD_SD1_CLK__USDHC1_CLK,
-	MX6DL_PAD_SD1_CMD__USDHC1_CMD,
-	MX6DL_PAD_SD1_DAT0__USDHC1_DAT0,
-	MX6DL_PAD_SD1_DAT1__USDHC1_DAT1,
-	MX6DL_PAD_SD1_DAT2__USDHC1_DAT2,
-	MX6DL_PAD_SD1_DAT3__USDHC1_DAT3,
-};
+void setup_usdhc2(){
+	x_mxc_iomux_v3_setup_pad(MX6DL_PAD_GPIO_4__USDHC2_CD); // SD2_CD_B -- GPIO04 (0x05FC)
+	x_mxc_iomux_v3_setup_pad(MX6DL_PAD_SD2_CLK__USDHC2_CLK); // SD2_CLK -- SD2_CLK (0x06DC)
+	x_mxc_iomux_v3_setup_pad(MX6DL_PAD_SD2_CMD__USDHC2_CMD); // SD2_CMD -- SD2_CMD (0x06E0)
+	x_mxc_iomux_v3_setup_pad(MX6DL_PAD_SD2_DAT0__USDHC2_DAT0); // SD2_DATA0 -- SD2_DATA0 (0x06E4)
+	x_mxc_iomux_v3_setup_pad(MX6DL_PAD_SD2_DAT1__USDHC2_DAT1); // SD2_DATA1 -- SD2_DATA1 (0x06E8)
+	x_mxc_iomux_v3_setup_pad(MX6DL_PAD_SD2_DAT2__USDHC2_DAT2); // SD2_DATA2 -- SD2_DATA2 (0x06EC)
+	x_mxc_iomux_v3_setup_pad(MX6DL_PAD_SD2_DAT3__USDHC2_DAT3); // SD2_DATA3 -- SD2_DATA3 (0x06F0)
+}
 
-iomux_v3_cfg_t usdhc2_pads[] = {
-	MX6DL_PAD_SD2_CLK__USDHC2_CLK,
-	MX6DL_PAD_SD2_CMD__USDHC2_CMD,
-	MX6DL_PAD_SD2_DAT0__USDHC2_DAT0,
-	MX6DL_PAD_SD2_DAT1__USDHC2_DAT1,
-	MX6DL_PAD_SD2_DAT2__USDHC2_DAT2,
-	MX6DL_PAD_SD2_DAT3__USDHC2_DAT3,
-};
+void setup_usdhc3(){
+	x_mxc_iomux_v3_setup_pad(MX6DL_PAD_SD3_CLK__USDHC3_CLK); // SD3_CLK -- SD3_CLK (0x06F4)
+	x_mxc_iomux_v3_setup_pad(MX6DL_PAD_SD3_CMD__USDHC3_CMD); // SD3_CMD -- SD3_CMD (0x06F8)
+	x_mxc_iomux_v3_setup_pad(MX6DL_PAD_SD3_DAT0__USDHC3_DAT0); // SD3_DATA0 -- SD3_DATA0 (0x06FC)
+	x_mxc_iomux_v3_setup_pad(MX6DL_PAD_SD3_DAT1__USDHC3_DAT1); // SD3_DATA1 -- SD3_DATA1 (0x0700)
+	x_mxc_iomux_v3_setup_pad(MX6DL_PAD_SD3_DAT2__USDHC3_DAT2); // SD3_DATA2 -- SD3_DATA2 (0x0704)
+	x_mxc_iomux_v3_setup_pad(MX6DL_PAD_SD3_DAT3__USDHC3_DAT3); // SD3_DATA3 -- SD3_DATA3 (0x0708)
+}
 
-iomux_v3_cfg_t usdhc3_pads[] = {
-	MX6DL_PAD_SD3_CLK__USDHC3_CLK,
-	MX6DL_PAD_SD3_CMD__USDHC3_CMD,
-	MX6DL_PAD_SD3_DAT0__USDHC3_DAT0,
-	MX6DL_PAD_SD3_DAT1__USDHC3_DAT1,
-	MX6DL_PAD_SD3_DAT2__USDHC3_DAT2,
-	MX6DL_PAD_SD3_DAT3__USDHC3_DAT3,
-	MX6DL_PAD_SD3_DAT4__USDHC3_DAT4,
-	MX6DL_PAD_SD3_DAT5__USDHC3_DAT5,
-	MX6DL_PAD_SD3_DAT6__USDHC3_DAT6,
-	MX6DL_PAD_SD3_DAT7__USDHC3_DAT7,
-};
-
-iomux_v3_cfg_t usdhc4_pads[] = {
-	MX6DL_PAD_SD4_CLK__USDHC4_CLK,
-	MX6DL_PAD_SD4_CMD__USDHC4_CMD,
-	MX6DL_PAD_SD4_DAT0__USDHC4_DAT0,
-	MX6DL_PAD_SD4_DAT1__USDHC4_DAT1,
-	MX6DL_PAD_SD4_DAT2__USDHC4_DAT2,
-	MX6DL_PAD_SD4_DAT3__USDHC4_DAT3,
-	MX6DL_PAD_SD4_DAT4__USDHC4_DAT4,
-	MX6DL_PAD_SD4_DAT5__USDHC4_DAT5,
-	MX6DL_PAD_SD4_DAT6__USDHC4_DAT6,
-	MX6DL_PAD_SD4_DAT7__USDHC4_DAT7,
-};
-#endif
+void setup_usdhc4(){
+	x_mxc_iomux_v3_setup_pad(MX6DL_PAD_NANDF_ALE__USDHC4_RST); // SD4_RESET -- NAND_ALE (0x0654)
+	x_mxc_iomux_v3_setup_pad(MX6DL_PAD_SD4_CLK__USDHC4_CLK); // SD4_CLK -- SD4_CLK (0x0720)
+	x_mxc_iomux_v3_setup_pad(MX6DL_PAD_SD4_CMD__USDHC4_CMD); // SD4_CMD -- SD4_CMD (0x0724)
+	x_mxc_iomux_v3_setup_pad(MX6DL_PAD_SD4_DAT0__USDHC4_DAT0); // SD4_DATA0 -- SD4_DATA0 (0x0728)
+	x_mxc_iomux_v3_setup_pad(MX6DL_PAD_SD4_DAT1__USDHC4_DAT1); // SD4_DATA1 -- SD4_DATA1 (0x072C)
+	x_mxc_iomux_v3_setup_pad(MX6DL_PAD_SD4_DAT2__USDHC4_DAT2); // SD4_DATA2 -- SD4_DATA2 (0x0730)
+	x_mxc_iomux_v3_setup_pad(MX6DL_PAD_SD4_DAT3__USDHC4_DAT3); // SD4_DATA3 -- SD4_DATA3 (0x0734)
+	x_mxc_iomux_v3_setup_pad(MX6DL_PAD_SD4_DAT4__USDHC4_DAT4); // SD4_DATA4 -- SD4_DATA4 (0x0738)
+	x_mxc_iomux_v3_setup_pad(MX6DL_PAD_SD4_DAT5__USDHC4_DAT5); // SD4_DATA5 -- SD4_DATA5 (0x073C)
+	x_mxc_iomux_v3_setup_pad(MX6DL_PAD_SD4_DAT6__USDHC4_DAT6); // SD4_DATA6 -- SD4_DATA6 (0x0740)
+	x_mxc_iomux_v3_setup_pad(MX6DL_PAD_SD4_DAT7__USDHC4_DAT7); // SD4_DATA7 -- SD4_DATA7 (0x0744)
+}
 
 int usdhc_gpio_init(bd_t *bis)
 {
@@ -881,24 +821,16 @@ int usdhc_gpio_init(bd_t *bis)
 		++index) {
 		switch (index) {
 		case 0:
-			mxc_iomux_v3_setup_multiple_pads(usdhc1_pads,
-				sizeof(usdhc1_pads) /
-				sizeof(usdhc1_pads[0]));
+			setup_usdhc1();
 			break;
 		case 1:
-			mxc_iomux_v3_setup_multiple_pads(usdhc2_pads,
-				sizeof(usdhc2_pads) /
-				sizeof(usdhc2_pads[0]));
+			setup_usdhc2();
 			break;
 		case 2:
-			mxc_iomux_v3_setup_multiple_pads(usdhc3_pads,
-				sizeof(usdhc3_pads) /
-				sizeof(usdhc3_pads[0]));
+			setup_usdhc3();
 			break;
 		case 3:
-			mxc_iomux_v3_setup_multiple_pads(usdhc4_pads,
-				sizeof(usdhc4_pads) /
-				sizeof(usdhc4_pads[0]));
+			setup_usdhc4();
 			break;
 		default:
 			printf("Warning: you configured more USDHC controllers"

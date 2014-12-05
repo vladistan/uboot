@@ -145,7 +145,7 @@ typedef unsigned int iomux_pin_name_t;
 /*
  * setups a single pad in the iomuxer
  */
-int mxc_iomux_v3_setup_pad(iomux_v3_cfg_t pad);
+int vv_mxc_iomux_v3_setup_pad(iomux_v3_cfg_t pad);
 
 /*
  * setups mutliple pads
