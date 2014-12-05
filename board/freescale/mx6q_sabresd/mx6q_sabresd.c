@@ -1473,6 +1473,166 @@ void setup_splash_image(void)
 #endif
 #endif /* !CONFIG_MXC_EPDC */
 
+void setup_ecspi3(){
+	x_mxc_iomux_v3_setup_pad(MX6DL_PAD_DISP0_DAT0__ECSPI3_SCLK); // ECSPI3_SCLK -- DISP0_DATA00 (0x03C4)
+	x_mxc_iomux_v3_setup_pad(MX6DL_PAD_DISP0_DAT1__ECSPI3_MOSI); // ECSPI3_MOSI -- DISP0_DATA01 (0x03C8)
+	x_mxc_iomux_v3_setup_pad(MX6DL_PAD_DISP0_DAT2__ECSPI3_MISO); // ECSPI3_MISO -- DISP0_DATA02 (0x03F4)
+	x_mxc_iomux_v3_setup_pad(MX6DL_PAD_DISP0_DAT3__ECSPI3_SS0); // ECSPI3_SS0 -- DISP0_DATA03 (0x0408)
+}
+
+void setup_eim(){
+	x_mxc_iomux_v3_setup_pad(MX6DL_PAD_EIM_DA0__WEIM_WEIM_DA_A_0); // EIM_AD00 -- EIM_AD00 (0x0554)
+	x_mxc_iomux_v3_setup_pad(MX6DL_PAD_EIM_DA8__WEIM_WEIM_DA_A_8); // EIM_AD08 -- EIM_AD08 (0x058C)
+	x_mxc_iomux_v3_setup_pad(MX6DL_PAD_EIM_DA9__WEIM_WEIM_DA_A_9); // EIM_AD09 -- EIM_AD09 (0x0590)
+	x_mxc_iomux_v3_setup_pad(MX6DL_PAD_EIM_EB3__WEIM_WEIM_EB_3); // EIM_EB3 -- EIM_EB3 (0x05A0)
+	x_mxc_iomux_v3_setup_pad(MX6DL_PAD_EIM_WAIT__WEIM_WEIM_WAIT); // EIM_WAIT -- EIM_WAIT (0x05B0)
+}
+
+void setup_enet(){
+	x_mxc_iomux_v3_setup_pad(MX6DL_PAD_ENET_CRS_DV__ENET_RX_EN); // ENET_RX_EN -- ENET_CRS_DV (0x05B4)
+	x_mxc_iomux_v3_setup_pad(MX6DL_PAD_ENET_MDC__ENET_MDC); // ENET_MDC -- ENET_MDC (0x05B8)
+	x_mxc_iomux_v3_setup_pad(MX6DL_PAD_ENET_MDIO__ENET_MDIO); // ENET_MDIO -- ENET_MDIO (0x05BC)
+	x_mxc_iomux_v3_setup_pad(MX6DL_PAD_ENET_REF_CLK__ENET_TX_CLK); // ENET_TX_CLK -- ENET_REF_CLK (0x05C0)
+	x_mxc_iomux_v3_setup_pad(MX6DL_PAD_ENET_RXD0__ENET_RDATA_0); // ENET_RX_DATA0 -- ENET_RX_DATA0 (0x05C8)
+	x_mxc_iomux_v3_setup_pad(MX6DL_PAD_ENET_RXD1__ENET_RDATA_1); // ENET_RX_DATA1 -- ENET_RX_DATA1 (0x05CC)
+	x_mxc_iomux_v3_setup_pad(MX6DL_PAD_ENET_TX_EN__ENET_TX_EN); // ENET_TX_EN -- ENET_TX_EN (0x05D0)
+	x_mxc_iomux_v3_setup_pad(MX6DL_PAD_ENET_TXD0__ENET_TDATA_0); // ENET_TX_DATA0 -- ENET_TX_DATA0 (0x05D4)
+	x_mxc_iomux_v3_setup_pad(MX6DL_PAD_ENET_TXD1__ENET_TDATA_1); // ENET_TX_DATA1 -- ENET_TX_DATA1 (0x05D8)
+	x_mxc_iomux_v3_setup_pad(MX6DL_PAD_GPIO_16__ENET_ANATOP_ETHERNET_REF_OUT); // ENET_REF_CLK -- GPIO16 (0x05E4)
+}
+
+void setup_epdc(){
+	x_mxc_iomux_v3_setup_pad(MX6DL_PAD_EIM_A16__EPDC_SDDO_0); // EPDC_DATA00 -- EIM_ADDR16 (0x04E0)
+	x_mxc_iomux_v3_setup_pad(MX6DL_PAD_EIM_A17__EPDC_PWRSTAT); // EPDC_PWR_STAT -- EIM_ADDR17 (0x04E4)
+	x_mxc_iomux_v3_setup_pad(MX6DL_PAD_EIM_A18__EPDC_PWRCTRL_0); // EPDC_PWR_CTRL0 -- EIM_ADDR18 (0x04E8)
+	x_mxc_iomux_v3_setup_pad(MX6DL_PAD_EIM_A19__EPDC_PWRCTRL_1); // EPDC_PWR_CTRL1 -- EIM_ADDR19 (0x04EC)
+	x_mxc_iomux_v3_setup_pad(MX6DL_PAD_EIM_A20__EPDC_PWRCTRL_2); // EPDC_PWR_CTRL2 -- EIM_ADDR20 (0x04F0)
+	x_mxc_iomux_v3_setup_pad(MX6DL_PAD_EIM_A21__EPDC_GDCLK); // EPDC_GDCLK -- EIM_ADDR21 (0x04F4)
+	x_mxc_iomux_v3_setup_pad(MX6DL_PAD_EIM_A22__EPDC_GDSP); // EPDC_GDSP -- EIM_ADDR22 (0x04F8)
+	x_mxc_iomux_v3_setup_pad(MX6DL_PAD_EIM_A23__EPDC_GDOE); // EPDC_GDOE -- EIM_ADDR23 (0x04FC)
+	x_mxc_iomux_v3_setup_pad(MX6DL_PAD_EIM_A24__EPDC_GDRL); // EPDC_GDRL -- EIM_ADDR24 (0x0500)
+	x_mxc_iomux_v3_setup_pad(MX6DL_PAD_EIM_A25__EPDC_SDDO_15); // EPDC_DATA15 -- EIM_ADDR25 (0x0504)
+	x_mxc_iomux_v3_setup_pad(MX6DL_PAD_EIM_CS0__EPDC_SDDO_6); // EPDC_DATA06 -- EIM_CS0 (0x050C)
+	x_mxc_iomux_v3_setup_pad(MX6DL_PAD_EIM_CS1__EPDC_SDDO_8); // EPDC_DATA08 -- EIM_CS1 (0x0510)
+	x_mxc_iomux_v3_setup_pad(MX6DL_PAD_EIM_D16__EPDC_SDDO_10); // EPDC_DATA10 -- EIM_DATA16 (0x0514)
+	x_mxc_iomux_v3_setup_pad(MX6DL_PAD_EIM_D17__EPDC_VCOM_0); // EPDC_VCOM0 -- EIM_DATA17 (0x0518)
+	x_mxc_iomux_v3_setup_pad(MX6DL_PAD_EIM_D18__EPDC_VCOM_1); // EPDC_VCOM1 -- EIM_DATA18 (0x051C)
+	x_mxc_iomux_v3_setup_pad(MX6DL_PAD_EIM_D19__EPDC_SDDO_12); // EPDC_DATA12 -- EIM_DATA19 (0x0520)
+	x_mxc_iomux_v3_setup_pad(MX6DL_PAD_EIM_D23__EPDC_SDDO_11); // EPDC_DATA11 -- EIM_DATA23 (0x0530)
+	x_mxc_iomux_v3_setup_pad(MX6DL_PAD_EIM_D26__EPDC_SDOED); // EPDC_SDOED -- EIM_DATA26 (0x053C)
+	x_mxc_iomux_v3_setup_pad(MX6DL_PAD_EIM_D27__EPDC_SDOE); // EPDC_SDOE -- EIM_DATA27 (0x0540)
+	x_mxc_iomux_v3_setup_pad(MX6DL_PAD_EIM_D28__EPDC_PWRCTRL_3); // EPDC_PWR_CTRL3 -- EIM_DATA28 (0x0544)
+	x_mxc_iomux_v3_setup_pad(MX6DL_PAD_EIM_D29__EPDC_PWRWAKE); // EPDC_PWR_WAKE -- EIM_DATA29 (0x0548)
+	x_mxc_iomux_v3_setup_pad(MX6DL_PAD_EIM_D30__EPDC_SDOEZ); // EPDC_SDOEZ -- EIM_DATA30 (0x054C)
+	x_mxc_iomux_v3_setup_pad(MX6DL_PAD_EIM_D31__EPDC_SDCLK); // EPDC_SDCLK_P -- EIM_DATA31 (0x0550)
+	x_mxc_iomux_v3_setup_pad(MX6DL_PAD_EIM_DA1__EPDC_SDLE); // EPDC_SDLE -- EIM_AD01 (0x0558)
+	x_mxc_iomux_v3_setup_pad(MX6DL_PAD_EIM_DA10__EPDC_SDDO_1); // EPDC_DATA01 -- EIM_AD10 (0x055C)
+	x_mxc_iomux_v3_setup_pad(MX6DL_PAD_EIM_DA11__EPDC_SDDO_3); // EPDC_DATA03 -- EIM_AD11 (0x0560)
+	x_mxc_iomux_v3_setup_pad(MX6DL_PAD_EIM_DA12__EPDC_SDDO_2); // EPDC_DATA02 -- EIM_AD12 (0x0564)
+	x_mxc_iomux_v3_setup_pad(MX6DL_PAD_EIM_DA13__EPDC_SDDO_13); // EPDC_DATA13 -- EIM_AD13 (0x0568)
+	x_mxc_iomux_v3_setup_pad(MX6DL_PAD_EIM_DA14__EPDC_SDDO_14); // EPDC_DATA14 -- EIM_AD14 (0x056C)
+	x_mxc_iomux_v3_setup_pad(MX6DL_PAD_EIM_DA15__EPDC_SDDO_9); // EPDC_DATA09 -- EIM_AD15 (0x0570)
+	x_mxc_iomux_v3_setup_pad(MX6DL_PAD_EIM_DA2__EPDC_BDR_0); // EPDC_BDR0 -- EIM_AD02 (0x0574)
+	x_mxc_iomux_v3_setup_pad(MX6DL_PAD_EIM_DA3__EPDC_BDR_1); // EPDC_BDR1 -- EIM_AD03 (0x0578)
+	x_mxc_iomux_v3_setup_pad(MX6DL_PAD_EIM_DA4__EPDC_SDCE_0); // EPDC_SDCE0 -- EIM_AD04 (0x057C)
+	x_mxc_iomux_v3_setup_pad(MX6DL_PAD_EIM_DA5__EPDC_SDCE_1); // EPDC_SDCE1 -- EIM_AD05 (0x0580)
+	x_mxc_iomux_v3_setup_pad(MX6DL_PAD_EIM_DA6__EPDC_SDCE_2); // EPDC_SDCE2 -- EIM_AD06 (0x0584)
+	x_mxc_iomux_v3_setup_pad(MX6DL_PAD_EIM_DA7__EPDC_SDCE_3); // EPDC_SDCE3 -- EIM_AD07 (0x0588)
+	x_mxc_iomux_v3_setup_pad(MX6DL_PAD_EIM_EB0__EPDC_PWRCOM); // EPDC_PWR_COM -- EIM_EB0 (0x0594)
+	x_mxc_iomux_v3_setup_pad(MX6DL_PAD_EIM_EB1__EPDC_SDSHR); // EPDC_SDSHR -- EIM_EB1 (0x0598)
+	x_mxc_iomux_v3_setup_pad(MX6DL_PAD_EIM_EB2__EPDC_SDDO_5); // EPDC_DATA05 -- EIM_EB2 (0x059C)
+	x_mxc_iomux_v3_setup_pad(MX6DL_PAD_EIM_LBA__EPDC_SDDO_4); // EPDC_DATA04 -- EIM_LBA (0x05A4)
+	x_mxc_iomux_v3_setup_pad(MX6DL_PAD_EIM_OE__EPDC_PWRIRQ); // EPDC_PWR_IRQ -- EIM_OE (0x05A8)
+	x_mxc_iomux_v3_setup_pad(MX6DL_PAD_EIM_RW__EPDC_SDDO_7); // EPDC_DATA07 -- EIM_RW (0x05AC)
+}
+
+void setup_gpio1(){
+	x_mxc_iomux_v3_setup_pad(MX6DL_PAD_GPIO_0__GPIO_1_0); // GPIO1_IO00 -- GPIO00 (0x05DC)
+	x_mxc_iomux_v3_setup_pad(MX6DL_PAD_GPIO_2__GPIO_1_2); // GPIO1_IO02 -- GPIO02 (0x05F4)
+	x_mxc_iomux_v3_setup_pad(MX6DL_PAD_GPIO_3__GPIO_1_3); // GPIO1_IO03 -- GPIO03 (0x05F8)
+	x_mxc_iomux_v3_setup_pad(MX6DL_PAD_GPIO_5__GPIO_1_5); // GPIO1_IO05 -- GPIO05 (0x0600)
+	x_mxc_iomux_v3_setup_pad(MX6DL_PAD_GPIO_6__GPIO_1_6); // GPIO1_IO06 -- GPIO06 (0x0604)
+	x_mxc_iomux_v3_setup_pad(MX6DL_PAD_GPIO_7__GPIO_1_7); // GPIO1_IO07 -- GPIO07 (0x0608)
+	x_mxc_iomux_v3_setup_pad(MX6DL_PAD_GPIO_8__GPIO_1_8); // GPIO1_IO08 -- GPIO08 (0x060C)
+	x_mxc_iomux_v3_setup_pad(MX6DL_PAD_GPIO_9__GPIO_1_9); // GPIO1_IO09 -- GPIO09 (0x0610)
+}
+
+void setup_gpio2(){
+	x_mxc_iomux_v3_setup_pad(MX6DL_PAD_NANDF_D0__GPIO_2_0); // GPIO2_IO00 -- NAND_DATA00 (0x066C)
+	x_mxc_iomux_v3_setup_pad(MX6DL_PAD_NANDF_D1__GPIO_2_1); // GPIO2_IO01 -- NAND_DATA01 (0x0670)
+	x_mxc_iomux_v3_setup_pad(MX6DL_PAD_NANDF_D2__GPIO_2_2); // GPIO2_IO02 -- NAND_DATA02 (0x0674)
+	x_mxc_iomux_v3_setup_pad(MX6DL_PAD_NANDF_D3__GPIO_2_3); // GPIO2_IO03 -- NAND_DATA03 (0x0678)
+	x_mxc_iomux_v3_setup_pad(MX6DL_PAD_NANDF_D4__GPIO_2_4); // GPIO2_IO04 -- NAND_DATA04 (0x067C)
+	x_mxc_iomux_v3_setup_pad(MX6DL_PAD_NANDF_D5__GPIO_2_5); // GPIO2_IO05 -- NAND_DATA05 (0x0680)
+	x_mxc_iomux_v3_setup_pad(MX6DL_PAD_NANDF_D6__GPIO_2_6); // GPIO2_IO06 -- NAND_DATA06 (0x0684)
+	x_mxc_iomux_v3_setup_pad(MX6DL_PAD_NANDF_D7__GPIO_2_7); // GPIO2_IO07 -- NAND_DATA07 (0x0688)
+}
+
+void setup_gpio4(){
+	x_mxc_iomux_v3_setup_pad(MX6DL_PAD_DI0_DISP_CLK__GPIO_4_16); // GPIO4_IO16 -- DI0_DISP_CLK (0x03B0)
+	x_mxc_iomux_v3_setup_pad(MX6DL_PAD_DI0_PIN15__GPIO_4_17); // GPIO4_IO17 -- DI0_PIN15 (0x03B4)
+	x_mxc_iomux_v3_setup_pad(MX6DL_PAD_DI0_PIN2__GPIO_4_18); // GPIO4_IO18 -- DI0_PIN02 (0x03B8)
+	x_mxc_iomux_v3_setup_pad(MX6DL_PAD_DI0_PIN3__GPIO_4_19); // GPIO4_IO19 -- DI0_PIN03 (0x03BC)
+	x_mxc_iomux_v3_setup_pad(MX6DL_PAD_DISP0_DAT10__GPIO_4_31); // GPIO4_IO31 -- DISP0_DATA10 (0x03CC)
+	x_mxc_iomux_v3_setup_pad(MX6DL_PAD_DISP0_DAT7__GPIO_4_28); // GPIO4_IO28 -- DISP0_DATA07 (0x0418)
+	x_mxc_iomux_v3_setup_pad(MX6DL_PAD_DISP0_DAT9__GPIO_4_30); // GPIO4_IO30 -- DISP0_DATA09 (0x0420)
+	x_mxc_iomux_v3_setup_pad(MX6DL_PAD_GPIO_19__GPIO_4_5); // GPIO4_IO05 -- GPIO19 (0x05F0)
+	x_mxc_iomux_v3_setup_pad(MX6DL_PAD_KEY_COL0__GPIO_4_6); // GPIO4_IO06 -- KEY_COL0 (0x062C)
+	x_mxc_iomux_v3_setup_pad(MX6DL_PAD_KEY_COL2__GPIO_4_10); // GPIO4_IO10 -- KEY_COL2 (0x0634)
+	x_mxc_iomux_v3_setup_pad(MX6DL_PAD_KEY_ROW0__GPIO_4_7); // GPIO4_IO07 -- KEY_ROW0 (0x0640)
+	x_mxc_iomux_v3_setup_pad(MX6DL_PAD_KEY_ROW2__GPIO_4_11); // GPIO4_IO11 -- KEY_ROW2 (0x0648)
+}
+
+void setup_gpio5(){
+	x_mxc_iomux_v3_setup_pad(MX6DL_PAD_CSI0_DAT12__GPIO_5_30); // GPIO5_IO30 -- CSI0_DATA12 (0x0368)
+	x_mxc_iomux_v3_setup_pad(MX6DL_PAD_CSI0_DAT13__GPIO_5_31); // GPIO5_IO31 -- CSI0_DATA13 (0x036C)
+	x_mxc_iomux_v3_setup_pad(MX6DL_PAD_CSI0_DAT4__GPIO_5_22); // GPIO5_IO22 -- CSI0_DATA04 (0x0388)
+	x_mxc_iomux_v3_setup_pad(MX6DL_PAD_CSI0_DAT5__GPIO_5_23); // GPIO5_IO23 -- CSI0_DATA05 (0x038C)
+	x_mxc_iomux_v3_setup_pad(MX6DL_PAD_CSI0_DAT6__GPIO_5_24); // GPIO5_IO24 -- CSI0_DATA06 (0x0390)
+	x_mxc_iomux_v3_setup_pad(MX6DL_PAD_CSI0_DAT7__GPIO_5_25); // GPIO5_IO25 -- CSI0_DATA07 (0x0394)
+	x_mxc_iomux_v3_setup_pad(MX6DL_PAD_DISP0_DAT11__GPIO_5_5); // GPIO5_IO05 -- DISP0_DATA11 (0x03D0)
+	x_mxc_iomux_v3_setup_pad(MX6DL_PAD_DISP0_DAT12__GPIO_5_6); // GPIO5_IO06 -- DISP0_DATA12 (0x03D4)
+	x_mxc_iomux_v3_setup_pad(MX6DL_PAD_DISP0_DAT13__GPIO_5_7); // GPIO5_IO07 -- DISP0_DATA13 (0x03D8)
+	x_mxc_iomux_v3_setup_pad(MX6DL_PAD_DISP0_DAT14__GPIO_5_8); // GPIO5_IO08 -- DISP0_DATA14 (0x03DC)
+	x_mxc_iomux_v3_setup_pad(MX6DL_PAD_DISP0_DAT15__GPIO_5_9); // GPIO5_IO09 -- DISP0_DATA15 (0x03E0)
+	x_mxc_iomux_v3_setup_pad(MX6DL_PAD_DISP0_DAT16__GPIO_5_10); // GPIO5_IO10 -- DISP0_DATA16 (0x03E4)
+	x_mxc_iomux_v3_setup_pad(MX6DL_PAD_DISP0_DAT17__GPIO_5_11); // GPIO5_IO11 -- DISP0_DATA17 (0x03E8)
+	x_mxc_iomux_v3_setup_pad(MX6DL_PAD_DISP0_DAT18__GPIO_5_12); // GPIO5_IO12 -- DISP0_DATA18 (0x03EC)
+	x_mxc_iomux_v3_setup_pad(MX6DL_PAD_DISP0_DAT19__GPIO_5_13); // GPIO5_IO13 -- DISP0_DATA19 (0x03F0)
+	x_mxc_iomux_v3_setup_pad(MX6DL_PAD_DISP0_DAT20__GPIO_5_14); // GPIO5_IO14 -- DISP0_DATA20 (0x03F8)
+	x_mxc_iomux_v3_setup_pad(MX6DL_PAD_DISP0_DAT21__GPIO_5_15); // GPIO5_IO15 -- DISP0_DATA21 (0x03FC)
+	x_mxc_iomux_v3_setup_pad(MX6DL_PAD_DISP0_DAT22__GPIO_5_16); // GPIO5_IO16 -- DISP0_DATA22 (0x0400)
+	x_mxc_iomux_v3_setup_pad(MX6DL_PAD_DISP0_DAT23__GPIO_5_17); // GPIO5_IO17 -- DISP0_DATA23 (0x0404)
+}
+
+void setup_gpio6(){
+	x_mxc_iomux_v3_setup_pad(MX6DL_PAD_CSI0_DAT14__GPIO_6_0); // GPIO6_IO00 -- CSI0_DATA14 (0x0370)
+	x_mxc_iomux_v3_setup_pad(MX6DL_PAD_CSI0_DAT15__GPIO_6_1); // GPIO6_IO01 -- CSI0_DATA15 (0x0374)
+	x_mxc_iomux_v3_setup_pad(MX6DL_PAD_NANDF_CLE__GPIO_6_7); // GPIO6_IO07 -- NAND_CLE (0x0658)
+	x_mxc_iomux_v3_setup_pad(MX6DL_PAD_NANDF_CS0__GPIO_6_11); // GPIO6_IO11 -- NAND_CS0_B (0x065C)
+	x_mxc_iomux_v3_setup_pad(MX6DL_PAD_NANDF_CS1__GPIO_6_14); // GPIO6_IO14 -- NAND_CS1_B (0x0660)
+	x_mxc_iomux_v3_setup_pad(MX6DL_PAD_NANDF_CS2__GPIO_6_15); // GPIO6_IO15 -- NAND_CS2_B (0x0664)
+	x_mxc_iomux_v3_setup_pad(MX6DL_PAD_RGMII_TD0__GPIO_6_20); // GPIO6_IO20 -- RGMII_TD0 (0x06AC)
+	x_mxc_iomux_v3_setup_pad(MX6DL_PAD_RGMII_TD1__GPIO_6_21); // GPIO6_IO21 -- RGMII_TD1 (0x06B0)
+	x_mxc_iomux_v3_setup_pad(MX6DL_PAD_RGMII_TD2__GPIO_6_22); // GPIO6_IO22 -- RGMII_TD2 (0x06B4)
+	x_mxc_iomux_v3_setup_pad(MX6DL_PAD_RGMII_TD3__GPIO_6_23); // GPIO6_IO23 -- RGMII_TD3 (0x06B8)
+}
+
+void setup_gpio7(){
+	x_mxc_iomux_v3_setup_pad(MX6DL_PAD_GPIO_17__GPIO_7_12); // GPIO7_IO12 -- GPIO17 (0x05E8)
+	x_mxc_iomux_v3_setup_pad(MX6DL_PAD_GPIO_18__GPIO_7_13); // GPIO7_IO13 -- GPIO18 (0x05EC)
+}
+
+void setup_hdmi(){
+	x_mxc_iomux_v3_setup_pad(MX6DL_PAD_KEY_COL3__HDMI_TX_DDC_SCL); // HDMI_TX_DDC_SCL -- KEY_COL3 (0x0638)
+	x_mxc_iomux_v3_setup_pad(MX6DL_PAD_KEY_ROW3__HDMI_TX_DDC_SDA); // HDMI_TX_DDC_SDA -- KEY_ROW3 (0x064C)
+}
+
+
+void setup_wdog1(){
+	x_mxc_iomux_v3_setup_pad(MX6DL_PAD_DISP0_DAT8__WDOG1_WDOG_B); // WDOG1_B -- DISP0_DATA08 (0x041C)
+}
+
 int board_init(void)
 {
 /* need set Power Supply Glitch to 0x41736166
@@ -1512,13 +1672,34 @@ int board_init(void)
 #endif
 #endif
 
+	setup_eim();
+	setup_ecspi3();
+
+	setup_enet();
+	setup_epdc();
+
+	setup_gpio1();
+	setup_gpio2();
+	setup_gpio4();
+	setup_gpio5();
+	setup_gpio6();
+	setup_gpio7();
+
+	setup_wdog1();
+	setup_hdmi();
+
+
 #ifdef CONFIG_NAND_GPMI
 	setup_gpmi_nand();
 #endif
 
+
+
+
 #ifdef CONFIG_MXC_EPDC
 	setup_epdc();
 #endif
+
 	return 0;
 }
 
@@ -1549,13 +1730,13 @@ int check_recovery_cmd_file(void)
 int board_late_init(void)
 {
 	int ret = 0;
-	#ifdef CONFIG_I2C_MXC
 	setup_i2c(CONFIG_SYS_I2C_PORT);
 	i2c_bus_recovery();
+
 	ret = setup_pmic_voltages();
-	if (ret)
-		return -1;
-	#endif
+	if (ret) return -1;
+
+
 	return 0;
 }
 
