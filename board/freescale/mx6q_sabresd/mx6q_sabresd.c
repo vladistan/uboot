@@ -305,6 +305,38 @@ static void __udelay(int time)
 	}
 }
 
+static int setup_fec(void) {
+
+	u32 reg = 0;
+	s32 timeout = 100000;
+
+    /* get enet tx reference clk from internal clock from anatop
+     * GPR1[14] = 0, GPR1[18:17] = 00
+     */
+    reg =  readl(IOMUXC_BASE_ADDR + 0x4);
+    reg &= ~(0x3 << 17);
+    reg &= ~(0x1 << 14);
+    writel(reg, IOMUXC_BASE_ADDR + 0x4);
+
+	/* Enable PLLs */
+	reg = readl(ANATOP_BASE_ADDR + 0xe0); /* ENET PLL */
+	reg &= ~ANATOP_PLL_PWDN_MASK;
+	writel(reg, ANATOP_BASE_ADDR + 0xe0);
+	reg |= ANATOP_PLL_ENABLE_MASK;
+	while (timeout--) {
+		if (readl(ANATOP_BASE_ADDR + 0xe0) & ANATOP_PLL_LOCK)
+			break;
+	}
+	if (timeout <= 0)
+		return -1;
+	reg &= ~ANATOP_PLL_BYPASS_MASK;
+	writel(reg, ANATOP_BASE_ADDR + 0xe0);
+	reg |= ANATOP_SATA_CLK_ENABLE_MASK;
+	writel(reg, ANATOP_BASE_ADDR + 0xe0);
+    
+
+}
+
 static int setup_sata(void)
 {
 	u32 reg = 0;
@@ -1657,8 +1689,7 @@ int board_init(void)
 	gd->bd->bi_boot_params = PHYS_SDRAM_1 + 0x100;
 
 	setup_uart();
-	if (cpu_is_mx6q())
-		setup_sata();
+    setup_fec();
 
 #ifdef CONFIG_VIDEO_MX5
 	/* Enable lvds power */
@@ -1791,9 +1822,13 @@ void enet_board_init(void)
 	iomux_v3_cfg_t enet_reset =
 			(MX6DL_PAD_ENET_CRS_DV__GPIO_1_25 & ~MUX_PAD_CTRL_MASK)           |
 			 MUX_PAD_CTRL(0x88);
+    
 
 	setup_enet();
-	x_mxc_iomux_v3_setup_pad(enet_reset);
+	
+    
+    
+    x_mxc_iomux_v3_setup_pad(enet_reset);
 
 	/* phy reset: gpio1-25 */
 	reg = readl(GPIO1_BASE_ADDR + 0x0);
