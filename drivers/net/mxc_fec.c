@@ -38,8 +38,8 @@
 #include <linux/types.h>
 #include <asm/io.h>
 
-#undef	ET_DEBUG
-#undef	MII_DEBUG
+#define	ET_DEBUG
+#define	MII_DEBUG
 
 /* Ethernet Transmit and Receive Buffers */
 #define DBUF_LENGTH		1520
@@ -402,7 +402,7 @@ static void setFecDuplexSpeed(volatile fec_t *fecp, unsigned char addr,
 		/* set default mode to 100M full duplex */
 		dup_spd = _100BASET | (FULL << 16);
 	} else {
-		printf ( "We are checking the link\n");
+		printf ( "We are checking the link!\n");
 		if (val & PHY_BMSR_LS) {
 			printf("FEC: Link is Up %x\n", val);
 		} else {
@@ -1102,11 +1102,17 @@ int mxc_fec_initialize(bd_t *bis)
 		miiphy_register(dev->name, mxc_fec_mii_read,
 						mxc_fec_mii_write);
 #endif
-		if (fec_get_hwaddr(dev, ethaddr) == 0) {
+			
+			ethaddr[0] = 0x20;
+			ethaddr[1] = 0x21;
+			ethaddr[2] = 0x22;
+			ethaddr[3] = 0x23;
+			ethaddr[4] = 0x24;
+			ethaddr[5] = 0x25;
+			ethaddr[0] = 0;
 			printf("got MAC address from IIM: %pM\n", ethaddr);
 			memcpy(dev->enetaddr, ethaddr, 6);
 			fec_set_hwaddr(dev);
-		}
 	}
 
 	return 1;

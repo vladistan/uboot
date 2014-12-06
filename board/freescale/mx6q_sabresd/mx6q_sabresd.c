@@ -1675,7 +1675,6 @@ int board_init(void)
 	setup_eim();
 	setup_ecspi3();
 
-	setup_enet();
 	setup_epdc();
 
 	setup_gpio1();
@@ -1784,71 +1783,22 @@ int mx6_rgmii_rework(char *devname, int phy_addr)
 	return 0;
 }
 
-#if defined CONFIG_MX6Q
-iomux_v3_cfg_t enet_pads[] = {
-	MX6Q_PAD_ENET_MDIO__ENET_MDIO,
-	MX6Q_PAD_ENET_MDC__ENET_MDC,
-	MX6Q_PAD_RGMII_TXC__ENET_RGMII_TXC,
-	MX6Q_PAD_RGMII_TD0__ENET_RGMII_TD0,
-	MX6Q_PAD_RGMII_TD1__ENET_RGMII_TD1,
-	MX6Q_PAD_RGMII_TD2__ENET_RGMII_TD2,
-	MX6Q_PAD_RGMII_TD3__ENET_RGMII_TD3,
-	MX6Q_PAD_RGMII_TX_CTL__ENET_RGMII_TX_CTL,
-	MX6Q_PAD_ENET_REF_CLK__ENET_TX_CLK,
-	MX6Q_PAD_RGMII_RXC__ENET_RGMII_RXC,
-	MX6Q_PAD_RGMII_RD0__ENET_RGMII_RD0,
-	MX6Q_PAD_RGMII_RD1__ENET_RGMII_RD1,
-	MX6Q_PAD_RGMII_RD2__ENET_RGMII_RD2,
-	MX6Q_PAD_RGMII_RD3__ENET_RGMII_RD3,
-	MX6Q_PAD_RGMII_RX_CTL__ENET_RGMII_RX_CTL,
-	MX6Q_PAD_GPIO_0__CCM_CLKO,
-	MX6Q_PAD_GPIO_3__CCM_CLKO2,
-};
-#elif defined CONFIG_MX6DL
-iomux_v3_cfg_t enet_pads[] = {
-	MX6DL_PAD_ENET_MDIO__ENET_MDIO,
-	MX6DL_PAD_ENET_MDC__ENET_MDC,
-	MX6DL_PAD_RGMII_TXC__ENET_RGMII_TXC,
-	MX6DL_PAD_RGMII_TD0__ENET_RGMII_TD0,
-	MX6DL_PAD_RGMII_TD1__ENET_RGMII_TD1,
-	MX6DL_PAD_RGMII_TD2__ENET_RGMII_TD2,
-	MX6DL_PAD_RGMII_TD3__ENET_RGMII_TD3,
-	MX6DL_PAD_RGMII_TX_CTL__ENET_RGMII_TX_CTL,
-	MX6DL_PAD_ENET_REF_CLK__ENET_TX_CLK,
-	MX6DL_PAD_RGMII_RXC__ENET_RGMII_RXC,
-	MX6DL_PAD_RGMII_RD0__ENET_RGMII_RD0,
-	MX6DL_PAD_RGMII_RD1__ENET_RGMII_RD1,
-	MX6DL_PAD_RGMII_RD2__ENET_RGMII_RD2,
-	MX6DL_PAD_RGMII_RD3__ENET_RGMII_RD3,
-	MX6DL_PAD_RGMII_RX_CTL__ENET_RGMII_RX_CTL,
-	MX6DL_PAD_GPIO_0__CCM_CLKO,
-};
-#endif
 
 void enet_board_init(void)
 {
 	unsigned int reg;
-#if defined CONFIG_MX6Q
-	iomux_v3_cfg_t enet_reset =
-			(_MX6Q_PAD_ENET_CRS_DV__GPIO_1_25 &
-			~MUX_PAD_CTRL_MASK)           |
-			 MUX_PAD_CTRL(0x88);
-#elif defined CONFIG_MX6DL
-	iomux_v3_cfg_t enet_reset =
-			(MX6DL_PAD_ENET_CRS_DV__GPIO_1_25 &
-			~MUX_PAD_CTRL_MASK)           |
-			 MUX_PAD_CTRL(0x88);
-#endif
 
-	mxc_iomux_v3_setup_multiple_pads(enet_pads,
-			ARRAY_SIZE(enet_pads));
-	mxc_iomux_v3_setup_pad(enet_reset);
+	iomux_v3_cfg_t enet_reset =
+			(MX6DL_PAD_ENET_CRS_DV__GPIO_1_25 & ~MUX_PAD_CTRL_MASK)           |
+			 MUX_PAD_CTRL(0x88);
+
+	setup_enet();
+	x_mxc_iomux_v3_setup_pad(enet_reset);
 
 	/* phy reset: gpio1-25 */
 	reg = readl(GPIO1_BASE_ADDR + 0x0);
 	reg &= ~0x2000000;
-	writel(reg, GPIO1_BASE_ADDR + 0x0);
-
+	writel(reg, GPIO1_BASE_ADDR + 0x0); 
 	reg = readl(GPIO1_BASE_ADDR + 0x4);
 	reg |= 0x2000000;
 	writel(reg, GPIO1_BASE_ADDR + 0x4);

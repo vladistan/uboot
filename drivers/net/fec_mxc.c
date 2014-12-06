@@ -38,7 +38,7 @@ DECLARE_GLOBAL_DATA_PTR;
 #error "CONFIG_MII has to be defined!"
 #endif
 
-#undef DEBUG
+// #undef DEBUG
 
 struct nbuf {
 	uint8_t data[1500];	/**< actual data */

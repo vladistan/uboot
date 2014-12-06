@@ -130,6 +130,7 @@
 #define CONFIG_LOADADDR		0x10800000	/* loadaddr env var */
 #define CONFIG_RD_LOADADDR	(CONFIG_LOADADDR + 0x300000)
 
+#define CONFIG_RMII
 #define CONFIG_BOOTARGS         "console=ttymxc0,115200 rdinit=/linuxrc "\
 				"enable_wait_mode=off"
 #define CONFIG_BOOTCOMMAND      "bootm 0x10800000 0x10c00000"
@@ -165,20 +166,18 @@
 
 #define CONFIG_CMDLINE_EDITING
 
-//#define CONFIG_FEC0_IOBASE	ENET_BASE_ADDR
-//#define CONFIG_FEC0_PINMUX	-1
-//#define CONFIG_FEC0_MIIBASE	-1
-//#define CONFIG_GET_FEC_MAC_ADDR_FROM_IIM
-//#define CONFIG_MXC_FEC
-//#define CONFIG_FEC0_PHY_ADDR		1
-//#define CONFIG_ETH_PRIME
-//#define CONFIG_RMII
-//#define CONFIG_CMD_MII
-//#define CONFIG_CMD_DHCP
-//#define CONFIG_CMD_PING
-//#define CONFIG_IPADDR			192.168.1.103
-//#define CONFIG_SERVERIP			192.168.1.101
-//#define CONFIG_NETMASK			255.255.255.0
+#define CONFIG_FEC0_IOBASE	ENET_BASE_ADDR
+#define CONFIG_FEC0_PINMUX	-1
+#define CONFIG_FEC0_MIIBASE	-1
+#define CONFIG_MXC_FEC
+#define CONFIG_FEC0_PHY_ADDR		1
+#define CONFIG_ETH_PRIME
+#define CONFIG_CMD_MII
+#define CONFIG_CMD_DHCP
+#define CONFIG_CMD_PING
+#define CONFIG_IPADDR			192.168.1.103
+#define CONFIG_SERVERIP			192.168.1.101
+#define CONFIG_NETMASK			255.255.255.0
 
 /*
  * OCOTP Configs
@@ -292,7 +291,7 @@
 /* #define CONFIG_FSL_ENV_IN_NAND */
 /* #define CONFIG_FSL_ENV_IN_SATA */
 
-#define DEBUG 1
+#define DEBUG 9
 
 #define CONFIG_ENV_SECT_SIZE    (128 * 1024)
 #define CONFIG_ENV_SIZE         CONFIG_ENV_SECT_SIZE
