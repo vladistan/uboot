@@ -20,8 +20,7 @@ int IMX_GPIO_NR(int bank, int led);
 void gpio_direction_output(int port, int state);
 
 /* Verifies */
-void reset_verify();
-int verify_cmd_usage(void *);
+
 
 
 /* Components under test */

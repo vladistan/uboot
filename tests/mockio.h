@@ -31,16 +31,11 @@
 typedef unsigned char __u8;
 typedef         __u8            uint8_t;
 
-void MockIO_Create(int maxExpectations);
-void MockIO_Destroy(void);
 void MockIO_Expect_GPIONR(int led, int bank);
 void MockIO_Expect_gpio_output(int port, int state);
+void MockIO_ExpectLEDIO(int led, int bank, int val);
 void MockIO_Expect_i2c_write(uint8_t chip, unsigned int addr,  uint8_t rv);
 void MockIO_Expect_i2c_read(uint8_t chip, unsigned int addr,  uint8_t rv);
-void MockIO_Expect_i2c_read_failure(uint8_t chip, unsigned int addr );
-void MockIO_Expect_i2c_write_failure(uint8_t chip, unsigned int addr, uint8_t rv  );
-void MockIO_Verify_Complete(void);
-void MockIO_ExpectLEDIO(int led, int bank, int val);
 
 
 #ifdef __cplusplus
@@ -53,6 +48,8 @@ void gpio_direction_output(int port, int state);
 int i2c_read(uint8_t chip, unsigned int addr, int alen, uint8_t *buffer, int len);
 int i2c_write(uint8_t chip, unsigned int addr, int alen, uint8_t *buffer, int len);
 void udelay(int msec);
+void resetI2CMock();
+
 
 
 #ifdef __cplusplus

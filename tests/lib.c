@@ -5,11 +5,6 @@
 #include <CppUTestExt/MockSupport_c.h>
 
 
-struct {
-  void * cmd_usage;
-
-
-} verify;
 
 /* LIFTED FROM  ../tools/updater/utils.c ... check with the source once in a while */
 unsigned long simple_strtoul(const char *cp,char **endp,unsigned int base)
@@ -45,7 +40,6 @@ unsigned long simple_strtoul(const char *cp,char **endp,unsigned int base)
 
 int cmd_usage(void * p )
 {
-   verify.cmd_usage = p;
    mock_c()->actualCall("cmd_usage")->withParameterOfType("void *", "p", p);
    return 0;
 }
@@ -53,17 +47,6 @@ int cmd_usage(void * p )
 
 
 
-void reset_verify()
-{
-   memset(&verify,0,sizeof(verify));
-}
-
-
-int verify_cmd_usage(void * p )
-{
-  return verify.cmd_usage == p;
-
-}
 
 
 

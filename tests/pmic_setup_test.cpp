@@ -31,24 +31,61 @@ extern "C" {
 #include <pplans_pmic.h>
 }
 
+void MockIO_Expect_i2c_write(uint8_t chip, int addr, uint8_t val)
+{  
+    mock().expectOneCall("i2c_write")
+        .withParameter("chip",chip)
+        .withParameter("addr",addr)
+        .withParameter("val",val)
+        .andReturnValue(0);
+}
 
+void MockIO_Expect_i2c_read(uint8_t chip, int addr, uint8_t val, int seq)
+{  
+    mock().expectOneCall("i2c_read")
+        .withParameter("chip",chip)
+        .withParameter("addr",addr)
+        .andReturnValue(0);
+    
+    char X[40]; 
+    sprintf (X, "I2C:RD:%d:%d:%d", chip, addr, seq);  
+    mock().setData( X, val );
+    
+}
+
+void MockIO_Expect_i2c_read_failure(uint8_t chip, int addr)
+{
+        mock().expectOneCall("i2c_read")
+             .withParameter("chip",chip)
+             .withParameter("addr",addr)
+             .andReturnValue(-1);
+}
+
+
+void MockIO_Expect_i2c_write_failure(uint8_t chip,  int addr, int val)
+{
+
+    mock().expectOneCall("i2c_write")
+        .withParameter("chip",chip)
+        .withParameter("addr",addr)
+        .withParameter("val",val)
+        .andReturnValue(-1);
+    
+}
 
 TEST_GROUP(I2C_Mock)
 {
         void setup()
         {
-            reset_verify();
-            MockIO_Create(20);
         }
 
         void teardown()
         {
-            MockIO_Destroy();
-            MockIO_Verify_Complete();
             
             mock().checkExpectations();
             mock().removeAllComparators();
             mock().clear();
+            resetI2CMock();
         }
 
 };
@@ -57,7 +94,7 @@ TEST_GROUP(I2C_Mock)
 TEST(I2C_Mock, I2CRead_Works)
 {
 
-   MockIO_Expect_i2c_read(0x8, 0, 23 );
+   MockIO_Expect_i2c_read(0x8, 0, 23 , 1);
 
    uint8_t value = 0;
 
@@ -104,14 +141,17 @@ TEST_GROUP(PMIC_Setup)
 {
         void setup()
         {
-            reset_verify();
-            MockIO_Create(20);
+            
         }
 
         void teardown()
         {
-            MockIO_Destroy();
-            MockIO_Verify_Complete();
+            resetI2CMock();
+            
+            mock().checkExpectations();
+            mock().removeAllComparators();
+            mock().clear();
+            
         }
 
 };
@@ -120,9 +160,9 @@ TEST_GROUP(PMIC_Setup)
 
 TEST(PMIC_Setup, FindPFuzeWhenItIsThere )
 {
-     MockIO_Expect_i2c_read(0x8, 0, 0x10 );
-     MockIO_Expect_i2c_read(0x8, 3, 0x11 );
-
+    MockIO_Expect_i2c_read(0x8, 0, 0x10, 1);
+    MockIO_Expect_i2c_read(0x8, 3, 0x11, 2);
+    
      int rv = probe_pfuze100();
 
      LONGS_EQUAL(0, rv);
@@ -130,8 +170,9 @@ TEST(PMIC_Setup, FindPFuzeWhenItIsThere )
 
 TEST(PMIC_Setup, FindPFuzeWhenItIsThereButWrongPMICVersion )
 {
-    MockIO_Expect_i2c_read(0x8, 0, 0x15 );
-
+    
+    MockIO_Expect_i2c_read(0x8, 0, 0x15, 1);
+     
     int rv = probe_pfuze100();
 
     LONGS_EQUAL(-1, rv);
@@ -139,8 +180,9 @@ TEST(PMIC_Setup, FindPFuzeWhenItIsThereButWrongPMICVersion )
 
 TEST(PMIC_Setup, FindPFuzeWhenItIsThereButWrongRevision)
 {
-    MockIO_Expect_i2c_read(0x8, 0, 0x10 );
-    MockIO_Expect_i2c_read(0x8, 3, 0x19 );
+     
+    MockIO_Expect_i2c_read(0x8, 0, 0x10, 1);
+    MockIO_Expect_i2c_read(0x8, 3, 0x19, 2);
 
     int rv = probe_pfuze100();
 
@@ -224,8 +266,8 @@ TEST(PMIC_Setup, TestPMICSW3IndependentOpCheckShouldPass )
 {
 
     MockIO_Expect_i2c_write (0x8, 0x7F, 0x01 );
-    MockIO_Expect_i2c_read (0x8, 0xB2, 0x0D );
-    MockIO_Expect_i2c_read (0x8, 0xB6, 0x03 );
+    MockIO_Expect_i2c_read (0x8, 0xB2, 0x0D, 1 );
+    MockIO_Expect_i2c_read (0x8, 0xB6, 0x03, 2 );
 
     int rv = pplans_pmic_sw3_independent_op_check ();
 
@@ -237,7 +279,7 @@ TEST(PMIC_Setup, TestPMICSW3IndependentOpCheckShouldFailWhenB2IsNotSet )
 {
 
     MockIO_Expect_i2c_write (0x8, 0x7F, 0x01 );
-    MockIO_Expect_i2c_read (0x8, 0xB2, 0x00 );
+    MockIO_Expect_i2c_read (0x8, 0xB2, 0x00, 1 );
 
     int rv = pplans_pmic_sw3_independent_op_check ();
 
@@ -248,8 +290,8 @@ TEST(PMIC_Setup, TestPMICSW3IndependentOpCheckShouldFailWhenB6IsNotSet )
 {
 
     MockIO_Expect_i2c_write (0x8, 0x7F, 0x01 );
-    MockIO_Expect_i2c_read (0x8, 0xB2, 0x0D );
-    MockIO_Expect_i2c_read (0x8, 0xB6, 0x00 );
+    MockIO_Expect_i2c_read (0x8, 0xB2, 0x0D, 1 );
+    MockIO_Expect_i2c_read (0x8, 0xB6, 0x00, 2 );
 
     int rv = pplans_pmic_sw3_independent_op_check ();
 
@@ -263,18 +305,14 @@ TEST_GROUP(PMIC_SW3Programming)
 {
         void setup()
         {
-            reset_verify();
-            MockIO_Create(90);
         }
 
         void teardown()
         {
-            MockIO_Destroy();
-            MockIO_Verify_Complete();
-            
             mock().checkExpectations();
             mock().removeAllComparators();
             mock().clear();
+            resetI2CMock();
         }
 
 };
@@ -283,8 +321,9 @@ TEST_GROUP(PMIC_SW3Programming)
 TEST(PMIC_SW3Programming, TestWhenSW3CIsProgrammedWeShouldNotRestart )
 {
     MockIO_Expect_i2c_write (0x8, 0x7F, 0x01 );
-    MockIO_Expect_i2c_read (0x8, 0xB2, 0x0D );
-    MockIO_Expect_i2c_read (0x8, 0xB6, 0x03 );
+    MockIO_Expect_i2c_read (0x8, 0xB2, 0x0D, 1 );
+    MockIO_Expect_i2c_read (0x8, 0xB6, 0x03, 2 );
+    mock().ignoreOtherCalls();
 
     pplans_pmic_handle_sw3 ();
 
@@ -296,8 +335,8 @@ TEST(PMIC_SW3Programming, TestWhenSW3CIsProgrammedWeShouldRestartAfterProgrammin
 {
 
     MockIO_Expect_i2c_write (0x8, 0x7F, 0x01 );
-    MockIO_Expect_i2c_read (0x8, 0xB2, 0x0D );
-    MockIO_Expect_i2c_read (0x8, 0xB6, 0x00 );
+    MockIO_Expect_i2c_read (0x8, 0xB2, 0x0D, 1 );
+    MockIO_Expect_i2c_read (0x8, 0xB6, 0x00, 2 );
 
     MockIO_ExpectLEDIO(1, 0x6 , 1);
     MockIO_ExpectLEDIO(7, 0xC , 1);
@@ -323,6 +362,8 @@ TEST(PMIC_SW3Programming, TestWhenSW3CIsProgrammedWeShouldRestartAfterProgrammin
 
     MockIO_Expect_i2c_write (0x8, 0xE4, 0x80 );
     MockIO_Expect_i2c_write (0x8, 0x84, 0xF0 );
+    
+    mock().ignoreOtherCalls();
 
 
     pplans_pmic_handle_sw3 ();
