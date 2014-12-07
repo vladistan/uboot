@@ -29,6 +29,8 @@
 #include <stdio.h>
 #include "mockio.h"
 #include "CppUTest/TestHarness_c.h"
+#include <CppUTestExt/MockSupport_c.h>
+    
 
 
 enum
@@ -41,7 +43,6 @@ typedef struct Expectation
 {
     int kind;
     int bank;
-    int led;
     int port;
     int state;
     uint8_t chip;
@@ -171,14 +172,6 @@ static void failForIncorrectBufLen(int condition, const char * expectationFailMe
 
 
 
-void recordGPIONRExpectation(int bank, int led)
-{
-    expectations[setExpectationCount].kind = GPIO_NR;
-    expectations[setExpectationCount].bank = bank;
-    expectations[setExpectationCount].led = led;
-    setExpectationCount++;
-}
-
 void recordGpioOutputExpectation(int port, int state)
 {
     expectations[setExpectationCount].kind = GPIO_OUTPUT;
@@ -223,11 +216,7 @@ void recordI2cWriteExpectation (uint8_t chip, unsigned int addr, uint8_t rv)
     setExpectationCount++;
 }
 
-void MockIO_Expect_GPIONR(int led, int bank)
-{
-    failWhenNoRoomForExpectations(report_too_many_expectations);
-    recordGPIONRExpectation(led, bank);
-}
+
 
 void MockIO_Expect_gpio_output(int port, int state)
 {
@@ -284,16 +273,7 @@ static void failWhenNoUnusedExpectations(const char * format)
     }
 }
 
-static void gpionr_setExpectedAndActual(int bank, int led) {
 
-    expected.kind = GPIO_NR;
-    expected.bank = expectations[getExpectationCount].bank;
-    expected.led  = expectations[getExpectationCount].led;
-
-    actual.kind = GPIO_NR;
-    actual.bank = bank;
-    actual.led = led;
-}
 
 static void gpio_out_setExpectedAndActual(int port, int state) {
 
@@ -345,8 +325,8 @@ static void failWhenWrongBankOrLed(int condition, const char * expectationFailMe
     int offset = snprintf(message, size,
             report_expectation_number, getExpectationCount + 1);
     snprintf(message + offset, size - offset,
-            expectationFailMessage, expected.bank, expected.led,
-            actual.bank, actual.led );
+            expectationFailMessage, expected.bank, 0,
+            actual.bank, 0 );
     fail(message);
 }
 
@@ -431,8 +411,7 @@ static int expectationIsNot(int kind)
 
 static int expectedBankLedIsNot(int bank, int led)
 {
-    return bank != expectations[getExpectationCount].bank ||
-            led != expectations[getExpectationCount].led;
+    return bank != expectations[getExpectationCount].bank ;
 }
 
 static int expectedPortStateIsNot(int port, int state)
@@ -459,14 +438,12 @@ static int expectedChipAddrValueIsNot(int chip, int addr, uint8_t value)
 
 int IMX_GPIO_NR(int bank, int led)
 {
-    failWhenNotInitialized();
-    gpionr_setExpectedAndActual(bank, led);
-    failWhenNoUnusedExpectations(report_GPIO_NR_but_out_of_expectations);
-    failExpectationGPIO(expectationIsNot(GPIO_NR), report_expect_wrong_func_gpionr);
-    failWhenWrongBankOrLed(expectedBankLedIsNot(bank, led), report_wrong_bank_led);
-    getExpectationCount++;
-
-    return (bank << 8) | led;
+    
+      int rv = (bank << 8) | led;
+      mock_c()->actualCall("IMX_GPIO_NR")->withIntParameters( "bank", bank)->withIntParameters("led", led)->
+          returnValue();
+    
+      return rv;
 }
 
 
@@ -474,14 +451,13 @@ int IMX_GPIO_NR(int bank, int led)
 
 void gpio_direction_output(int port, int state)
 {
-    failWhenNotInitialized();
-    gpio_out_setExpectedAndActual(port, state);
 
-    failWhenNoUnusedExpectations(report_GPIO_OUTPUT_but_out_of_expectations);
-    failExpectationGPIO(expectationIsNot(GPIO_OUTPUT), report_expect_wrong_func_gpio_out);
-    failWhenWrongPortState(expectedPortStateIsNot(port, state), report_wrong_portstate);
-
-    getExpectationCount++;
+    mock_c()
+        ->actualCall("gpio_direction_output")
+        ->withIntParameters( "port", port)
+        ->withIntParameters("state", state)
+        ->returnValue();
+  
 
 }
 

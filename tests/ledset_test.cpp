@@ -22,6 +22,7 @@
 
 #include <CppUTest/CommandLineTestRunner.h>
 #include <CppUTest/JUnitTestOutput.h>
+#include <CppUTestExt/MockSupport.h>
 #include <mockio.h>
 
 
@@ -30,8 +31,40 @@ extern "C" {
 }
 
 
+
+class MockVoidPtrComparator : public MockNamedValueComparator
+{
+public:
+    
+    virtual bool isEqual(const void* object1, const void* object2)
+    {
+        return object1 == object2;
+    }
+    
+    virtual SimpleString valueToString(const void* object)
+    {
+        return StringFrom(object);
+    }
+};
+
+MockVoidPtrComparator voidPtrComparator;
+
+
 TEST_GROUP(TestLib)
 {
+    
+    void setup()
+    {
+        mock().installComparator("void *", voidPtrComparator);
+        
+    }
+    
+    void teardown()
+    {
+        mock().checkExpectations();
+        mock().removeAllComparators();
+        mock().clear();
+    }
 };
 
 
@@ -43,14 +76,15 @@ TEST_GROUP(LedSetArgs)
 {
     void setup()
     {
-        reset_verify();
-        MockIO_Create(20);
+        mock().installComparator("void *", voidPtrComparator);
+     
     }
 
     void teardown()
-    {
-        MockIO_Destroy();
-        MockIO_Verify_Complete();
+    {  
+        mock().checkExpectations();
+        mock().removeAllComparators();
+        mock().clear();
     }
 
 };
@@ -59,49 +93,67 @@ TEST_GROUP(SetDebugLED)
 {
     void setup()
     {
-	    reset_verify();
-        MockIO_Create(20);
+	    mock().installComparator("void *", voidPtrComparator);
     }
 
     void teardown()
     {
-        MockIO_Destroy();
-        MockIO_Verify_Complete();
+       
+        mock().checkExpectations();
+        mock().removeAllComparators();
+        mock().clear();
+        
     }
 
 };
 
 
+TEST(TestLib, VerifyViaMock)
+{
+    mock().expectOneCall("cmd_usage").withParameterOfType("void *","p",NULL); 
+    cmd_usage(NULL);
+   
+
+}
+
+
 TEST(TestLib, VerifyReset)
 {
-   reset_verify();
-   CHECK(verify_cmd_usage(NULL));
-
    void * cmd_ptr = (void*)75;
-
+    
+   mock().expectNCalls(2,"cmd_usage").withParameterOfType("void *","p",NULL); 
+   mock().expectOneCall("cmd_usage").withParameterOfType("void *","p",cmd_ptr); 
+   
+   
+   cmd_usage(NULL);
    cmd_usage(cmd_ptr);
-   CHECK(verify_cmd_usage(cmd_ptr));
-   reset_verify();
-   CHECK(verify_cmd_usage(NULL));
+   cmd_usage(NULL);
+   
 
+   mock().checkExpectations();
+   
 }
 
 TEST(LedSetArgs, NotEnoughArgs)
 {
-
    void * cmd_ptr = (void*)12;
+   
+   mock().expectOneCall("cmd_usage").withParameterOfType("void *","p",(void*)12); 
+   
    int rv = do_ledset(cmd_ptr,0,0,NULL);
 
    LONGS_EQUAL(1, rv);
-
-   CHECK(verify_cmd_usage((void*)12));
+   
+   mock().checkExpectations();
 }
 
-void MockIO_ExpectLEDIO(int led, int bank, int val)
+void MockIO_ExpectLEDIO(int bank, int led, int val)
 {
-    MockIO_Expect_GPIONR(led, bank);
-    MockIO_Expect_gpio_output( (led << 8) | bank, val);
-
+    
+    mock().expectOneCall("IMX_GPIO_NR").withParameter("bank",bank).withParameter("led", led);
+    int port = (bank << 8) | led;
+    mock().expectOneCall("gpio_direction_output").withParameter("port",port).withParameter("state", val);
+ 
 }
 
 
@@ -111,8 +163,10 @@ TEST(LedSetArgs, LedArgsParsedCorrectly)
    void * cmd_ptr = (void*)12;
    const char * args[] = {"ledset","4","0"};
 
-   MockIO_ExpectLEDIO(1, 7 , 0);
-
+   mock().expectOneCall("IMX_GPIO_NR").withParameter("bank",1).withParameter("led", 7);
+   mock().expectOneCall("gpio_direction_output").withParameter("port",0x107).withParameter("state", 0);
+   
+  
    int rv = do_ledset(cmd_ptr,0,3,(char**)args);
 
    LONGS_EQUAL(0, rv);
@@ -126,24 +180,24 @@ TEST(LedSetArgs, LedArgsParsedCorrectlyWithHexArg)
    void * cmd_ptr = (void*)12;
    const char * args[] = {"ledset","0x4","0"};
 
-   MockIO_ExpectLEDIO(1, 7 , 0);
-
-
+   mock().expectOneCall("gpio_direction_output").withParameter("port",0x107).withParameter("state", 0);
+   mock().ignoreOtherCalls();
+     
    int rv = do_ledset(cmd_ptr,0,3,(char**)args);
 
    LONGS_EQUAL(0, rv);
-
-
-
-
 }
+
+
 TEST(LedSetArgs, LedArgsParsedCorrectlyWithOctArg)
 {
 
    void * cmd_ptr = (void*)12;
    const char * args[] = {"ledset","04","0"};
 
-   MockIO_ExpectLEDIO(1, 7 , 0);
+   mock().expectOneCall("gpio_direction_output").withParameter("port",0x107).withParameter("state", 0);
+   mock().ignoreOtherCalls();
+   
 
    int rv = do_ledset(cmd_ptr,0,3,(char**)args);
 
@@ -187,9 +241,10 @@ TEST(LedSetArgs, LedBank7Pin12SholdBeOff_ForLED20)
    void * cmd_ptr = (void*)12;
    const char * args[] = {"ledset","2","0"};
 
-    MockIO_Expect_GPIONR(7,12);
-    MockIO_Expect_gpio_output(0x70c, 0);
-
+    mock().expectOneCall("IMX_GPIO_NR").withParameter("bank",7).withParameter("led", 12);
+    mock().expectOneCall("gpio_direction_output").withParameter("port",0x70C).withParameter("state", 0);
+     
+   
    int rv = do_ledset(cmd_ptr,0,3,(char**)args);
 
    LONGS_EQUAL(0, rv);
@@ -203,9 +258,10 @@ TEST(LedSetArgs, LedBank1Pin8SholdBeOn_ForLED31)
    void * cmd_ptr = (void*)12;
    const char * args[] = {"ledset","3","1"};
 
-    MockIO_Expect_GPIONR(1,8);
-    MockIO_Expect_gpio_output(0x108, 1);
-
+    mock().expectOneCall("IMX_GPIO_NR").withParameter("bank",1).withParameter("led", 8);
+    mock().expectOneCall("gpio_direction_output").withParameter("port",0x108).withParameter("state", 1);
+     
+    
 
    int rv = do_ledset(cmd_ptr,0,3,(char**)args);
 
@@ -216,8 +272,9 @@ TEST(LedSetArgs, LedBank1Pin8SholdBeOn_ForLED31)
 TEST(LedSetArgs, LedBank7Pin13SholdBeOff_ForLED50)
 {
 
-    MockIO_Expect_GPIONR(0x7,0xD);
-    MockIO_Expect_gpio_output(0x70D, 0);
+    mock().expectOneCall("IMX_GPIO_NR").withParameter("bank",7).withParameter("led", 13);
+    mock().expectOneCall("gpio_direction_output").withParameter("port",0x70D).withParameter("state", 0);
+  
     void * cmd_ptr = (void*)12;
     const char * args[] = {"ledset","5","0"};
     int rv = do_ledset(cmd_ptr,0,3,(char**)args);
@@ -234,12 +291,13 @@ TEST(LedSetArgs, TestMultipleLEDs)
    const char * args2[] = {"ledset","4","1"};
    int rv;
 
-    MockIO_Expect_GPIONR(0x1,0x8);
-    MockIO_Expect_gpio_output(0x108, 1);
-    MockIO_Expect_GPIONR(0x1,0x7);
-    MockIO_Expect_gpio_output(0x107, 1);
+   mock().expectOneCall("IMX_GPIO_NR").withParameter("bank",1).withParameter("led", 8);
+   mock().expectOneCall("IMX_GPIO_NR").withParameter("bank",1).withParameter("led", 7);
 
-
+   mock().expectOneCall("gpio_direction_output").withParameter("port",0x108).withParameter("state", 1);
+   mock().expectOneCall("gpio_direction_output").withParameter("port",0x107).withParameter("state", 1);
+ 
+ 
    rv = do_ledset(cmd_ptr,0,3,(char**)args1);
    LONGS_EQUAL(0, rv);
    
@@ -252,11 +310,11 @@ TEST(LedSetArgs, TestMultipleLEDs)
 TEST(SetDebugLED, LedBankShouldSetupImxGpioNrCorrectly)
 {
 
-    MockIO_Expect_GPIONR(0x7,0xD);
-    MockIO_Expect_gpio_output(0x70D, 1);
-
-
-   set_debug_led(0x5,0x1);
+    mock().expectOneCall("IMX_GPIO_NR").withParameter("bank",7).withParameter("led", 13);
+    mock().expectOneCall("gpio_direction_output").withParameter("port",0x70D).withParameter("state", 1);
+  
+  
+    set_debug_led(0x5,0x1);
 
 }
 

@@ -22,6 +22,7 @@
 
 #include <CppUTest/CommandLineTestRunner.h>
 #include <CppUTest/JUnitTestOutput.h>
+#include <CppUTestExt/MockSupport.h>
 #include <mockio.h>
 
 
@@ -44,6 +45,10 @@ TEST_GROUP(I2C_Mock)
         {
             MockIO_Destroy();
             MockIO_Verify_Complete();
+            
+            mock().checkExpectations();
+            mock().removeAllComparators();
+            mock().clear();
         }
 
 };
@@ -266,6 +271,10 @@ TEST_GROUP(PMIC_SW3Programming)
         {
             MockIO_Destroy();
             MockIO_Verify_Complete();
+            
+            mock().checkExpectations();
+            mock().removeAllComparators();
+            mock().clear();
         }
 
 };

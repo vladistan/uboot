@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <strings.h>
 #include <mockio.h>
+#include <CppUTestExt/MockSupport_c.h>
 
 
 struct {
@@ -45,6 +46,7 @@ unsigned long simple_strtoul(const char *cp,char **endp,unsigned int base)
 int cmd_usage(void * p )
 {
    verify.cmd_usage = p;
+   mock_c()->actualCall("cmd_usage")->withParameterOfType("void *", "p", p);
    return 0;
 }
 

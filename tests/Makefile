@@ -77,5 +77,5 @@ pplans_pmic.c: ../drivers/misc/pplans_pmic.c
 
 test: pplans_pmic.o pplans_dbgled_test.o ledset_test.o pmic_setup_test.o cmd_ledset.o  \
       pplans_dbgled.o mockio.o lib.o
-	$(CXX)  -o $@ $^  $(LDLIBS)  -lCppUTest --coverage
+	$(CXX)  -o $@ $^  $(LDLIBS)  -lCppUTest -lCppUTestExt --coverage
 
