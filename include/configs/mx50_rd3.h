@@ -136,7 +136,7 @@
  * Miscellaneous configurable options
  */
 #define CONFIG_SYS_LONGHELP		/* undef to save memory */
-#define CONFIG_SYS_PROMPT		"MX50_RD3 U-Boot > "
+#define CONFIG_SYS_PROMPT		"MX50_RD3 [p] U-Boot > "
 #define CONFIG_AUTO_COMPLETE
 #define CONFIG_SYS_CBSIZE		256	/* Console I/O Buffer Size */
 /* Print Buffer Size */
@@ -163,9 +163,9 @@
 #define CONFIG_GET_FEC_MAC_ADDR_FROM_IIM
 
 #define CONFIG_MXC_FEC
-#define CONFIG_MII
-#define CONFIG_MII_GASKET
-#define CONFIG_DISCOVER_PHY
+//#define CONFIG_MII_GASKET
+#define CONFIG_RMII
+//#define CONFIG_DISCOVER_PHY
 
 /*
  * DDR ZQ calibration

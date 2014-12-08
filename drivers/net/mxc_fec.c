@@ -2,7 +2,7 @@
  * (C) Copyright 2000-2004
  * Wolfgang Denk, DENX Software Engineering, wd@denx.de.
  *
- * (C) Copyright 2008-2012 Freescale Semiconductor, Inc.
+ * (C) Copyright 2008-2010 Freescale Semiconductor, Inc.
  *
  * See file CREDITS for list of people who contributed to this
  * project.
@@ -38,8 +38,8 @@
 #include <linux/types.h>
 #include <asm/io.h>
 
-#undef	ET_DEBUG
-#undef	MII_DEBUG
+#define	ET_DEBUG
+#define	MII_DEBUG
 
 /* Ethernet Transmit and Receive Buffers */
 #define DBUF_LENGTH		1520
@@ -889,10 +889,14 @@ int fec_init(struct eth_device *dev, bd_t *bd)
 	int i;
 	u8 *ea = NULL;
 
-	fec_mii_phy_init(dev);
+	fec_reset(dev);
 
-#if defined(CONFIG_CMD_MII) || defined(CONFIG_MII) || \
-	defined(CONFIG_DISCOVER_PHY)
+	fec_localhw_setup((fec_t *)fecp);
+
+#if defined (CONFIG_CMD_MII) || defined (CONFIG_MII) || \
+	defined (CONFIG_DISCOVER_PHY)
+
+	mxc_fec_mii_init(fecp);
 #ifdef CONFIG_DISCOVER_PHY
 	if (info->phy_addr < 0 || info->phy_addr > 0x1F)
 		info->phy_addr = mxc_fec_mii_discover_phy(dev);
@@ -906,8 +910,8 @@ int fec_init(struct eth_device *dev, bd_t *bd)
 #ifndef CONFIG_DISCOVER_PHY
 	setFecDuplexSpeed(fecp, (uchar)info->phy_addr,
 				(FECDUPLEX << 16) | FECSPEED);
-#endif                         /* ifndef CONFIG_SYS_DISCOVER_PHY */
-#endif                         /* CONFIG_CMD_MII || CONFIG_MII */
+#endif				/* ifndef CONFIG_SYS_DISCOVER_PHY */
+#endif				/* CONFIG_CMD_MII || CONFIG_MII */
 
 	/* We use strictly polling mode only */
 	fecp->eimr = 0;
@@ -1031,7 +1035,7 @@ void fec_halt(struct eth_device *dev)
 int mxc_fec_initialize(bd_t *bis)
 {
 	struct eth_device *dev;
-	int i;
+	int i, j;
 	unsigned char ethaddr[6];
 
 	for (i = 0; i < sizeof(fec_info) / sizeof(fec_info[0]); i++) {
