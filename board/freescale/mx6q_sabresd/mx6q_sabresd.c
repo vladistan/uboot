@@ -241,7 +241,7 @@ void board_mmu_init(void)
 #define ANATOP_PLL_BYPASS_MASK          0x00010000
 #define ANATOP_PLL_PWDN_MASK            0x00001000
 #define ANATOP_PLL_HOLD_RING_OFF_MASK   0x00000800
-#define ANATOP_PLL_CLK_ENABLE_MASK     0x00100000
+#define ANATOP_PLL_CLK_ENABLE_MASK      0x00100000
 
 
 
@@ -272,6 +272,8 @@ static int setup_fec(void) {
     reg |= (0x1 << 21);
     writel(reg, IOMUXC_BASE_ADDR + 0x4);
 
+	printf ("Enabling ENET PLL\n");
+
 	/* Enable PLLs */
 	reg = readl(ANATOP_BASE_ADDR + 0xe0); /* ENET PLL */
 	reg &= ~ANATOP_PLL_PWDN_MASK;
@@ -284,19 +286,23 @@ static int setup_fec(void) {
 	if (timeout <= 0)
 		return -1;
     
-    //Set Clk to 50MHZ
+        //Set Clk to 50MHZ
 	reg = readl(ANATOP_BASE_ADDR + 0xe0); /* ENET PLL */
 	reg |= 0x1;
 	writel(reg, ANATOP_BASE_ADDR + 0xe0);
     
+	reg = readl(ANATOP_BASE_ADDR + 0xe0); /* ENET PLL */
 	reg &= ~ANATOP_PLL_BYPASS_MASK;
 	writel(reg, ANATOP_BASE_ADDR + 0xe0);
+
+	reg = readl(ANATOP_BASE_ADDR + 0xe0); /* ENET PLL */
 	reg |= ANATOP_PLL_CLK_ENABLE_MASK;
 	writel(reg, ANATOP_BASE_ADDR + 0xe0);
     
-    set_debug_led(2,0);
-    
+        set_debug_led(2,0);
 
+	printf ("ENET PLL Enable OK\n");
+    
 }
 
 static int setup_sata(void)
@@ -1651,7 +1657,6 @@ int board_init(void)
 	gd->bd->bi_boot_params = PHYS_SDRAM_1 + 0x100;
 
 	setup_uart();
-        
 #ifdef CONFIG_VIDEO_MX5
 	/* Enable lvds power */
 	setup_lvds_poweron();
@@ -1788,11 +1793,15 @@ void enet_board_init(void)
 			 MUX_PAD_CTRL(0x88);
     
 
+	printf ("Setup ENET IOMUX\n");
 	setup_enet();
+	printf ("Setup FEC \n");
+        setup_fec();
 	
-    set_debug_led(4,1);
+        set_debug_led(4,1);
+	printf ("Reset Enet \n");
     
-    x_mxc_iomux_v3_setup_pad(enet_reset);
+        x_mxc_iomux_v3_setup_pad(enet_reset);
 
 	/* phy reset: gpio1-25 */
    
@@ -1802,8 +1811,9 @@ void enet_board_init(void)
     
     x_mxc_iomux_v3_setup_pad(MX6DL_PAD_ENET_CRS_DV__ENET_RX_EN); // ENET_RX_EN -- ENET_CRS_DV (0x05B4)
     
-    
+    printf ("Reset Enet :DONE \n");
     set_debug_led(4,0);
+
 }
 #endif
 
