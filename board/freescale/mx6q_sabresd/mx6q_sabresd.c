@@ -314,8 +314,7 @@ static int setup_fec(void) {
      * GPR1[14] = 0, GPR1[18:17] = 00
      */
     reg =  readl(IOMUXC_BASE_ADDR + 0x4);
-    reg &= ~(0x3 << 17);
-    reg &= ~(0x1 << 14);
+    reg |= (0x1 << 21);
     writel(reg, IOMUXC_BASE_ADDR + 0x4);
 
 	/* Enable PLLs */
@@ -1689,8 +1688,7 @@ int board_init(void)
 	gd->bd->bi_boot_params = PHYS_SDRAM_1 + 0x100;
 
 	setup_uart();
-    setup_fec();
-
+        
 #ifdef CONFIG_VIDEO_MX5
 	/* Enable lvds power */
 	setup_lvds_poweron();
@@ -1706,7 +1704,6 @@ int board_init(void)
 	setup_eim();
 	setup_ecspi3();
 
-	setup_epdc();
 
 	setup_gpio1();
 	setup_gpio2();
@@ -1717,6 +1714,10 @@ int board_init(void)
 
 	setup_wdog1();
 	setup_hdmi();
+	
+	setup_fec();
+
+	setup_epdc();
 
 
 #ifdef CONFIG_NAND_GPMI
