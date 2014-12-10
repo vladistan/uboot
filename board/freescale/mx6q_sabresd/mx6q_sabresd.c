@@ -241,56 +241,9 @@ void board_mmu_init(void)
 #define ANATOP_PLL_BYPASS_MASK          0x00010000
 #define ANATOP_PLL_PWDN_MASK            0x00001000
 #define ANATOP_PLL_HOLD_RING_OFF_MASK   0x00000800
-#define ANATOP_SATA_CLK_ENABLE_MASK     0x00100000
+#define ANATOP_PLL_CLK_ENABLE_MASK     0x00100000
 
-#ifdef CONFIG_DWC_AHSATA
-/* Staggered Spin-up */
-#define	HOST_CAP_SSS			(1 << 27)
-/* host version register*/
-#define	HOST_VERSIONR			0xfc
-#define PORT_SATA_SR			0x128
 
-int sata_initialize(void)
-{
-	u32 reg = 0;
-	u32 iterations = 1000000;
-
-	if (sata_curr_device == -1) {
-		/* Reset HBA */
-		writel(HOST_RESET, SATA_ARB_BASE_ADDR + HOST_CTL);
-
-		reg = 0;
-		while (readl(SATA_ARB_BASE_ADDR + HOST_VERSIONR) == 0) {
-			reg++;
-			if (reg > 1000000)
-				break;
-		}
-
-		reg = readl(SATA_ARB_BASE_ADDR + HOST_CAP);
-		if (!(reg & HOST_CAP_SSS)) {
-			reg |= HOST_CAP_SSS;
-			writel(reg, SATA_ARB_BASE_ADDR + HOST_CAP);
-		}
-
-		reg = readl(SATA_ARB_BASE_ADDR + HOST_PORTS_IMPL);
-		if (!(reg & 0x1))
-			writel((reg | 0x1),
-					SATA_ARB_BASE_ADDR + HOST_PORTS_IMPL);
-
-		/* Release resources when there is no device on the port */
-		do {
-			reg = readl(SATA_ARB_BASE_ADDR + PORT_SATA_SR) & 0xF;
-			if ((reg & 0xF) == 0)
-				iterations--;
-			else
-				break;
-
-		} while (iterations > 0);
-	}
-
-	return __sata_initialize();
-}
-#endif
 
 /* Note: udelay() is not accurate for i2c timing */
 static void __udelay(int time)
@@ -310,6 +263,8 @@ static int setup_fec(void) {
 	u32 reg = 0;
 	s32 timeout = 100000;
 
+
+    set_debug_led(2,1);
     /* get enet tx reference clk from internal clock from anatop
      * GPR1[14] = 0, GPR1[18:17] = 00
      */
@@ -328,10 +283,18 @@ static int setup_fec(void) {
 	}
 	if (timeout <= 0)
 		return -1;
+    
+    //Set Clk to 50MHZ
+	reg = readl(ANATOP_BASE_ADDR + 0xe0); /* ENET PLL */
+	reg |= 0x1;
+	writel(reg, ANATOP_BASE_ADDR + 0xe0);
+    
 	reg &= ~ANATOP_PLL_BYPASS_MASK;
 	writel(reg, ANATOP_BASE_ADDR + 0xe0);
-	reg |= ANATOP_SATA_CLK_ENABLE_MASK;
+	reg |= ANATOP_PLL_CLK_ENABLE_MASK;
 	writel(reg, ANATOP_BASE_ADDR + 0xe0);
+    
+    set_debug_led(2,0);
     
 
 }
@@ -1827,23 +1790,20 @@ void enet_board_init(void)
 
 	setup_enet();
 	
-    
+    set_debug_led(4,1);
     
     x_mxc_iomux_v3_setup_pad(enet_reset);
 
 	/* phy reset: gpio1-25 */
-	reg = readl(GPIO1_BASE_ADDR + 0x0);
-	reg &= ~0x2000000;
-	writel(reg, GPIO1_BASE_ADDR + 0x0); 
-	reg = readl(GPIO1_BASE_ADDR + 0x4);
-	reg |= 0x2000000;
-	writel(reg, GPIO1_BASE_ADDR + 0x4);
-
-	udelay(500);
-
-	reg = readl(GPIO1_BASE_ADDR + 0x0);
-	reg |= 0x2000000;
-	writel(reg, GPIO1_BASE_ADDR + 0x0);
+   
+    gpio_direction_output(IMX_GPIO_NR(1, 25), 0);
+	udelay(500);    
+    gpio_direction_output(IMX_GPIO_NR(1, 25), 1);
+    
+    x_mxc_iomux_v3_setup_pad(MX6DL_PAD_ENET_CRS_DV__ENET_RX_EN); // ENET_RX_EN -- ENET_CRS_DV (0x05B4)
+    
+    
+    set_debug_led(4,0);
 }
 #endif
 
