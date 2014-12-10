@@ -268,11 +268,11 @@ static int setup_fec(void) {
     /* get enet tx reference clk from internal clock from anatop
      * GPR1[14] = 0, GPR1[18:17] = 00
      */
+    udelay(1000);
     reg =  readl(IOMUXC_BASE_ADDR + 0x4);
     reg |= (0x1 << 21);
     writel(reg, IOMUXC_BASE_ADDR + 0x4);
 
-	printf ("Enabling ENET PLL\n");
 
 	/* Enable PLLs */
 	reg = readl(ANATOP_BASE_ADDR + 0xe0); /* ENET PLL */
@@ -301,7 +301,6 @@ static int setup_fec(void) {
     
         set_debug_led(2,0);
 
-	printf ("ENET PLL Enable OK\n");
     
 }
 
@@ -328,7 +327,7 @@ static int setup_sata(void)
 		return -1;
 	reg &= ~ANATOP_PLL_BYPASS_MASK;
 	writel(reg, ANATOP_BASE_ADDR + 0xe0);
-	reg |= ANATOP_SATA_CLK_ENABLE_MASK;
+	reg |= ANATOP_PLL_CLK_ENABLE_MASK;
 	writel(reg, ANATOP_BASE_ADDR + 0xe0);
 
 	/* Enable sata phy */
@@ -1806,7 +1805,7 @@ void enet_board_init(void)
 	/* phy reset: gpio1-25 */
    
     gpio_direction_output(IMX_GPIO_NR(1, 25), 0);
-	udelay(500);    
+    udelay(500);    
     gpio_direction_output(IMX_GPIO_NR(1, 25), 1);
     
     x_mxc_iomux_v3_setup_pad(MX6DL_PAD_ENET_CRS_DV__ENET_RX_EN); // ENET_RX_EN -- ENET_CRS_DV (0x05B4)
