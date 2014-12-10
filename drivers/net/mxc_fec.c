@@ -147,9 +147,15 @@ static inline void fec_localhw_setup(volatile fec_t *fecp)
 	printf("FEC: enable RMII gasket\n");
 
 	/* disable the gasket and wait */
+	printf ("ENR  : %p \n ", (void*) & fecp->fec_miigsk_enr ); 
+	printf ("ENR V: %x \n ", fecp->fec_miigsk_enr ); 
 	fecp->fec_miigsk_enr = 0;
 	while (fecp->fec_miigsk_enr & FEC_MIIGSK_ENR_READY)
+	{
+		printf ("ENR  : %p \n ", (void*) & fecp->fec_miigsk_enr ); 
+		printf ("ENR V: %x \n ", fecp->fec_miigsk_enr ); 
 		udelay(1);
+	}
 
 	/* configure the gasket for RMII, 50 MHz, no loopback, no echo */
 	fecp->fec_miigsk_cfgr = FEC_MIIGSK_CFGR_IF_MODE_RMII;
@@ -203,7 +209,13 @@ static void mxc_fec_mii_init(volatile fec_t *fecp)
 	u32 clk;
 	clk = mxc_get_clock(MXC_IPG_CLK);
 
-	fecp->mscr = (fecp->mscr & (~0x7E)) | (((clk + 499999) / 5000000) << 1);
+	
+	printf ("FEC: IPG CLK: %d\n", clk );
+	unsigned int val = (fecp->mscr & (~0x7E)) | (((clk + 499999) / 5000000) << 1);
+	val |= 0x700;
+
+	fecp->mscr = val;
+	printf ("FEC: MSCR Set: %x\n", fecp->mscr );
 }
 
 static void mxc_fec_phy_powerup(char *devname, int phy_addr)
@@ -238,20 +250,33 @@ static inline int __fec_mii_read(volatile fec_t *fecp, unsigned char addr,
 				 unsigned char reg, unsigned short *value)
 {
 	int waiting = FEC_MII_TIMEOUT;
+	printf ("MII RD: A: %d R: %d  W[%d]\n", addr, reg, waiting );
+	printf ("EIR MII 1: %x \n", fecp-> eir );
 	if (fecp->eir & FEC_EIR_MII)
-		fecp->eir = FEC_EIR_MII;
+		fecp->eir &= ~ ( FEC_EIR_MII );
+	printf ("EIR MII 2: %x \n", fecp-> eir );
 
+	printf ("MMFR CMD : %x \n", FEC_MII_READ(addr, reg));
 	fecp->mmfr = FEC_MII_READ(addr, reg);
 	while (1) {
+		printf ("EIR MII 3: %x \n", fecp-> eir );
 		if (fecp->eir & FEC_EIR_MII) {
+			printf ("EIR MII 4: %x \n", fecp-> eir );
 			fecp->eir = FEC_EIR_MII;
 			break;
 		}
+		printf ("Waiting %d [%d] \n", waiting, FEC_MII_TICK );
 		if ((waiting--) <= 0)
-			return -1;
+			{
+			  printf ("MII RD Failed!!\n");
+			  return -1;
+			}
 		udelay(FEC_MII_TICK);
+	        printf ( "Tick \n");
 	}
+	printf ("MMFR %x \n", fecp->mmfr );
 	*value = FEC_MII_GET_DATA(fecp->mmfr);
+	printf ("MII READ %d \n", *value );
 	return 0;
 }
 
@@ -874,6 +899,8 @@ static void fec_mii_phy_init(struct eth_device *dev)
 	struct fec_info_s *info = dev->priv;
 	volatile fec_t *fecp = (fec_t *) (info->iobase);
 
+	printf ("FEC: MII PHY INIT \n");
+
 	fec_reset(dev);
 	fec_localhw_setup(fecp);
 #if defined (CONFIG_CMD_MII) || defined (CONFIG_MII) || \
@@ -896,8 +923,12 @@ int fec_init(struct eth_device *dev, bd_t *bd)
 #if defined(CONFIG_CMD_MII) || defined(CONFIG_MII) || \
 	defined(CONFIG_DISCOVER_PHY)
 #ifdef CONFIG_DISCOVER_PHY
+	printf ("Discovering PHY\n");
 	if (info->phy_addr < 0 || info->phy_addr > 0x1F)
-		info->phy_addr = mxc_fec_mii_discover_phy(dev);
+	{	info->phy_addr = mxc_fec_mii_discover_phy(dev);
+		printf ("Found PHY: %d \n", info->phy_addr);
+	}
+        
 #endif
 #if defined(CONFIG_MX6Q) || defined(CONFIG_MX6DL)
 	mx6_rgmii_rework(dev->name, info->phy_addr);
