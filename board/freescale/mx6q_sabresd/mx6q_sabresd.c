@@ -310,10 +310,33 @@ static int setup_fec(void) {
     reg |= (0x1 << 21);
     writel(reg, IOMUXC_BASE_ADDR + 0x4);
     
-    gpio_direction_output(IMX_GPIO_NR(1, 23), 0);
-    __udelay(1000);
+    int s = 0;
     
-    gpio_direction_output(IMX_GPIO_NR(1, 23), 1);
+    for ( s = 0  ; s < 6 ; s ++ ) {
+    
+        set_debug_led(1,1);
+
+        gpio_direction_output(IMX_GPIO_NR(1, 23), 0);
+        __udelay(1000000);   
+        
+        set_debug_led(1,0);
+        gpio_direction_output(IMX_GPIO_NR(1, 23), 1);
+        
+        __udelay(1000000);   
+      
+        set_debug_led(3,1);
+        writel(0x20e5c0, 0x130b0);
+        
+        gpio_direction_output(IMX_GPIO_NR(1, 23), 0);
+        __udelay(1000000);   
+        
+        set_debug_led(1,0);
+        gpio_direction_output(IMX_GPIO_NR(1, 23), 1);
+     
+        __udelay(1000000);   
+        
+    }
+    
     
     set_debug_led(2,0);
 
@@ -1698,7 +1721,6 @@ int board_init(void)
 	setup_wdog1();
 	setup_hdmi();
 	
-	setup_fec();
 
 	setup_epdc();
 
@@ -1803,10 +1825,6 @@ void enet_board_init(void)
 {
 	unsigned int reg;
 
-	iomux_v3_cfg_t enet_reset =
-			(MX6DL_PAD_ENET_CRS_DV__GPIO_1_25 & ~MUX_PAD_CTRL_MASK)           |
-			 MUX_PAD_CTRL(0x88);
-    
 
 	printf ("Setup ENET IOMUX\n");
 	setup_enet();
