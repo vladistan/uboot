@@ -309,31 +309,37 @@ static int setup_fec(void) {
     reg =  readl(IOMUXC_BASE_ADDR + 0x4);
     reg |= (0x1 << 21);
     writel(reg, IOMUXC_BASE_ADDR + 0x4);
+
     
     int s = 0;
     
     for ( s = 0  ; s < 6 ; s ++ ) {
     
-        set_debug_led(1,1);
+	printf ("FEC INIT 1\n"); set_debug_led(1,1);
 
         gpio_direction_output(IMX_GPIO_NR(1, 23), 0);
-        __udelay(1000000);   
-        
-        set_debug_led(1,0);
+
+        __udelay(1000000);   printf ("FEC INIT 2\n"); set_debug_led(1,0);
+
         gpio_direction_output(IMX_GPIO_NR(1, 23), 1);
         
-        __udelay(1000000);   
-      
-        set_debug_led(3,1);
-        writel(0x20e5c0, 0x130b0);
+        __udelay(1000000);   printf ("FEC INIT 3\n"); set_debug_led(3,1); 
+
+        __raw_writel(0x5, 0x20e01f0);
+        __raw_writel(0x130b0, 0x20e05c0);
+
+        __udelay(1000000);   printf ("FEC INIT 4\n"); set_debug_led(1,1); 
         
         gpio_direction_output(IMX_GPIO_NR(1, 23), 0);
-        __udelay(1000000);   
         
-        set_debug_led(1,0);
+        __udelay(1000000);  printf ("FEC INIT 6\n"); set_debug_led(3,0); set_debug_led(1,0); 
+
         gpio_direction_output(IMX_GPIO_NR(1, 23), 1);
      
         __udelay(1000000);   
+
+        __raw_writel(0x5, 0x20e01f0);
+        __raw_writel(0x1b0b0, 0x20e05c0);
         
     }
     
@@ -1443,6 +1449,7 @@ void setup_enet(){
 	x_mxc_iomux_v3_setup_pad(MX6DL_PAD_ENET_TXD0__ENET_TDATA_0); // ENET_TX_DATA0 -- ENET_TX_DATA0 (0x05D4)
 	x_mxc_iomux_v3_setup_pad(MX6DL_PAD_ENET_TXD1__ENET_TDATA_1); // ENET_TX_DATA1 -- ENET_TX_DATA1 (0x05D8)
 	x_mxc_iomux_v3_setup_pad(MX6DL_PAD_GPIO_16__ENET_ANATOP_ETHERNET_REF_OUT); // ENET_REF_CLK -- GPIO16 (0x05E4)
+
 }
 
 void setup_epdc(){
