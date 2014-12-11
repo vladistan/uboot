@@ -265,9 +265,7 @@ static int setup_fec(void) {
 
 
     set_debug_led(2,1);
-    /* get enet tx reference clk from internal clock from anatop
-     * GPR1[14] = 0, GPR1[18:17] = 00
-     */
+    
     udelay(1000);
     reg =  readl(IOMUXC_BASE_ADDR + 0x4);
     reg |= (0x1 << 21);
@@ -298,8 +296,26 @@ static int setup_fec(void) {
 	reg = readl(ANATOP_BASE_ADDR + 0xe0); /* ENET PLL */
 	reg |= ANATOP_PLL_CLK_ENABLE_MASK;
 	writel(reg, ANATOP_BASE_ADDR + 0xe0);
+   
+    __udelay(1000);
     
-        set_debug_led(2,0);
+	reg = readl(CCM_BASE_ADDR + CLKCTL_CCGR1);
+	reg |= 0xc00;
+	writel(reg, CCM_BASE_ADDR + CLKCTL_CCGR1);
+    
+   /* get enet tx reference clk from internal clock from anatop
+    * GPR1[21] = 1
+    */
+    reg =  readl(IOMUXC_BASE_ADDR + 0x4);
+    reg |= (0x1 << 21);
+    writel(reg, IOMUXC_BASE_ADDR + 0x4);
+    
+    gpio_direction_output(IMX_GPIO_NR(1, 23), 0);
+    __udelay(1000);
+    
+    gpio_direction_output(IMX_GPIO_NR(1, 23), 1);
+    
+    set_debug_led(2,0);
 
     
 }
@@ -1491,7 +1507,7 @@ void setup_enet(){
 	x_mxc_iomux_v3_setup_pad(MX6DL_PAD_ENET_CRS_DV__ENET_RX_EN); // ENET_RX_EN -- ENET_CRS_DV (0x05B4)
 	x_mxc_iomux_v3_setup_pad(MX6DL_PAD_ENET_MDC__ENET_MDC); // ENET_MDC -- ENET_MDC (0x05B8)
 	x_mxc_iomux_v3_setup_pad(MX6DL_PAD_ENET_MDIO__ENET_MDIO); // ENET_MDIO -- ENET_MDIO (0x05BC)
-	x_mxc_iomux_v3_setup_pad(MX6DL_PAD_ENET_REF_CLK__ENET_TX_CLK); // ENET_TX_CLK -- ENET_REF_CLK (0x05C0)
+	x_mxc_iomux_v3_setup_pad(MX6DL_PAD_ENET_REF_CLK__GPIO_1_23); // ENET_TX_CLK -- ENET_REF_CLK (0x05C0)
 	x_mxc_iomux_v3_setup_pad(MX6DL_PAD_ENET_RXD0__ENET_RDATA_0); // ENET_RX_DATA0 -- ENET_RX_DATA0 (0x05C8)
 	x_mxc_iomux_v3_setup_pad(MX6DL_PAD_ENET_RXD1__ENET_RDATA_1); // ENET_RX_DATA1 -- ENET_RX_DATA1 (0x05CC)
 	x_mxc_iomux_v3_setup_pad(MX6DL_PAD_ENET_TX_EN__ENET_TX_EN); // ENET_TX_EN -- ENET_TX_EN (0x05D0)
@@ -1795,21 +1811,12 @@ void enet_board_init(void)
 	printf ("Setup ENET IOMUX\n");
 	setup_enet();
 	printf ("Setup FEC \n");
-        setup_fec();
-	
-        set_debug_led(4,1);
+    
+    set_debug_led(4,1);
 	printf ("Reset Enet \n");
     
-        x_mxc_iomux_v3_setup_pad(enet_reset);
-
-	/* phy reset: gpio1-25 */
-   
-    gpio_direction_output(IMX_GPIO_NR(1, 25), 0);
-    udelay(500);    
-    gpio_direction_output(IMX_GPIO_NR(1, 25), 1);
-    
-    x_mxc_iomux_v3_setup_pad(MX6DL_PAD_ENET_CRS_DV__ENET_RX_EN); // ENET_RX_EN -- ENET_CRS_DV (0x05B4)
-    
+    setup_fec();
+ 
     printf ("Reset Enet :DONE \n");
     set_debug_led(4,0);
 
