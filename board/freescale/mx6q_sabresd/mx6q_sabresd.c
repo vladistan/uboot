@@ -331,7 +331,7 @@ static int setup_fec(void) {
         writel(0x130b0, 0x20e05e4);
 
         writel(0x5, 0x20e01f0);
-        writel(0x170b0, 0x20e05c0);
+        writel(0x130b0, 0x20e05c0);
 
         __udelay(1000000);   printf ("FEC INIT 4\n"); set_debug_led(1,1); 
         
