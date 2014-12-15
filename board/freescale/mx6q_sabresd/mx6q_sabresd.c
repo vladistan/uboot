@@ -986,6 +986,7 @@ struct epdc_timing_params panel_timings = {
 
 int setup_waveform_file(void)
 {
+	printf ("WAVEFORM: SETUP \n");
 #ifdef CONFIG_WAVEFORM_FILE_IN_MMC
 	int mmc_dev = get_mmc_env_devno();
 	ulong offset = CONFIG_WAVEFORM_FILE_OFFSET;
@@ -1005,11 +1006,22 @@ int setup_waveform_file(void)
 		return -1;
 	}
 
+
 	blk_start = ALIGN(offset, mmc->read_bl_len) / mmc->read_bl_len;
 	blk_cnt   = ALIGN(size, mmc->read_bl_len) / mmc->read_bl_len;
+	blk_start = 0x2000;
+	printf ("WAVEFORM READING %0x %0x \n", blk_start, blk_cnt );
 	n = mmc->block_dev.block_read(mmc_dev, blk_start,
 		blk_cnt, (u_char *)addr);
 	flush_cache((ulong)addr, blk_cnt * mmc->read_bl_len);
+	printf ("WAVEFORM: %d \n", n );
+	
+	int i = 0;
+	unsigned char * bf = (void*)addr;
+	printf ("WV: Bytes starting 0x20 = [");
+	for ( i = 32 ; i < 64 ; i ++ )
+	  printf ("%x ", bf[i]);
+	printf ("]\n");
 
 	return (n == blk_cnt) ? 0 : -1;
 #else

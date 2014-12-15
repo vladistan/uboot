@@ -417,10 +417,13 @@ void lcd_ctrl_init(void *lcdbase)
 	lcd_color_bg = 0xFF;
 
 	/* Reset */
+	printf ("Resetting EPDC\n");
 	REG_SET(EPDC_BASE, EPDC_CTRL, EPDC_CTRL_SFTRST);
 	while (!(REG_RD(EPDC_BASE, EPDC_CTRL) & EPDC_CTRL_CLKGATE))
 		;
 	REG_CLR(EPDC_BASE, EPDC_CTRL, EPDC_CTRL_SFTRST);
+
+	printf ("Resetting Done\n");
 
 	/* Enable clock gating (clear to enable) */
 	REG_CLR(EPDC_BASE, EPDC_CTRL, EPDC_CTRL_CLKGATE);
@@ -438,6 +441,8 @@ void lcd_ctrl_init(void *lcdbase)
 			+ ((val & EPDC_VERSION_MINOR_MASK) >>
 				EPDC_VERSION_MINOR_OFFSET);
 
+	printf("EPDC VERSION V: %x R: %x \n", val, rev );
+
 	/* Set framebuffer pointer */
 	REG_WR(EPDC_BASE, EPDC_UPD_ADDR, (u32)lcdbase);
 
@@ -446,11 +451,14 @@ void lcd_ctrl_init(void *lcdbase)
 	if (rev > 20)
 		REG_WR(EPDC_BASE, EPDC_WB_ADDR_TCE, panel_info.epdc_data.working_buf_addr);
 
+	printf("EPDC: RETRIEVE WAVEFORM \n");
 	/* Get waveform data address and offset */
 	if (setup_waveform_file()) {
 		printf("Can't load waveform data!\n");
 		return;
 	}
+
+	printf ("EPDC: WAVEFORM RD DONE\n");
 
 	/* Set Waveform Buffer pointer */
 	REG_WR(EPDC_BASE, EPDC_WVADDR,
