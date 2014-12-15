@@ -1073,60 +1073,11 @@ static void setup_epdc(void)
 
 void epdc_power_on()
 {
-	unsigned int reg;
 
-	/* Set EPD_PWR_CTL0 to high - enable EINK_VDD (3.15) */
-	reg = readl(GPIO2_BASE_ADDR + GPIO_DR);
-	reg |= (1 << 20);
-	writel(reg, GPIO2_BASE_ADDR + GPIO_DR);
-	udelay(1000);
-
-	/* Enable epdc signal pin */
-	epdc_enable_pins();
-
-	/* Set PMIC Wakeup to high - enable Display power */
-	reg = readl(GPIO3_BASE_ADDR + GPIO_DR);
-	reg |= (1 << 20);
-	writel(reg, GPIO3_BASE_ADDR + GPIO_DR);
-
-	/* Wait for PWRGOOD == 1 */
-	while (1) {
-		reg = readl(GPIO2_BASE_ADDR + GPIO_DR);
-		if (!(reg & (1 << 21)))
-			break;
-
-		udelay(100);
-	}
-
-	/* Enable VCOM */
-	reg = readl(GPIO3_BASE_ADDR + GPIO_DR);
-	reg |= (1 << 17);
-	writel(reg, GPIO3_BASE_ADDR + GPIO_DR);
-
-	reg = readl(GPIO3_BASE_ADDR + GPIO_DR);
-
-	udelay(500);
 }
 
 void  epdc_power_off()
 {
-	unsigned int reg;
-	/* Set PMIC Wakeup to low - disable Display power */
-	reg = readl(GPIO3_BASE_ADDR + GPIO_DR);
-	reg &= ~(1 << 20);
-	writel(reg, GPIO3_BASE_ADDR + GPIO_DR);
-
-	/* Disable VCOM */
-	reg = readl(GPIO3_BASE_ADDR + GPIO_DR);
-	reg &= ~(1 << 17);
-	writel(reg, GPIO3_BASE_ADDR + GPIO_DR);
-
-	epdc_disable_pins();
-
-	/* Set EPD_PWR_CTL0 to low - disable EINK_VDD (3.15) */
-	reg = readl(GPIO2_BASE_ADDR + GPIO_DR);
-	reg &= ~(1 << 20);
-	writel(reg, GPIO2_BASE_ADDR + GPIO_DR);
 }
 #endif
 
@@ -1464,7 +1415,7 @@ void setup_enet(){
 
 }
 
-void setup_epdc(){
+void setup_epdc_pins(){
 	x_mxc_iomux_v3_setup_pad(MX6DL_PAD_EIM_A16__EPDC_SDDO_0); // EPDC_DATA00 -- EIM_ADDR16 (0x04E0)
 	x_mxc_iomux_v3_setup_pad(MX6DL_PAD_EIM_A17__EPDC_PWRSTAT); // EPDC_PWR_STAT -- EIM_ADDR17 (0x04E4)
 	x_mxc_iomux_v3_setup_pad(MX6DL_PAD_EIM_A18__EPDC_PWRCTRL_0); // EPDC_PWR_CTRL0 -- EIM_ADDR18 (0x04E8)
@@ -1647,7 +1598,7 @@ int board_init(void)
 	setup_hdmi();
 	
 
-	setup_epdc();
+	setup_epdc_pins();
 
 
 #ifdef CONFIG_NAND_GPMI
