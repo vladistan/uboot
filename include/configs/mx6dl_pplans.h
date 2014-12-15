@@ -64,6 +64,8 @@
      
 #define CONFIG_PPLANS_DEBUG_LED
 #define CONFIG_PPLANS_PMIC
+     
+#define CONFIG_SPLASH_SCREEN
 
 /*
  * Size of malloc() pool
@@ -141,6 +143,7 @@
 		"kernel=uImage\0"				\
 
 #define CONFIG_ARP_TIMEOUT	200UL
+                    
 
 /*
  * Miscellaneous configurable options
@@ -302,7 +305,7 @@
 	/*
 	 * Framebuffer and LCD
 	 */
-	#define CONFIG_LCD
+	#define CONFIG_EPDC
 	#define CONFIG_IPU_V3H
 	#define CONFIG_VIDEO_MX5
 	#define CONFIG_IPU_CLKRATE	260000000

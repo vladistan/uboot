@@ -966,38 +966,6 @@ struct epdc_timing_params panel_timings = {
 	.num_ce = 1,
 };
 
-static void setup_epdc_power(void)
-{
-	unsigned int reg;
-
-	/* Setup epdc voltage */
-
-	/* EIM_A17 - GPIO2[21] for PWR_GOOD status */
-	mxc_iomux_v3_setup_pad(MX6DL_PAD_EIM_A17__GPIO_2_21);
-
-	/* EIM_D17 - GPIO3[17] for VCOM control */
-	mxc_iomux_v3_setup_pad(MX6DL_PAD_EIM_D17__GPIO_3_17);
-
-	/* Set as output */
-	reg = readl(GPIO3_BASE_ADDR + GPIO_GDIR);
-	reg |= (1 << 17);
-	writel(reg, GPIO3_BASE_ADDR + GPIO_GDIR);
-
-	/* EIM_D20 - GPIO3[20] for EPD PMIC WAKEUP */
-	mxc_iomux_v3_setup_pad(MX6DL_PAD_EIM_D20__GPIO_3_20);
-	/* Set as output */
-	reg = readl(GPIO3_BASE_ADDR + GPIO_GDIR);
-	reg |= (1 << 20);
-	writel(reg, GPIO3_BASE_ADDR + GPIO_GDIR);
-
-	/* EIM_A18 - GPIO2[20] for EPD PWR CTL0 */
-	mxc_iomux_v3_setup_pad(MX6DL_PAD_EIM_A18__GPIO_2_20);
-	/* Set as output */
-	reg = readl(GPIO2_BASE_ADDR + GPIO_GDIR);
-	reg |= (1 << 20);
-	writel(reg, GPIO2_BASE_ADDR + GPIO_GDIR);
-}
-
 int setup_waveform_file(void)
 {
 #ifdef CONFIG_WAVEFORM_FILE_IN_MMC
@@ -1031,74 +999,12 @@ int setup_waveform_file(void)
 #endif
 }
 
-static void epdc_enable_pins(void)
-{
-	/* epdc iomux settings */
-	mxc_iomux_v3_setup_pad(MX6DL_PAD_EIM_A16__EPDC_SDDO_0);
-	mxc_iomux_v3_setup_pad(MX6DL_PAD_EIM_DA10__EPDC_SDDO_1);
-	mxc_iomux_v3_setup_pad(MX6DL_PAD_EIM_DA12__EPDC_SDDO_2);
-	mxc_iomux_v3_setup_pad(MX6DL_PAD_EIM_DA11__EPDC_SDDO_3);
-	mxc_iomux_v3_setup_pad(MX6DL_PAD_EIM_LBA__EPDC_SDDO_4);
-	mxc_iomux_v3_setup_pad(MX6DL_PAD_EIM_EB2__EPDC_SDDO_5);
-	mxc_iomux_v3_setup_pad(MX6DL_PAD_EIM_CS0__EPDC_SDDO_6);
-	mxc_iomux_v3_setup_pad(MX6DL_PAD_EIM_RW__EPDC_SDDO_7);
-	mxc_iomux_v3_setup_pad(MX6DL_PAD_EIM_A21__EPDC_GDCLK);
-	mxc_iomux_v3_setup_pad(MX6DL_PAD_EIM_A22__EPDC_GDSP);
-	mxc_iomux_v3_setup_pad(MX6DL_PAD_EIM_A23__EPDC_GDOE);
-	mxc_iomux_v3_setup_pad(MX6DL_PAD_EIM_A24__EPDC_GDRL);
-	mxc_iomux_v3_setup_pad(MX6DL_PAD_EIM_D31__EPDC_SDCLK);
-	mxc_iomux_v3_setup_pad(MX6DL_PAD_EIM_D27__EPDC_SDOE);
-	mxc_iomux_v3_setup_pad(MX6DL_PAD_EIM_DA1__EPDC_SDLE);
-	mxc_iomux_v3_setup_pad(MX6DL_PAD_EIM_EB1__EPDC_SDSHR);
-	mxc_iomux_v3_setup_pad(MX6DL_PAD_EIM_DA2__EPDC_BDR_0);
-	mxc_iomux_v3_setup_pad(MX6DL_PAD_EIM_DA4__EPDC_SDCE_0);
-	mxc_iomux_v3_setup_pad(MX6DL_PAD_EIM_DA5__EPDC_SDCE_1);
-	mxc_iomux_v3_setup_pad(MX6DL_PAD_EIM_DA6__EPDC_SDCE_2);
-}
-
-static void epdc_disable_pins(void)
-{
-	/* Configure MUX settings for EPDC pins to GPIO */
-	mxc_iomux_v3_setup_pad(MX6DL_PAD_EIM_A16__GPIO_2_22);
-	mxc_iomux_v3_setup_pad(MX6DL_PAD_EIM_DA10__GPIO_3_10);
-	mxc_iomux_v3_setup_pad(MX6DL_PAD_EIM_DA12__GPIO_3_12);
-	mxc_iomux_v3_setup_pad(MX6DL_PAD_EIM_DA11__GPIO_3_11);
-	mxc_iomux_v3_setup_pad(MX6DL_PAD_EIM_LBA__GPIO_2_27);
-	mxc_iomux_v3_setup_pad(MX6DL_PAD_EIM_EB2__GPIO_2_30);
-	mxc_iomux_v3_setup_pad(MX6DL_PAD_EIM_CS0__GPIO_2_23);
-	mxc_iomux_v3_setup_pad(MX6DL_PAD_EIM_RW__GPIO_2_26);
-	mxc_iomux_v3_setup_pad(MX6DL_PAD_EIM_A21__GPIO_2_17);
-	mxc_iomux_v3_setup_pad(MX6DL_PAD_EIM_A22__GPIO_2_16);
-	mxc_iomux_v3_setup_pad(MX6DL_PAD_EIM_A23__GPIO_6_6);
-	mxc_iomux_v3_setup_pad(MX6DL_PAD_EIM_A24__GPIO_5_4);
-	mxc_iomux_v3_setup_pad(MX6DL_PAD_EIM_D31__GPIO_3_31);
-	mxc_iomux_v3_setup_pad(MX6DL_PAD_EIM_D27__GPIO_3_27);
-	mxc_iomux_v3_setup_pad(MX6DL_PAD_EIM_DA1__GPIO_3_1);
-	mxc_iomux_v3_setup_pad(MX6DL_PAD_EIM_EB1__GPIO_2_29);
-	mxc_iomux_v3_setup_pad(MX6DL_PAD_EIM_DA2__GPIO_3_2);
-	mxc_iomux_v3_setup_pad(MX6DL_PAD_EIM_DA4__GPIO_3_4);
-	mxc_iomux_v3_setup_pad(MX6DL_PAD_EIM_DA5__GPIO_3_5);
-	mxc_iomux_v3_setup_pad(MX6DL_PAD_EIM_DA6__GPIO_3_6);
-}
 
 static void setup_epdc(void)
 {
 	unsigned int reg;
 
-	/*** epdc Maxim PMIC settings ***/
-
-	/* EPDC PWRSTAT - GPIO2[21] for PWR_GOOD status */
-	mxc_iomux_v3_setup_pad(MX6DL_PAD_EIM_A17__GPIO_2_21);
-
-	/* EPDC VCOM0 - GPIO3[17] for VCOM control */
-	mxc_iomux_v3_setup_pad(MX6DL_PAD_EIM_D17__GPIO_3_17);
-
-	/* UART4 TXD - GPIO3[20] for EPD PMIC WAKEUP */
-	mxc_iomux_v3_setup_pad(MX6DL_PAD_EIM_D20__GPIO_3_20);
-
-	/* EIM_A18 - GPIO2[20] for EPD PWR CTL0 */
-	mxc_iomux_v3_setup_pad(MX6DL_PAD_EIM_A18__GPIO_2_20);
-
+	
 	/*** Set pixel clock rates for EPDC ***/
 
 	/* EPDC AXI clk (IPU2_CLK) from PFD_400M, set to 396/2 = 198MHz */
