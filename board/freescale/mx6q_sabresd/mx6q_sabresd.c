@@ -312,26 +312,30 @@ static int setup_fec(void) {
 
     
     int s = 0;
+        writel(0x5, 0x20e01f0);
+        writel(0x1b0b0, 0x20e05c0);
+        writel(0x0, 0x20e0214);
+        writel(0x1b0b0, 0x20e05e4);
     
     for ( s = 0  ; s < 6 ; s ++ ) {
     
 	printf ("FEC INIT 1\n"); set_debug_led(1,1);
 
-        gpio_direction_output(IMX_GPIO_NR(1, 23), 0);
-        gpio_direction_output(IMX_GPIO_NR(7, 11), 0);
+        //gpio_direction_output(IMX_GPIO_NR(1, 23), 0);
+        //gpio_direction_output(IMX_GPIO_NR(7, 11), 0);
 
-        __udelay(1000000);   printf ("FEC INIT 2\n"); set_debug_led(1,0);
+        //__udelay(1000000);   printf ("FEC INIT 2\n"); set_debug_led(1,0);
 
-        gpio_direction_output(IMX_GPIO_NR(1, 23), 1);
-        gpio_direction_output(IMX_GPIO_NR(7, 11), 1);
+        //gpio_direction_output(IMX_GPIO_NR(1, 23), 1);
+        //gpio_direction_output(IMX_GPIO_NR(7, 11), 1);
         
-        __udelay(1000000);   printf ("FEC INIT 3\n"); set_debug_led(3,1); 
+        //__udelay(1000000);   printf ("FEC INIT 3\n"); set_debug_led(3,1); 
 
-        writel(0x5, 0x20e0214);
-        writel(0x130b0, 0x20e05e4);
+        //writel(0x5, 0x20e0214);
+        //writel(0x1b0b0, 0x20e05e4);
 
-        writel(0x5, 0x20e01f0);
-        writel(0x130b0, 0x20e05c0);
+        //writel(0x5, 0x20e01f0);
+        //writel(0x1b0b0, 0x20e05c0);
 
         __udelay(1000000);   printf ("FEC INIT 4\n"); set_debug_led(1,1); 
         
@@ -345,11 +349,9 @@ static int setup_fec(void) {
      
         __udelay(1000000);   
 
-        writel(0x5, 0x20e0214);
-        writel(0x1b0b0, 0x20e05e4);
+        //writel(0x5, 0x20e0214);
+        //writel(0x130b0, 0x20e05e4);
 
-        writel(0x5, 0x20e01f0);
-        writel(0x1b0b0, 0x20e05c0);
         
     }
     
@@ -1452,7 +1454,7 @@ void setup_enet(){
 	x_mxc_iomux_v3_setup_pad(MX6DL_PAD_ENET_CRS_DV__ENET_RX_EN); // ENET_RX_EN -- ENET_CRS_DV (0x05B4)
 	x_mxc_iomux_v3_setup_pad(MX6DL_PAD_ENET_MDC__ENET_MDC); // ENET_MDC -- ENET_MDC (0x05B8)
 	x_mxc_iomux_v3_setup_pad(MX6DL_PAD_ENET_MDIO__ENET_MDIO); // ENET_MDIO -- ENET_MDIO (0x05BC)
-	x_mxc_iomux_v3_setup_pad(MX6DL_PAD_ENET_REF_CLK__GPIO_1_23); // ENET_TX_CLK -- ENET_REF_CLK (0x05C0)
+	//x_mxc_iomux_v3_setup_pad(MX6DL_PAD_ENET_REF_CLK__GPIO_1_23); // ENET_TX_CLK -- ENET_REF_CLK (0x05C0)
 	x_mxc_iomux_v3_setup_pad(MX6DL_PAD_ENET_RXD0__ENET_RDATA_0); // ENET_RX_DATA0 -- ENET_RX_DATA0 (0x05C8)
 	x_mxc_iomux_v3_setup_pad(MX6DL_PAD_ENET_RXD1__ENET_RDATA_1); // ENET_RX_DATA1 -- ENET_RX_DATA1 (0x05CC)
 	x_mxc_iomux_v3_setup_pad(MX6DL_PAD_ENET_TX_EN__ENET_TX_EN); // ENET_TX_EN -- ENET_TX_EN (0x05D0)
