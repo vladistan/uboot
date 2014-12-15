@@ -1065,8 +1065,6 @@ static void setup_epdc(void)
 
 	panel_info.epdc_data.epdc_timings = panel_timings;
 
-	setup_epdc_power();
-
 	/* Assign fb_base */
 	gd->fb_base = CONFIG_FB_BASE;
 }
