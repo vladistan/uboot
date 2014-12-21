@@ -955,8 +955,8 @@ int setup_splash_img(void)
 
 vidinfo_t panel_info = {
 	.vl_refresh = 85,
-	.vl_col = 800,
-	.vl_row = 600,
+	.vl_col = 4320,
+	.vl_row = 1920,
 	.vl_pixclock = 26666667,
 	.vl_left_margin = 8,
 	.vl_right_margin = 100,
@@ -973,7 +973,7 @@ vidinfo_t panel_info = {
 
 struct epdc_timing_params panel_timings = {
 	.vscan_holdoff = 4,
-	.sdoed_width = 10,
+	.sdoed_width = 8,
 	.sdoed_delay = 20,
 	.sdoez_width = 10,
 	.sdoez_delay = 20,
@@ -981,7 +981,7 @@ struct epdc_timing_params panel_timings = {
 	.gdsp_offs = 20,
 	.gdoe_offs = 0,
 	.gdclk_offs = 5,
-	.num_ce = 1,
+	.num_ce = 3,
 };
 
 int setup_waveform_file(void)
