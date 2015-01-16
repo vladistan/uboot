@@ -31,6 +31,12 @@ extern "C" {
 #include <pplans_pmic.h>
 }
 
+
+void MockIO_Expect_i2c_write(uint8_t chip, unsigned int addr,  uint8_t rv);
+void MockIO_Expect_i2c_read(uint8_t chip, unsigned int addr,  uint8_t rv);
+
+
+
 void MockIO_Expect_i2c_write(uint8_t chip, int addr, uint8_t val)
 {  
     mock().expectOneCall("i2c_write")
