@@ -7,10 +7,17 @@
 typedef void cmd_tbl_t ;
 typedef unsigned int uint;
 typedef unsigned char __u8;
+typedef unsigned char u_char;
+typedef unsigned long __u32;
+typedef unsigned long u32;
+typedef unsigned long ulong;
+typedef unsigned long u_long;
 typedef         __u8            uint8_t;
+typedef         __u8            u8;
+typedef unsigned short ushort;
 
 /* Uboot ENV */
-void cmd_usage(void *);
+int cmd_usage(void * p);
 unsigned long simple_strtoul(const char *cp,char **endp,unsigned int base);
 #define U_BOOT_CMD(name, args, n, exec, short_help, long_help )
 
@@ -19,8 +26,16 @@ unsigned long simple_strtoul(const char *cp,char **endp,unsigned int base);
 int IMX_GPIO_NR(int bank, int led);
 void gpio_direction_output(int port, int state);
 
+void REG_WR(__u32 addr, __u32 offset, __u32 val);
+void REG_SET(__u32 addr, __u32 offset, __u32 val);
+void REG_CLR(__u32 addr, __u32 offset, __u32 val);
+__u32 REG_RD(__u32 addr, __u32 offset);
+
+void debug(const char * p, ...);
+
 /* Verifies */
 
+#define EPDC_BASE_ADDR 8
 
 
 /* Components under test */

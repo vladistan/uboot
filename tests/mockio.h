@@ -28,8 +28,6 @@
 #ifndef D_MockIO_H
 #define D_MockIO_H
 
-typedef unsigned char __u8;
-typedef         __u8            uint8_t;
 
 void MockIO_Expect_GPIONR(int led, int bank);
 void MockIO_Expect_gpio_output(int port, int state);
@@ -42,6 +40,9 @@ void MockIO_Expect_i2c_read(uint8_t chip, unsigned int addr,  uint8_t rv);
 extern "C" {
 #endif
 
+#include <common.h>
+#include <lcd.h>
+
 
 int IMX_GPIO_NR(int bank, int led);
 void gpio_direction_output(int port, int state);
@@ -49,8 +50,15 @@ int i2c_read(uint8_t chip, unsigned int addr, int alen, uint8_t *buffer, int len
 int i2c_write(uint8_t chip, unsigned int addr, int alen, uint8_t *buffer, int len);
 void udelay(int msec);
 void resetI2CMock();
+void epdc_power_on();
+void epdc_power_off();
+void setup_waveform_file();
 
+void REG_CLR(u32 base, u32 offset, u32 mask);
+void REG_SET(u32 base, u32 offset, u32 mask);
+void REG_WR(u32 base, u32 offset, u32 value);
 
+void debug(const char * fmt, ...);
 
 #ifdef __cplusplus
 }

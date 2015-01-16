@@ -92,3 +92,7 @@ tests/pplans_dbgled.c
 tests/pplans_dbgled.h
 tests/pplans_pmic.c
 tests/pplans_pmic.h
+tests/lcd.h
+tests/mxc_epdc_fb.c
+tests/mxc_epdc_fb.h
+tests/linux

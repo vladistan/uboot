@@ -27,6 +27,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <stdarg.h>
 #include "mockio.h"
 #include "CppUTest/TestHarness_c.h"
 #include <CppUTestExt/MockSupport_c.h>
@@ -41,6 +42,71 @@ int IMX_GPIO_NR(int bank, int led)
     
       return rv;
 }
+
+void setup_waveform_file()
+{
+    mock_c()->actualCall("epdc_power_on");
+}
+
+void epdc_power_on()
+{
+    mock_c()->actualCall("epdc_power_on");
+}
+
+void epdc_power_off()
+{
+    mock_c()->actualCall("epdc_power_off");
+}
+
+void REG_CLR(u32 base, u32 offset, u32 mask)
+{
+    mock_c()->actualCall("REG_CLR")
+            ->withIntParameters("base", base)
+            ->withIntParameters("offset", offset)
+            ->withIntParameters("mask", mask);
+}
+
+void REG_SET(u32 base, u32 offset, u32 mask)
+{
+    mock_c()->actualCall("REG_SET")
+            ->withIntParameters("base", base)
+            ->withIntParameters("offset", offset)
+            ->withIntParameters("mask", mask);
+}
+
+void REG_WR(u32 base, u32 offset, u32 value)
+{
+    mock_c()->actualCall("REG_WR")
+            ->withIntParameters("base", base)
+            ->withIntParameters("offset", offset)
+            ->withIntParameters("mask", value);
+}
+
+__u32 REG_RD(u32 base, u32 offset)
+{
+
+    //regrd_read_rq_count++;
+
+    int rv = mock_c()->actualCall("REG_WR")
+            ->withIntParameters("base", base)
+            ->withIntParameters("offset", offset)
+            ->returnValue().value.intValue;
+
+
+    return rv;
+}
+
+vidinfo_t panel_info;
+
+void debug(const char * format, ...)
+{
+    va_list args;
+
+    va_start(args, format);
+    vprintf(format, args);
+    va_end(args);
+}
+
 
 
 void gpio_direction_output(int port, int state)
@@ -102,4 +168,7 @@ void udelay(int msec)
 {
 
 }
+
+
+
 

@@ -1,4 +1,4 @@
-CFLAGS = -g -Wall  -I.
+CFLAGS = -g -Wall  -I. -DCONFIG_MXC_EPDC
 CXXFLAGS = -g -Wall  -I.
 
 
@@ -44,6 +44,18 @@ asm/arch/iomux.h:
 	mkdir -p asm/arch
 	echo > $@
 
+linux/list.h:
+	mkdir -p linux
+	echo > $@
+
+linux/err.h:
+	mkdir -p linux
+	echo > $@
+
+linux/types.h:
+	mkdir -p linux
+	echo > $@
+
 pplans_dbgled.h: ../include/pplans_dbgled.h 
 	cp $^ $@
 
@@ -62,10 +74,12 @@ clean:
 	-rm -f cmd_ledset.c
 
 
-cmd_ledset.o: cmd_ledset.c common.h command.h asm/arch-mx6/gpio.h asm/io.h asm/arch/mx6.h asm/arch/imx-regs.h asm/arch/mx6dl_pins.h asm/arch/gpio.h asm/gpio.h asm/arch/iomux.h asm/arch/gpio.h
+cmd_ledset.o: cmd_ledset.c common.h command.h asm/arch-mx6/gpio.h asm/io.h asm/arch/mx6.h asm/arch/imx-regs.h asm/arch/mx6dl_pins.h asm/arch/gpio.h asm/gpio.h asm/arch/iomux.h asm/arch/gpio.h pplans_dbgled.h
 
 
 pplans_pmic.o: pplans_pmic.c pplans_pmic.h
+
+mxc_epdc_fb.o: mxc_epdc_fb.h lcd.h linux/list.h linux/err.h linux/types.h
 
 
 cmd_ledset.c: ../common/cmd_ledset.c
@@ -74,7 +88,17 @@ cmd_ledset.c: ../common/cmd_ledset.c
 pplans_pmic.c: ../drivers/misc/pplans_pmic.c
 	cp $^ $@
 
-test: pplans_pmic.o ledset_test.o pmic_setup_test.o cmd_ledset.o  \
+mxc_epdc_fb.c: ../drivers/video/mxc_epdc_fb.c
+	cp $^ $@
+
+mxc_epdc_fb.h: ../drivers/video/mxc_epdc_fb.h
+	cp $^ $@
+
+lcd.h: ../include/lcd.h
+	cp $^ $@
+
+
+test: pplans_pmic.o ledset_test.o pmic_setup_test.o cmd_ledset.o mxc_epdc_fb.o  \
       pplans_dbgled.o mockio.o lib.o
 	$(CXX)  -o $@ $^  $(LDLIBS)  -lCppUTest -lCppUTestExt --coverage
 
