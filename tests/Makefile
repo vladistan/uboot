@@ -78,6 +78,8 @@ cmd_ledset.o: cmd_ledset.c common.h command.h asm/arch-mx6/gpio.h asm/io.h asm/a
 
 ledset_test.o: ledset_test.cpp mockio.h
 
+mxc_epdc_fb_test.o: mxc_epdc_fb_test.cpp mockio.h
+
 mockio.h:  common.h lcd.h
 
 pplans_pmic.o: pplans_pmic.c pplans_pmic.h
@@ -101,7 +103,7 @@ lcd.h: ../include/lcd.h
 	cp $^ $@
 
 
-test: pplans_pmic.o ledset_test.o pmic_setup_test.o cmd_ledset.o mxc_epdc_fb.o  \
+test: pplans_pmic.o mxc_epdc_fb_test.o ledset_test.o pmic_setup_test.o cmd_ledset.o mxc_epdc_fb.o  \
       pplans_dbgled.o mockio.o lib.o
 	$(CXX)  -o $@ $^  $(LDLIBS)  -lCppUTest -lCppUTestExt --coverage
 
