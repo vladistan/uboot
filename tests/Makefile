@@ -76,6 +76,9 @@ clean:
 
 cmd_ledset.o: cmd_ledset.c common.h command.h asm/arch-mx6/gpio.h asm/io.h asm/arch/mx6.h asm/arch/imx-regs.h asm/arch/mx6dl_pins.h asm/arch/gpio.h asm/gpio.h asm/arch/iomux.h asm/arch/gpio.h pplans_dbgled.h
 
+ledset_test.o: ledset_test.cpp mockio.h
+
+mockio.h:  common.h lcd.h
 
 pplans_pmic.o: pplans_pmic.c pplans_pmic.h
 
