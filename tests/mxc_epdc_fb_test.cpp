@@ -24,6 +24,12 @@
 #include <CppUTestExt/MockSupport.h>
 #include <mockio.h>
 
+extern "C"
+{
+    #include <mxc_epdc_fb.h>
+    void lcd_panel_disable(void);
+}
+
 
 TEST_GROUP(MXC_EPDC_SMOKE)
 {
@@ -33,7 +39,9 @@ TEST_GROUP(MXC_EPDC_SMOKE)
 
         void teardown()
         {
-
+            mock().checkExpectations();
+            mock().removeAllComparators();
+            mock().clear();
 
         }
 
@@ -45,5 +53,16 @@ TEST(MXC_EPDC_SMOKE, ExcerciseStubs)
 
      lcd_initcolregs();
      lcd_setcolreg(0,0,0,0);
+
+}
+
+
+TEST(MXC_EPDC_SMOKE, LcdPanelDisable)
+{
+
+    mock().expectOneCall("epdc_power_off")
+           ;
+
+     lcd_panel_disable();
 
 }
