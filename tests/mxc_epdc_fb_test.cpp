@@ -115,3 +115,35 @@ TEST(MXC_EPDC_SIMPLE, CalcFBSize4320x1920x4BPP)
     LONGS_EQUAL(4320*1920*2, rv);
 }
 
+
+TEST_GROUP(MXC_EPDC_LOWLEVEL_IO)
+{
+    void setup()
+    {
+    }
+
+    void teardown()
+    {
+        mock().checkExpectations();
+        mock().removeAllComparators();
+        mock().clear();
+    }
+};
+
+
+extern "C" void epdc_set_screen_res(u32 width, u32 height);
+TEST(MXC_EPDC_SIMPLE, CheckSetScreenRes4320x1920)
+{
+
+    panel_info.vl_row = 960;
+    panel_info.vl_col = 1440;
+    panel_info.vl_bpix = 3;
+
+
+    mock().expectOneCall("REG_WR")
+        .withParameter("base",0x8)
+        .withParameter("offset",0x40)
+        .withParameter("value",0x3C005A0);
+
+    epdc_set_screen_res(panel_info.vl_col, panel_info.vl_row);
+}

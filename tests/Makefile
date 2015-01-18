@@ -86,13 +86,14 @@ cmd_ledset.o: cmd_ledset.c common.h command.h asm/arch-mx6/gpio.h asm/io.h asm/a
 
 ledset_test.o: ledset_test.cpp mockio.h
 
-mxc_epdc_fb_test.o: mxc_epdc_fb_test.cpp mockio.h
+mxc_epdc_fb_test.o: mxc_epdc_fb_test.cpp mockio.h mxc_epdc_fb.h
 
 mockio.h:  common.h lcd.h
 
 pplans_pmic.o: pplans_pmic.c pplans_pmic.h
 
-mxc_epdc_fb.o: mxc_epdc_fb.h lcd.h linux/list.h linux/err.h linux/types.h
+mxc_epdc_fb.o: mxc_epdc_fb.h lcd.h linux/list.h linux/err.h linux/types.h mxc_epdc_fb.c
+	$(CC) $(CFLAGS) -c -Dstatic= -Dinline= mxc_epdc_fb.c
 
 
 cmd_ledset.c: ../common/cmd_ledset.c
