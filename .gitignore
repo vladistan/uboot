@@ -96,3 +96,5 @@ tests/lcd.h
 tests/mxc_epdc_fb.c
 tests/mxc_epdc_fb.h
 tests/linux
+tests/CppUTest
+tests/CppUTestExt
