@@ -77,9 +77,9 @@ void REG_SET(u32 base, u32 offset, u32 mask)
 void REG_WR(u32 base, u32 offset, u32 value)
 {
     mock_c()->actualCall("REG_WR")
-            ->withIntParameters("base", base)
-            ->withIntParameters("offset", offset)
-            ->withIntParameters("value", value);
+            ->withIntParameters("base", (unsigned int) base)
+            ->withIntParameters("offset", (unsigned int) offset)
+            ->withIntParameters("value",  (unsigned int) value);
 }
 
 __u32 REG_RD(u32 base, u32 offset)

@@ -131,6 +131,22 @@ TEST_GROUP(MXC_EPDC_LOWLEVEL_IO)
 };
 
 
+
+void expect_REG_WR(u32 base, u32 off, u32 value )
+{
+    mock().expectOneCall("REG_WR")
+            .withIntParameter("base",   (unsigned int) base)
+            .withIntParameter("offset", (unsigned int) off)
+            .withIntParameter("value",  (unsigned int) value);
+}
+
+void expect_EPDC_REG_WR(u32 off, u32 val )
+{
+    expect_REG_WR(EPDC_BASE, off, val );
+}
+
+
+
 extern "C" void epdc_set_screen_res(u32 width, u32 height);
 TEST(MXC_EPDC_SIMPLE, CheckSetScreenRes4320x1920)
 {
@@ -139,11 +155,13 @@ TEST(MXC_EPDC_SIMPLE, CheckSetScreenRes4320x1920)
     panel_info.vl_col = 1440;
     panel_info.vl_bpix = 3;
 
-
-    mock().expectOneCall("REG_WR")
-        .withParameter("base",0x8)
-        .withParameter("offset",0x40)
-        .withParameter("value",0x3C005A0);
-
+    expect_EPDC_REG_WR(0x40,0x3C005A0);
     epdc_set_screen_res(panel_info.vl_col, panel_info.vl_row);
+}
+
+extern "C" void epdc_set_update_coord(u32 x, u32 y);
+TEST(MXC_EPDC_SIMPLE, CheckSetUpdateCoord)
+{
+    expect_EPDC_REG_WR(0x120,0x2340789);
+    epdc_set_update_coord(0x789,0x234);
 }
