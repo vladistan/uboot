@@ -87,7 +87,7 @@ __u32 REG_RD(u32 base, u32 offset)
 
     //regrd_read_rq_count++;
 
-    int rv = mock_c()->actualCall("REG_WR")
+    int rv = mock_c()->actualCall("REG_RD")
             ->withIntParameters("base", base)
             ->withIntParameters("offset", offset)
             ->returnValue().value.intValue;
