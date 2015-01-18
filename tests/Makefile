@@ -1,5 +1,5 @@
 CFLAGS = -g -Wall  -I. -DCONFIG_MXC_EPDC
-CXXFLAGS = -g -Wall  -I.
+CXXFLAGS = -g -Wall  -I. -DCONFIG_MXC_EPDC
 
 
 ifeq ($(WITH_COVERAGE),Y)

@@ -46,6 +46,8 @@ int i2c_read(uint8_t chip, unsigned int addr, int alen, uint8_t *buffer, int len
 int i2c_write(uint8_t chip, unsigned int addr, int alen, uint8_t *buffer, int len);
 void udelay(int msec);
 
+ulong calc_fbsize(void);
+ulong sizeof_panelinfo(void);
 
 #include <stdlib.h>
 #include <stdio.h>

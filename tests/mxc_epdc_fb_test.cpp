@@ -66,3 +66,52 @@ TEST(MXC_EPDC_SMOKE, LcdPanelDisable)
      lcd_panel_disable();
 
 }
+
+TEST_GROUP(MXC_EPDC_SIMPLE)
+{
+        void setup()
+        {
+        }
+
+        void teardown()
+        {
+            mock().checkExpectations();
+            mock().removeAllComparators();
+            mock().clear();
+        }
+};
+
+
+TEST(MXC_EPDC_SIMPLE, CalcFBSize100x100x4BPP)
+{
+	panel_info.vl_row = 100;
+    panel_info.vl_col = 100;
+    panel_info.vl_bpix = 3;
+
+    ulong rv = calc_fbsize();
+
+    LONGS_EQUAL(20000, rv);
+}
+
+TEST(MXC_EPDC_SIMPLE, CalcFBSize100x100x1BPP)
+{
+    panel_info.vl_row = 100;
+    panel_info.vl_col = 100;
+    panel_info.vl_bpix = 0;
+
+    ulong rv = calc_fbsize();
+
+    LONGS_EQUAL(2500, rv);
+}
+
+TEST(MXC_EPDC_SIMPLE, CalcFBSize4320x1920x4BPP)
+{
+    panel_info.vl_row = 4320;
+    panel_info.vl_col = 1920;
+    panel_info.vl_bpix = 3;
+
+    ulong rv = calc_fbsize();
+
+    LONGS_EQUAL(4320*1920*2, rv);
+}
+
