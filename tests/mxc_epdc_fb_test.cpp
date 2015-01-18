@@ -148,6 +148,19 @@ void expect_REG_SET(u32 base, u32 off, u32 mask )
             .withIntParameter("mask",  (unsigned int) mask);
 }
 
+void expect_REG_RD(u32 base, u32 off, u32 rv ) {
+
+    mock().expectOneCall("REG_RD")
+            .withIntParameter("base", (unsigned int) base)
+            .withIntParameter("offset", (unsigned int) off)
+            .andReturnValue((unsigned  int)rv);
+}
+
+void expect_EPDC_REG_RD(u32 off, u32 rv )
+{
+    expect_REG_RD(0x8, off, rv);
+}
+
 void expect_EPDC_REG_WR(u32 off, u32 val )
 {
     expect_REG_WR(EPDC_BASE, off, val );
@@ -193,4 +206,25 @@ TEST(MXC_EPDC_SIMPLE, CheckLcdDisable)
 {
     expect_EPDC_REG_SET(0x0,0x40000000);
     lcd_disable();
+}
+
+
+extern "C" int epdc_is_lut_active(u32 lut_num);
+TEST(MXC_EPDC_SIMPLE, CheckIsLutActiveWhenAllZero)
+{
+    expect_EPDC_REG_RD(0x440,0);
+
+    int rv = epdc_is_lut_active(5);
+
+    LONGS_EQUAL(0, rv);
+}
+
+
+TEST(MXC_EPDC_SIMPLE, CheckIsLutActiveWhenThirdIsSet)
+{
+    expect_EPDC_REG_RD(0x440,0x8);
+
+    int rv = epdc_is_lut_active(3);
+
+    LONGS_EQUAL(1, rv);
 }
