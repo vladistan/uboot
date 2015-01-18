@@ -140,10 +140,24 @@ void expect_REG_WR(u32 base, u32 off, u32 value )
             .withIntParameter("value",  (unsigned int) value);
 }
 
+void expect_REG_SET(u32 base, u32 off, u32 mask )
+{
+    mock().expectOneCall("REG_SET")
+            .withIntParameter("base",   (unsigned int) base)
+            .withIntParameter("offset", (unsigned int) off)
+            .withIntParameter("mask",  (unsigned int) mask);
+}
+
 void expect_EPDC_REG_WR(u32 off, u32 val )
 {
     expect_REG_WR(EPDC_BASE, off, val );
 }
+
+void expect_EPDC_REG_SET(u32 off, u32 mask )
+{
+    expect_REG_SET(EPDC_BASE, off, mask );
+}
+
 
 
 
@@ -171,4 +185,12 @@ TEST(MXC_EPDC_SIMPLE, CheckSetUpdateDimenshions)
 {
     expect_EPDC_REG_WR(0x140,0x4560123);
     epdc_set_update_dimensions(0x123,0x456);
+}
+
+
+extern "C" void lcd_disable();
+TEST(MXC_EPDC_SIMPLE, CheckLcdDisable)
+{
+    expect_EPDC_REG_SET(0x0,0x40000000);
+    lcd_disable();
 }
