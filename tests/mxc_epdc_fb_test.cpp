@@ -165,3 +165,10 @@ TEST(MXC_EPDC_SIMPLE, CheckSetUpdateCoord)
     expect_EPDC_REG_WR(0x120,0x2340789);
     epdc_set_update_coord(0x789,0x234);
 }
+
+extern "C" void epdc_set_update_dimensions(u32 width, u32 height);
+TEST(MXC_EPDC_SIMPLE, CheckSetUpdateDimenshions)
+{
+    expect_EPDC_REG_WR(0x140,0x4560123);
+    epdc_set_update_dimensions(0x123,0x456);
+}
