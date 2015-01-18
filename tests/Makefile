@@ -72,6 +72,14 @@ clean:
 	-rm -f *.gcno
 	-rm -f *.o
 	-rm -f cmd_ledset.c
+	-rm -f pplans_pmic.h
+	-rm -f pplans_pmic.c
+	-rm -f pplans_dbgled.c
+	-rm -f pplans_dbgled.h
+	-rm -f mxc_epdc_fb.c
+	-rm -f mxc_epdc_fb.h
+	-rm -f lcd.h command.h
+
 
 
 cmd_ledset.o: cmd_ledset.c common.h command.h asm/arch-mx6/gpio.h asm/io.h asm/arch/mx6.h asm/arch/imx-regs.h asm/arch/mx6dl_pins.h asm/arch/gpio.h asm/gpio.h asm/arch/iomux.h asm/arch/gpio.h pplans_dbgled.h
