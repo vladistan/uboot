@@ -277,3 +277,66 @@ TEST(MXC_EPDC_SIMPLE, CheckSetVerticalTiming)
     epdc_set_vertical_timing( 4, 8, 1 );
 
 }
+
+
+extern "C"  void epdc_init_settings(void);
+TEST(MXC_EPDC_SIMPLE, CheckEPDCInitSettings)
+{
+
+    panel_info.vl_row =  960;
+    panel_info.vl_col = 1440;
+    panel_info.vl_left_margin = 8;
+    panel_info.vl_right_margin = 100;
+    panel_info.vl_hsync = 4;
+
+
+
+    panel_info.vl_upper_margin = 4;
+    panel_info.vl_lower_margin = 8;
+    panel_info.vl_vsync = 1;
+
+    panel_info.epdc_data.epdc_timings.vscan_holdoff = 0x4;
+
+    panel_info.epdc_data.epdc_timings.sdoed_width = 8;
+    panel_info.epdc_data.epdc_timings.sdoed_delay = 20;
+    panel_info.epdc_data.epdc_timings.sdoez_width = 10;
+    panel_info.epdc_data.epdc_timings.sdoez_delay = 20;
+    panel_info.epdc_data.epdc_timings.gdclk_hp_offs = 419;
+    panel_info.epdc_data.epdc_timings.gdsp_offs = 20;
+    panel_info.epdc_data.epdc_timings.gdoe_offs = 0;
+    panel_info.epdc_data.epdc_timings.gdclk_offs = 5;
+    panel_info.epdc_data.epdc_timings.num_ce = 1;
+
+
+
+    expect_EPDC_REG_RD(0x0, 0x12345);
+    expect_EPDC_REG_SET(0x0, 0x12305 );         // Set Swizzle Mask
+    expect_EPDC_REG_WR(0x50, 0x400 );           // EPDC_FORMAT
+    expect_EPDC_REG_WR(0xA0, 0x64C864 );        // FIFO ( DIsabled, 100 200 100 )
+    expect_EPDC_REG_WR(0x1A0, 8 );              // Default temperature
+    expect_EPDC_REG_WR(0x40, 0x3c005a0 );       // Resolution  960 x 1440  (1280+160)
+    expect_EPDC_REG_WR(0x200, 0x40002 );        // TCE Ctrl
+    expect_EPDC_REG_WR(0x260,  0x40004 );       // HSCAN Timing
+    expect_EPDC_REG_WR(0x280, 0x640008 );       // HSCAN2 Timing
+    expect_EPDC_REG_WR(0x2A0, 0x080401 );       // VSCAN Timing
+    expect_EPDC_REG_WR(0x2C0, 0x8140A14 );      // TCE Timing
+    expect_EPDC_REG_WR(0x300, 0 );              // TCE Timing1
+    expect_EPDC_REG_WR(0x310, 0x1A30014 );      // TCE Timing2
+    expect_EPDC_REG_WR(0x320, 5 );              // TCE Timing3
+    expect_EPDC_REG_WR(0x220, 0x1105a0 );       // TCE SDCFG
+    expect_EPDC_REG_WR(0x240, 0x12 );           // TCE GDCFG
+    expect_EPDC_REG_WR(0x2E0, 0xE );           // TCE Polarity
+    expect_EPDC_REG_WR(0x400, 0x40000 );           // IRQ
+    expect_EPDC_REG_WR(0x700, 0 );           // EPDC_GPIO
+
+
+
+
+
+//    expect_EPDC_REG_WR(0x220, 0x1105a0 );       // TCE SDCFG
+
+
+
+    epdc_init_settings();
+
+}
