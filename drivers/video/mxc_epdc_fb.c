@@ -265,19 +265,18 @@ static void epdc_init_settings(void)
 
 	/*
 	 * EPDC_TCE_SDCFG
-	 * SDCLK_HOLD = 1
+	 * SDCLK_HOLD = 0
 	 * SDSHR = 1
 	 * NUM_CE = 1
-	 * SDDO_REFORMAT = FLIP_PIXELS
+	 * SDDO_REFORMAT = DO_NOT FLIP_PIXELS
 	 * SDDO_INVERT = DISABLED
 	 * PIXELS_PER_CE = display horizontal resolution
 	 */
 	num_ce = panel_info.epdc_data.epdc_timings.num_ce;
 	if (num_ce == 0)
 		num_ce = 1;
-	reg_val = EPDC_TCE_SDCFG_SDCLK_HOLD | EPDC_TCE_SDCFG_SDSHR
+	reg_val =  EPDC_TCE_SDCFG_SDSHR
 		| ((num_ce << EPDC_TCE_SDCFG_NUM_CE_OFFSET) & EPDC_TCE_SDCFG_NUM_CE_MASK)
-		| EPDC_TCE_SDCFG_SDDO_REFORMAT_FLIP_PIXELS
 		| ((panel_info.vl_col << EPDC_TCE_SDCFG_PIXELS_PER_CE_OFFSET) &
 		EPDC_TCE_SDCFG_PIXELS_PER_CE_MASK);
 	REG_WR(EPDC_BASE, EPDC_TCE_SDCFG, reg_val);
@@ -285,11 +284,10 @@ static void epdc_init_settings(void)
 	/*
 	 * EPDC_TCE_GDCFG
 	 * GDRL = 1
-	 * GDOE_MODE = 0;
+	 * GDOE_MODE = 1;
 	 * GDSP_MODE = 0;
 	 */
-	reg_val = EPDC_TCE_SDCFG_GDRL;
-	REG_WR(EPDC_BASE, EPDC_TCE_GDCFG, reg_val);
+	REG_WR(EPDC_BASE, EPDC_TCE_GDCFG, 0x12);
 
 	/*
 	 * EPDC_TCE_POLARITY

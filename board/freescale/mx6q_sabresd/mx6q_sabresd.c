@@ -981,7 +981,7 @@ struct epdc_timing_params panel_timings = {
 	.gdsp_offs = 20,
 	.gdoe_offs = 0,
 	.gdclk_offs = 5,
-	.num_ce = 3,
+	.num_ce = 1,
 };
 
 int setup_waveform_file(void)
