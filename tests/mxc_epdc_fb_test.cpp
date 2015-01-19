@@ -255,3 +255,14 @@ TEST(MXC_EPDC_SIMPLE, CheckSubmitUpdateCaseFullUpdDefaultLWTestMode)
 
 }
 
+
+extern "C" void epdc_set_horizontal_timing(u32 horiz_start, u32 horiz_end, u32 hsync_width, u32 hsync_line_length);
+TEST(MXC_EPDC_SIMPLE, CheckSetHorizontalTiming)
+{
+
+    expect_EPDC_REG_WR(0x260,  0x40004 );
+    expect_EPDC_REG_WR(0x280, 0x640008 );
+
+    epdc_set_horizontal_timing (8, 100,  4, 4);
+
+}
