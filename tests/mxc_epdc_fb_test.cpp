@@ -371,3 +371,25 @@ TEST(MXC_EPDC_COMPLEX_IO, draw_mode0)
 }
 
 
+extern "C"  void draw_splash_screen(void);
+TEST(MXC_EPDC_COMPLEX_IO, draw_splash_screen)
+{
+
+    panel_info.vl_row =  960;
+    panel_info.vl_col = 1440;
+
+    panel_info.epdc_data.wv_modes.mode_init = 0;
+    panel_info.epdc_data.wv_modes.mode_gc16 = 2;
+
+    expect_EPDC_REG_WR(0x120,0x0);    // Update Coord
+    expect_EPDC_REG_WR(0x140,0x3C005A0); // Update Dimensions
+    expect_EPDC_REG_WR(0x180,0x0);   // Submit update 1
+    expect_EPDC_REG_WR(0x160,0x201);   // Submit update 2
+    expect_EPDC_REG_RD(0x440,7);  // 3 LUT active
+    expect_EPDC_REG_RD(0x440,3);  // 2 LUT active
+    expect_EPDC_REG_RD(0x440,1);  // 1 LUT active
+    expect_EPDC_REG_RD(0x440,0);  // All Lut complete
+
+    draw_splash_screen();
+}
+
