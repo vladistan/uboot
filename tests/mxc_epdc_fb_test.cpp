@@ -244,3 +244,14 @@ TEST(MXC_EPDC_SIMPLE, CheckSubmitUpdateCaseFullUpdDefaultLW)
 
 }
 
+
+TEST(MXC_EPDC_SIMPLE, CheckSubmitUpdateCaseFullUpdDefaultLWTestMode)
+{
+
+    expect_EPDC_REG_WR(0x180,0x80000000);
+    expect_EPDC_REG_WR(0x160,0x1 | 0x80000000);
+
+    epdc_submit_update(0, 0, UPDATE_MODE_FULL, 1, 0);
+
+}
+
