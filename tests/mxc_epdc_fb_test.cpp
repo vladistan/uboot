@@ -175,7 +175,7 @@ void expect_EPDC_REG_SET(u32 off, u32 mask )
 
 
 extern "C" void epdc_set_screen_res(u32 width, u32 height);
-TEST(MXC_EPDC_SIMPLE, CheckSetScreenRes4320x1920)
+TEST(MXC_EPDC_LOWLEVEL_IO, CheckSetScreenRes4320x1920)
 {
 
     panel_info.vl_row = 960;
@@ -187,14 +187,14 @@ TEST(MXC_EPDC_SIMPLE, CheckSetScreenRes4320x1920)
 }
 
 extern "C" void epdc_set_update_coord(u32 x, u32 y);
-TEST(MXC_EPDC_SIMPLE, CheckSetUpdateCoord)
+TEST(MXC_EPDC_LOWLEVEL_IO, CheckSetUpdateCoord)
 {
     expect_EPDC_REG_WR(0x120,0x2340789);
     epdc_set_update_coord(0x789,0x234);
 }
 
 extern "C" void epdc_set_update_dimensions(u32 width, u32 height);
-TEST(MXC_EPDC_SIMPLE, CheckSetUpdateDimenshions)
+TEST(MXC_EPDC_LOWLEVEL_IO, CheckSetUpdateDimenshions)
 {
     expect_EPDC_REG_WR(0x140,0x4560123);
     epdc_set_update_dimensions(0x123,0x456);
@@ -202,7 +202,7 @@ TEST(MXC_EPDC_SIMPLE, CheckSetUpdateDimenshions)
 
 
 extern "C" void lcd_disable();
-TEST(MXC_EPDC_SIMPLE, CheckLcdDisable)
+TEST(MXC_EPDC_LOWLEVEL_IO, CheckLcdDisable)
 {
     expect_EPDC_REG_SET(0x0,0x40000000);
     lcd_disable();
@@ -210,7 +210,7 @@ TEST(MXC_EPDC_SIMPLE, CheckLcdDisable)
 
 
 extern "C" int epdc_is_lut_active(u32 lut_num);
-TEST(MXC_EPDC_SIMPLE, CheckIsLutActiveWhenAllZero)
+TEST(MXC_EPDC_LOWLEVEL_IO, CheckIsLutActiveWhenAllZero)
 {
     expect_EPDC_REG_RD(0x440,0);
 
@@ -220,7 +220,7 @@ TEST(MXC_EPDC_SIMPLE, CheckIsLutActiveWhenAllZero)
 }
 
 
-TEST(MXC_EPDC_SIMPLE, CheckIsLutActiveWhenThirdIsSet)
+TEST(MXC_EPDC_LOWLEVEL_IO, CheckIsLutActiveWhenThirdIsSet)
 {
     expect_EPDC_REG_RD(0x440,0x8);
 
@@ -234,7 +234,7 @@ extern "C" void epdc_submit_update(u32 lut_num, u32 waveform_mode, u32 update_mo
 #define UPDATE_MODE_PARTIAL	0x0
 #define UPDATE_MODE_FULL	0x1
 
-TEST(MXC_EPDC_SIMPLE, CheckSubmitUpdateCaseFullUpdDefaultLW)
+TEST(MXC_EPDC_LOWLEVEL_IO, CheckSubmitUpdateCaseFullUpdDefaultLW)
 {
 
     expect_EPDC_REG_WR(0x180,0x0);
@@ -245,7 +245,7 @@ TEST(MXC_EPDC_SIMPLE, CheckSubmitUpdateCaseFullUpdDefaultLW)
 }
 
 
-TEST(MXC_EPDC_SIMPLE, CheckSubmitUpdateCaseFullUpdDefaultLWTestMode)
+TEST(MXC_EPDC_LOWLEVEL_IO, CheckSubmitUpdateCaseFullUpdDefaultLWTestMode)
 {
 
     expect_EPDC_REG_WR(0x180,0x80000000);
@@ -257,7 +257,7 @@ TEST(MXC_EPDC_SIMPLE, CheckSubmitUpdateCaseFullUpdDefaultLWTestMode)
 
 
 extern "C" void epdc_set_horizontal_timing(u32 horiz_start, u32 horiz_end, u32 hsync_width, u32 hsync_line_length);
-TEST(MXC_EPDC_SIMPLE, CheckSetHorizontalTiming)
+TEST(MXC_EPDC_LOWLEVEL_IO, CheckSetHorizontalTiming)
 {
 
     expect_EPDC_REG_WR(0x260,  0x40004 );
@@ -269,7 +269,7 @@ TEST(MXC_EPDC_SIMPLE, CheckSetHorizontalTiming)
 
 
 extern "C"   void epdc_set_vertical_timing(u32 vert_start, u32 vert_end, u32 vsync_width);
-TEST(MXC_EPDC_SIMPLE, CheckSetVerticalTiming)
+TEST(MXC_EPDC_LOWLEVEL_IO, CheckSetVerticalTiming)
 {
 
     expect_EPDC_REG_WR(0x2A0, 0x080401 );
@@ -279,8 +279,22 @@ TEST(MXC_EPDC_SIMPLE, CheckSetVerticalTiming)
 }
 
 
+TEST_GROUP(MXC_EPDC_COMPLEX_IO)
+{
+        void setup()
+        {
+        }
+
+        void teardown()
+        {
+            mock().checkExpectations();
+            mock().removeAllComparators();
+            mock().clear();
+        }
+};
+
 extern "C"  void epdc_init_settings(void);
-TEST(MXC_EPDC_SIMPLE, CheckEPDCInitSettings)
+TEST(MXC_EPDC_COMPLEX_IO, CheckEPDCInitSettings)
 {
 
     panel_info.vl_row =  960;
@@ -330,13 +344,13 @@ TEST(MXC_EPDC_SIMPLE, CheckEPDCInitSettings)
     expect_EPDC_REG_WR(0x700, 0 );           // EPDC_GPIO
 
 
-
-
-
-//    expect_EPDC_REG_WR(0x220, 0x1105a0 );       // TCE SDCFG
-
-
-
     epdc_init_settings();
 
 }
+
+
+
+
+
+
+
