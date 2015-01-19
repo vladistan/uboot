@@ -266,3 +266,14 @@ TEST(MXC_EPDC_SIMPLE, CheckSetHorizontalTiming)
     epdc_set_horizontal_timing (8, 100,  4, 4);
 
 }
+
+
+extern "C"   void epdc_set_vertical_timing(u32 vert_start, u32 vert_end, u32 vsync_width);
+TEST(MXC_EPDC_SIMPLE, CheckSetVerticalTiming)
+{
+
+    expect_EPDC_REG_WR(0x2A0, 0x080401 );
+
+    epdc_set_vertical_timing( 4, 8, 1 );
+
+}
