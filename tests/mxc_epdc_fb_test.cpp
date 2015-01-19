@@ -228,3 +228,19 @@ TEST(MXC_EPDC_SIMPLE, CheckIsLutActiveWhenThirdIsSet)
 
     LONGS_EQUAL(1, rv);
 }
+
+
+extern "C" void epdc_submit_update(u32 lut_num, u32 waveform_mode, u32 update_mode, int use_test_mode, u32 np_val);
+#define UPDATE_MODE_PARTIAL	0x0
+#define UPDATE_MODE_FULL	0x1
+
+TEST(MXC_EPDC_SIMPLE, CheckSubmitUpdateCaseFullUpdDefaultLW)
+{
+
+    expect_EPDC_REG_WR(0x180,0x0);
+    expect_EPDC_REG_WR(0x160,0x1);
+
+    epdc_submit_update(0, 0, UPDATE_MODE_FULL, 0, 0);
+
+}
+
