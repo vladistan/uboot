@@ -955,8 +955,8 @@ int setup_splash_img(void)
 
 vidinfo_t panel_info = {
 	.vl_refresh = 85,
-	.vl_col = 4320,
-	.vl_row = 1920,
+	.vl_row = 960,
+	.vl_col = 1440,
 	.vl_pixclock = 26666667,
 	.vl_left_margin = 8,
 	.vl_right_margin = 100,
