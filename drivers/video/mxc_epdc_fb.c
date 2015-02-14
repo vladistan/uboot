@@ -382,9 +382,11 @@ void lcd_enable(void)
 		0x00, 24 * panel_info.vl_col);
 
 	/* Draw data to display */
+	debug("Init Display\n");
 	draw_mode0();
-
+	debug("Draw Splash\n");
 	draw_splash_screen();
+	debug("LCD: DONE\n");
 }
 
 void lcd_disable(void)
