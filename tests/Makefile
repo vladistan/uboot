@@ -1,5 +1,6 @@
 CFLAGS = -g -Wall  -I. -DCONFIG_MXC_EPDC
-CXXFLAGS = -g -Wall  -I. -DCONFIG_MXC_EPDC
+CXXFLAGS = -g -Wall  -I. -DCONFIG_MXC_EPDC 
+LDLIBS += -L/usr/local/lib
 
 
 ifeq ($(WITH_COVERAGE),Y)

@@ -71,6 +71,17 @@ void lcd_setcolreg(ushort regno, ushort red, ushort green, ushort blue)
  * Start Low-Level EPDC Functions
  ********************************************************/
 
+#ifndef TESTING
+void _E_REGWR(unsigned int base, unsigned int reg, unsigned int value)
+{
+	printf ("REGWR: %0X %0X %0X\n", base, reg, value);
+	
+	((*(volatile unsigned int *)((base) + (reg))) = (value));
+}
+
+#define REG_WR _E_REGWR
+#endif
+
 static inline void epdc_set_screen_res(u32 width, u32 height)
 {
 	u32 val = (height << EPDC_RES_VERTICAL_OFFSET) | width;
