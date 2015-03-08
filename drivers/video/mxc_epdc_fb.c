@@ -352,6 +352,16 @@ static void draw_mode0(void)
 		msleep(100);
 	}
 
+	u32 val = REG_RD(EPDC_BASE, EPDC_IRQ);
+	printf ("IRQ Stat: %0x \n", val );
+	val = REG_RD(EPDC_BASE, EPDC_STATUS_LUTS);
+	printf ("LUT1 STAT: %0x \n", val );
+	val = REG_RD(EPDC_BASE, EPDC_STATUS_LUTS2);
+	printf ("LUT2 Stat: %0x \n", val );
+	val = REG_RD(EPDC_BASE, EPDC_STATUS);
+	printf ("EPDC Stat: %0x \n", val );
+
+
 	debug("Mode0 init failed!\n");
 
 }
@@ -374,6 +384,18 @@ static void draw_splash_screen(void)
 		}
 		msleep(100);
 	}
+
+
+	u32 val = REG_RD(EPDC_BASE, EPDC_IRQ);
+	printf ("IRQ Stat: %0x \n", val );
+	val = REG_RD(EPDC_BASE, EPDC_STATUS_LUTS);
+	printf ("LUT1 STAT: %0x \n", val );
+	val = REG_RD(EPDC_BASE, EPDC_STATUS_LUTS2);
+	printf ("LUT2 Stat: %0x \n", val );
+	val = REG_RD(EPDC_BASE, EPDC_STATUS);
+	printf ("EPDC Stat: %0x \n", val );
+
+	
 	debug("Splash screen update failed!\n");
 }
 
@@ -395,10 +417,24 @@ void lcd_enable(void)
 		0x00, 24 * panel_info.vl_col);
 
 	/* Draw data to display */
-	debug("Init Display\n");
-	draw_mode0();
+	for ( i = 0 ; i < 20 ; i ++ ) {
+		debug("Init Display\n");
+		draw_mode0();
+		msleep(1000);
+	}
+
+	// Draw line through scr
+	for (i = 24; i < (panel_info.vl_row - 24); i++) {
+		memset((u8 *)lcd_base + i * panel_info.vl_col + 100, 0x00, 24);
+	}
+
 	debug("Draw Splash\n");
-	draw_splash_screen();
+	for ( i = 0 ; i < 20 ; i ++ ) {
+		draw_splash_screen();
+		msleep(1000);
+	}
+
+
 	debug("LCD: DONE\n");
 }
 
