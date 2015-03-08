@@ -299,48 +299,48 @@ TEST(MXC_EPDC_COMPLEX_IO, CheckEPDCInitSettings)
 
     panel_info.vl_row =  960;
     panel_info.vl_col = 1440;
-    panel_info.vl_left_margin = 8;
-    panel_info.vl_right_margin = 100;
-    panel_info.vl_hsync = 4;
+    panel_info.vl_left_margin = 176;
+    panel_info.vl_right_margin = 64;
+    panel_info.vl_hsync = 60;
 
 
 
-    panel_info.vl_upper_margin = 4;
-    panel_info.vl_lower_margin = 8;
+    panel_info.vl_upper_margin = 1;
+    panel_info.vl_lower_margin = 10;
     panel_info.vl_vsync = 1;
 
     panel_info.epdc_data.epdc_timings.vscan_holdoff = 0x4;
 
-    panel_info.epdc_data.epdc_timings.sdoed_width = 8;
+    panel_info.epdc_data.epdc_timings.sdoed_width = 10;
     panel_info.epdc_data.epdc_timings.sdoed_delay = 20;
     panel_info.epdc_data.epdc_timings.sdoez_width = 10;
     panel_info.epdc_data.epdc_timings.sdoez_delay = 20;
-    panel_info.epdc_data.epdc_timings.gdclk_hp_offs = 419;
-    panel_info.epdc_data.epdc_timings.gdsp_offs = 20;
-    panel_info.epdc_data.epdc_timings.gdoe_offs = 0;
-    panel_info.epdc_data.epdc_timings.gdclk_offs = 5;
+    panel_info.epdc_data.epdc_timings.gdclk_offs = 40;
+    panel_info.epdc_data.epdc_timings.gdoe_offs = 94;
+    panel_info.epdc_data.epdc_timings.gdsp_offs = 0;
+    panel_info.epdc_data.epdc_timings.gdclk_hp_offs = 740;
     panel_info.epdc_data.epdc_timings.num_ce = 1;
 
 
 
     expect_EPDC_REG_RD(0x0, 0x12345);
     expect_EPDC_REG_SET(0x0, 0x12305 );         // Set Swizzle Mask
-    expect_EPDC_REG_WR(0x50, 0x400 );           // EPDC_FORMAT
+    expect_EPDC_REG_WR(0x50, 0x200 );           // EPDC_FORMAT
     expect_EPDC_REG_WR(0xA0, 0x64C864 );        // FIFO ( DIsabled, 100 200 100 )
-    expect_EPDC_REG_WR(0x1A0, 8 );              // Default temperature
+//    expect_EPDC_REG_WR(0x1A0, 8 );              // ???? Default temperature
     expect_EPDC_REG_WR(0x40, 0x3c005a0 );       // Resolution  960 x 1440  (1280+160)
     expect_EPDC_REG_WR(0x200, 0x40002 );        // TCE Ctrl
-    expect_EPDC_REG_WR(0x260,  0x40004 );       // HSCAN Timing
-    expect_EPDC_REG_WR(0x280, 0x640008 );       // HSCAN2 Timing
-    expect_EPDC_REG_WR(0x2A0, 0x080401 );       // VSCAN Timing
-    expect_EPDC_REG_WR(0x2C0, 0x8140A14 );      // TCE Timing
+    expect_EPDC_REG_WR(0x260, 0x3C003C );       // HSCAN Timing
+    expect_EPDC_REG_WR(0x280, 0x4000B0   );       // HSCAN2 Timing
+    expect_EPDC_REG_WR(0x2A0, 0xA0101 );       // VSCAN Timing
+    expect_EPDC_REG_WR(0x2C0, 0xA140a14 );      // TCE Timing
     expect_EPDC_REG_WR(0x300, 0 );              // TCE Timing1
-    expect_EPDC_REG_WR(0x310, 0x1A30014 );      // TCE Timing2
-    expect_EPDC_REG_WR(0x320, 5 );              // TCE Timing3
+    expect_EPDC_REG_WR(0x310, 0x2e40000 );      // TCE Timing2
+    expect_EPDC_REG_WR(0x320, 0x5e0028 );              // TCE Timing3
     expect_EPDC_REG_WR(0x220, 0x1105a0 );       // TCE SDCFG
     expect_EPDC_REG_WR(0x240, 0x12 );           // TCE GDCFG
-    expect_EPDC_REG_WR(0x2E0, 0xE );           // TCE Polarity
-    expect_EPDC_REG_WR(0x400, 0x40000 );           // IRQ
+    expect_EPDC_REG_WR(0x2E0, 0x16 );           // TCE Polarity
+    expect_EPDC_REG_WR(0x400, 0 );           // IRQ
     expect_EPDC_REG_WR(0x700, 0 );           // EPDC_GPIO
 
 

@@ -184,7 +184,7 @@ static void epdc_init_settings(void)
 
 	/* EPDC_FORMAT - 2bit TFT and 4bit Buf pixel format */
 	reg_val = EPDC_FORMAT_TFT_PIXEL_FORMAT_2BIT
-		| EPDC_FORMAT_BUF_PIXEL_FORMAT_P4N
+		| EPDC_FORMAT_BUF_PIXEL_FORMAT_P2N
 		| ((0x0 << EPDC_FORMAT_DEFAULT_TFT_PIXEL_OFFSET) &
 		EPDC_FORMAT_DEFAULT_TFT_PIXEL_MASK);
 	REG_WR(EPDC_BASE, EPDC_FORMAT, reg_val);
@@ -200,7 +200,8 @@ static void epdc_init_settings(void)
 	REG_WR(EPDC_BASE, EPDC_FIFOCTRL, reg_val);
 
 	/* EPDC_TEMP - Use default temperature */
-	REG_WR(EPDC_BASE, EPDC_TEMP, TEMP_USE_DEFAULT);
+	///   REG_WR(EPDC_BASE, EPDC_TEMP, TEMP_USE_DEFAULT);  
+	//??? According to DataSheet this register is just for information only
 
 	/* EPDC_RES */
 	epdc_set_screen_res(panel_info.vl_col, panel_info.vl_row);
@@ -305,17 +306,18 @@ static void epdc_init_settings(void)
 	 * SDCE_POL = ACTIVE LOW
 	 * SDLE_POL = ACTIVE HIGH
 	 * SDOE_POL = ACTIVE HIGH
-	 * GDOE_POL = ACTIVE HIGH
-	 * GDSP_POL = ACTIVE LOW
+	 * GDOE_POL = ACTIVE LOW
+	 * GDSP_POL = ACTIVE HIGH
 	 */
-	reg_val = EPDC_TCE_POLARITY_SDLE_POL_ACTIVE_HIGH
+	reg_val = EPDC_TCE_POLARITY_GDSP_POL_ACTIVE_HIGH
 		| EPDC_TCE_POLARITY_SDOE_POL_ACTIVE_HIGH
-		| EPDC_TCE_POLARITY_GDOE_POL_ACTIVE_HIGH;
+		| EPDC_TCE_POLARITY_SDLE_POL_ACTIVE_HIGH;
 	REG_WR(EPDC_BASE, EPDC_TCE_POLARITY, reg_val);
 
+
+
 	/* EPDC_IRQ_MASK */
-	REG_WR(EPDC_BASE, EPDC_IRQ_MASK,
-		EPDC_IRQ_TCE_UNDERRUN_IRQ);
+	REG_WR(EPDC_BASE, EPDC_IRQ_MASK, 0);
 
 	/*
 	 * EPDC_GPIO
