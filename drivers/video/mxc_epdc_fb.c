@@ -334,6 +334,8 @@ static void draw_mode0(void)
 {
 	int i;
 
+	set_debug_led_bank(31);
+
 	/* Program EPDC update to process buffer */
 	epdc_set_update_coord(0, 0);
 	epdc_set_update_dimensions(panel_info.vl_col, panel_info.vl_row);
@@ -361,6 +363,7 @@ static void draw_mode0(void)
 	val = REG_RD(EPDC_BASE, EPDC_STATUS);
 	printf ("EPDC Stat: %0x \n", val );
 
+	set_debug_led_bank(0);
 
 	debug("Mode0 init failed!\n");
 
@@ -370,6 +373,8 @@ static void draw_splash_screen(void)
 {
 	int i;
 	int lut_num = 0;
+
+	set_debug_led_bank(31);
 
 	/* Program EPDC update to process buffer */
 	epdc_set_update_coord(0, 0);
@@ -395,6 +400,7 @@ static void draw_splash_screen(void)
 	val = REG_RD(EPDC_BASE, EPDC_STATUS);
 	printf ("EPDC Stat: %0x \n", val );
 
+	set_debug_led_bank(0);
 	
 	debug("Splash screen update failed!\n");
 }
@@ -410,6 +416,7 @@ void lcd_enable(void)
 	memset(lcd_base, 0x0, 24 * panel_info.vl_col);
 	for (i = 24; i < (panel_info.vl_row - 24); i++) {
 		memset((u8 *)lcd_base + i * panel_info.vl_col, 0x00, 24);
+		memset((u8 *)lcd_base + 200 + i * panel_info.vl_col, 0x00, 24);
 		memset((u8 *)lcd_base + i * panel_info.vl_col
 			+ panel_info.vl_col - 24, 0x00, 24);
 	}
