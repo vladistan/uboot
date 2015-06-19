@@ -1711,19 +1711,6 @@ void enet_board_init(void)
 {
 	unsigned int reg;
 
-
-	printf ("Setup ENET IOMUX\n");
-	setup_enet();
-	printf ("Setup FEC \n");
-    
-    set_debug_led(4,1);
-	printf ("Reset Enet \n");
-    
-    setup_fec();
- 
-    printf ("Reset Enet :DONE \n");
-    set_debug_led(4,0);
-
 }
 #endif
 
