@@ -20,13 +20,16 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 
   config.vm.synced_folder "", "/opt/uboot"
   
-  config.vm.provision "ansible" do |ansible|
-    ansible.playbook = "ansible/site.yml"
-    ansible.host_key_checking = false
-    ansible.groups = {
-      "dev" => ["default"],
-    }
-
-  end
+  config.vm.provision "shell", :privileged => true, path: "ansible/local-provision.sh"
+  
+  #
+  # config.vm.provision "ansible" do |ansible|
+  #   ansible.playbook = "ansible/site.yml"
+  #   ansible.host_key_checking = false
+  #   ansible.groups = {
+  #     "dev" => ["default"],
+  #   }
+  #
+  # end
 
 end
