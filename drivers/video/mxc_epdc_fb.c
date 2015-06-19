@@ -424,7 +424,7 @@ void lcd_enable(void)
 		0x00, 24 * panel_info.vl_col);
 
 	/* Draw data to display */
-	for ( i = 0 ; i < 20 ; i ++ ) {
+	for ( i = 0 ; i < 2 ; i ++ ) {
 		debug("Init Display\n");
 		draw_mode0();
 		msleep(1000);
@@ -436,7 +436,7 @@ void lcd_enable(void)
 	}
 
 	debug("Draw Splash\n");
-	for ( i = 0 ; i < 20 ; i ++ ) {
+	for ( i = 0 ; i < 2 ; i ++ ) {
 		draw_splash_screen();
 		msleep(1000);
 	}
