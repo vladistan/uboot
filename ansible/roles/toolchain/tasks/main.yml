@@ -16,7 +16,7 @@
   when: not toolchain_from_archive
 
 - name: Link toolchain to home dir
-  file: src=/opt/toolchain/SW path=/home/vagrant/SW state=link
+  file: src=/opt/toolchain/ path=/home/vagrant/SW state=link
 
 - name: Ensure apt-cache is updated
   apt: update_cache=yes
