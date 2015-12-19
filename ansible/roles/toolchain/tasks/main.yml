@@ -1,16 +1,16 @@
 ---
-    
+
 - name: Ensure toolchain directory exists
   file: path=/opt/toolchain state=directory mode=0755
-    
+
 - name: Copy the toolchain
   unarchive: src=arm-toolchain.tgz dest=/opt/toolchain
   when: toolchain_from_archive
-  
+
 - name: Download the toolchain
   get_url: url=https://s3.amazonaws.com/pplansbuildtools/arm-toolchain.tgz dest=/opt
   when: not toolchain_from_archive
-  
+
 - name: Unpack the toolchain
   unarchive: src=/opt/arm-toolchain.tgz dest=/opt/toolchain copy=no
   when: not toolchain_from_archive
@@ -23,7 +23,7 @@
 
 - name: Ensure have 32bit libs (1/3)
   apt:  name=lib32z1 state=present
-      
+
 - name: Ensure have 32bit libs (2/3)
   apt:  name=lib32ncurses5 state=present
 
