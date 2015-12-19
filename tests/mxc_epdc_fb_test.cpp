@@ -349,6 +349,7 @@ TEST(MXC_EPDC_COMPLEX_IO, CheckEPDCInitSettings)
 }
 
 
+/*
 extern "C"  void draw_mode0(void);
 TEST(MXC_EPDC_COMPLEX_IO, draw_mode0)
 {
@@ -369,8 +370,10 @@ TEST(MXC_EPDC_COMPLEX_IO, draw_mode0)
 
     draw_mode0();
 }
+*/
 
 
+/*
 extern "C"  void draw_splash_screen(void);
 TEST(MXC_EPDC_COMPLEX_IO, draw_splash_screen)
 {
@@ -392,4 +395,4 @@ TEST(MXC_EPDC_COMPLEX_IO, draw_splash_screen)
 
     draw_splash_screen();
 }
-
+*/
