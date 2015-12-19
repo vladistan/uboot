@@ -8,7 +8,7 @@
   when: toolchain_from_archive
   
 - name: Download the toolchain
-  get_url: url=https://s3.amazonaws.com/pplans-build-tools/arm-toolchain.tgz dest=/opt
+  get_url: url=https://s3.amazonaws.com/pplansbuildtools/arm-toolchain.tgz dest=/opt
   when: not toolchain_from_archive
   
 - name: Unpack the toolchain
