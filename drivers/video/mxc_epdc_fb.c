@@ -411,37 +411,6 @@ void lcd_enable(void)
 
 	epdc_power_on();
 
-	/* Draw black border around framebuffer*/
-	memset(lcd_base, 0xFF, panel_info.vl_col * panel_info.vl_row);
-	memset(lcd_base, 0x0, 24 * panel_info.vl_col);
-	for (i = 24; i < (panel_info.vl_row - 24); i++) {
-		memset((u8 *)lcd_base + i * panel_info.vl_col, 0x00, 24);
-		memset((u8 *)lcd_base + 200 + i * panel_info.vl_col, 0x00, 24);
-		memset((u8 *)lcd_base + i * panel_info.vl_col
-			+ panel_info.vl_col - 24, 0x00, 24);
-	}
-	memset((u8 *)lcd_base + panel_info.vl_col * (panel_info.vl_row - 24),
-		0x00, 24 * panel_info.vl_col);
-
-	/* Draw data to display */
-	for ( i = 0 ; i < 2 ; i ++ ) {
-		debug("Init Display\n");
-		draw_mode0();
-		msleep(1000);
-	}
-
-	// Draw line through scr
-	for (i = 24; i < (panel_info.vl_row - 24); i++) {
-		memset((u8 *)lcd_base + i * panel_info.vl_col + 100, 0x00, 24);
-	}
-
-	debug("Draw Splash\n");
-	for ( i = 0 ; i < 2 ; i ++ ) {
-		draw_splash_screen();
-		msleep(1000);
-	}
-
-
 	debug("LCD: DONE\n");
 }
 
